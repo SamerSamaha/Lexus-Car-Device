@@ -22,6 +22,13 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every step runs in bash with "pipefail": a step fails if any command in a
+# pipeline fails, not only the last one. The container's default shell (sh)
+# would let a failed first command pass unnoticed.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-and-test:
     name: Build and unit tests
@@ -98,9 +105,11 @@ jobs:
 
       # Formatting check. git lists every tracked C++ file, xargs hands the list to
       # clang-format, and clang-format reports any file it would change. Nothing is
-      # rewritten: the step only passes or fails.
+      # rewritten: the step only passes or fails. The first line prints the files
+      # that are checked, so the log shows the check was not empty.
       - name: Check formatting with clang-format
         run: |
+          git ls-files '*.cpp' '*.h'
           git ls-files -z '*.cpp' '*.h' | xargs -0 --no-run-if-empty clang-format --style=file --dry-run --Werror
 
       - name: Configure (clang-tidy)
