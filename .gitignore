@@ -1,0 +1,26 @@
+# Raw on-car recordings stay local until scrubbed (decision D-023)
+local_recordings/
+
+# Build output
+build/
+out/
+cmake-build-*/
+Testing/
+CMakeUserPresets.json
+compile_commands.json
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.user
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Operating system
+Thumbs.db
+.DS_Store
