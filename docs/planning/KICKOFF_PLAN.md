@@ -1,9 +1,10 @@
 # Lexus Head Unit — project plan
 
-**Revision 3, 2026-10-01.**
+**Revision 4, 2026-10-02.**
 - Revision 1: kickoff plan, approved by Samer.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
+- Revision 4: design-first gate added (D-033); sprint 1 estimates and statuses updated; LHU-005 before LHU-004 (D-032).
 
 The canonical copy of this file is `docs/planning/KICKOFF_PLAN.md` in the repository. Ticket LHU-004 splits it into the other `docs/` files.
 
@@ -151,10 +152,12 @@ A signal carries value, unit, timestamp and status, shaped like an Android VHAL 
 
 ```
 README.md  CMakeLists.txt  CMakePresets.json  .clang-format  .clang-tidy
+tests/.clang-tidy (relaxes two checks for test code)
 .gitattributes  .gitignore
 .github/   workflows/ci.yml  pull_request_template.md  ISSUE_TEMPLATE/{bug,ticket}.md
 docs/      planning/KICKOFF_PLAN.md       requirements/REQUIREMENTS.md
            traceability/TRACEABILITY.md   architecture/ARCHITECTURE.md   adr/
+           design/README.md  design/DESIGN_NOTE_TEMPLATE.md  design/DN-nnn-<short-name>.md
            safety/SAFETY_STATEMENT.md     test/TEST_STRATEGY.md
            test/MANUAL_ON_CAR_PROCEDURE.md  test/results/
            review/CODE_REVIEW_CHECKLIST.md  release/RELEASE_CHECKLIST.md
@@ -162,7 +165,8 @@ docs/      planning/KICKOFF_PLAN.md       requirements/REQUIREMENTS.md
 src/       hardware/{can,obd,transport}/  service/  hmi/{viewmodels,qml}/  app/
 tests/     unit/  integration/  scenarios/  vcan/  hmi/
 tools/     elm327_emulator/  can_traffic_generator/  measure/
-           check_traceability.py  check_private_data.py
+           check_traceability.py  check_private_data.py  test_check_private_data.py
+           private_data_allowlist.txt
 dbc/       simulated_vehicle.dbc (invented data, labelled as such)
 deploy/    systemd unit, Pi setup notes
 ```
@@ -172,7 +176,7 @@ Ignored, never committed: `local_recordings/`, build output.
 ## Branch, review and release model (D-014 to D-020)
 
 - `main` production, `dev` integration, both protected by rulesets. `feature/LHU-nnn-description` and `bugfix/LHU-nnn-description` off `dev`.
-- PR into `dev`: required CI checks green; the review checklist filled in as a PR comment; requirement IDs in the PR body; squash merge by Samer. Required approvals are off.
+- PR into `dev`: required CI checks green; the review checklist filled in as a PR comment; requirement IDs and the design note (DN-nnn) in the PR body, with deviations from the design listed; squash merge by Samer. Required approvals are off.
 - `dev` to `main`: release PR, `RELEASE_CHECKLIST.md` passed, merge commit, annotated tag. Planned: v0.1.0 (sprint 1), v0.2.0 (sprint 2), v1.0.0 (sprint 3).
 - The bootstrap exception is the "Initial commit" 414ff66 made by GitHub.
 - All pushes are made by the repository owner.
@@ -255,27 +259,45 @@ Measurements: one script per metric in `tools/measure/`, raw CSV committed, samp
 
 Expectation, stated before measuring: Raspberry Pi reports about 65°C idle for an uncooled Pi 5 in an air-conditioned room, and throttling under sustained full load. So idle should pass, a build on the Pi may warn or fail, and a hot car is the open question. A fail is logged as a bug with the CSV attached; the fix is decided then.
 
+## Design-first gate (D-033)
+
+Before any ticket that adds or changes a component moves to In progress, its design is written down, reviewed and approved. The process and the template are in `docs/design/`.
+
+1. **Draft.** Samer writes the design note alone, time-boxed to 30 to 45 minutes, as `docs/design/DN-nnn-<short-name>.md`, where `nnn` is the ticket number. Sections, in order: problem in two sentences; clarifying questions with the assumption made for each; nouns to classes with each class's responsibility; what each class stores (constructor and fields); verbs to methods (public interface with inputs, outputs and units); interaction sequence for the main scenario; failure cases and how the design handles each; test plan mapped to requirement IDs; at least one alternative considered and why it was rejected.
+2. **Design review.** A senior reviewer questions the design, one or two questions at a time, and points at gaps by asking, not by telling. The reviewer's own design is not shown until Samer has defended or revised his.
+3. **Comparison and revision.** The reviewer shows how they would have designed it and the key differences. Samer revises the note.
+4. **Approval.** Samer marks the note Approved. Coding does not start before this.
+5. **Commit.** The note is committed with the code PR or before it. The PR body states: "Implements DN-nnn; deviations from the design are listed with reasons."
+6. **After merge.** Samer adds a short "Design vs. implementation" section to the note.
+
+**Applies to:** LHU-006 to LHU-013 and LHU-015 in sprint 1, and every later ticket that adds or changes a component. **Exempt:** tickets that only change documentation, the build or CI, including LHU-004 and LHU-005.
+
+**Cost, estimated and unverified until the first two notes are done:** 1.75 hours per ticket (draft 0.75, review 0.5, comparison and revision 0.25, section after merge 0.25). Draft time and review time are recorded separately on each note, and the figure is re-set at the mid-sprint checkpoint from the measured values.
+
 ## Sprint 1 (Thu 2026-10-01 to Wed 2026-10-07, desk only, no hardware needed)
 
-Hours are Samer's hours and are estimates, unverified until the first tickets give a velocity. Capacity 35; committed 30.5 remaining; stretch 3.
+Hours are Samer's hours and are estimates, unverified until the first tickets give a velocity. "Build" is the estimate for the work itself; "Design gate" is the 1.75 hours of the design-first gate (D-033).
 
-| Ticket | Work | Hours | Status / change in revision 3 | REQ |
-|---|---|---|---|---|
-| LHU-001 | Hardware is purchased. Remaining: record the power bank model and rated output (OQ-3) | 0.25 | Open | — |
-| LHU-002 | Dev environment: Debian 13 in WSL, toolchain, build directory inside WSL, QML window via WSLg | 0.25 remaining (was 2.5) | **Done 2026-10-01** except creating the normal Linux user (OQ-16) | — |
-| LHU-003 | Repo bootstrap: folder connected to the public remote, `dev` created, first PR, rulesets, labels, Projects board with all tickets | 2.0 | In progress: local git done, first-PR files written; push, rulesets and PR remain | — |
-| LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, safety statement, ADR-001 | 2 | Open | all |
-| LHU-005 | CMake skeleton, GoogleTest, CI (build, test, format, tidy, sanitizers, privacy check); then the check names are added to the rulesets | 1.75 (was 1.5) | Privacy check added (D-023) | — |
-| LHU-006 | Signal model and SignalStore with staleness | 4 | Open | 003, 006 |
-| LHU-007 | Connection state machine | 3 | Open | 007 |
-| LHU-008 | `VehicleDataSource` interface and FakeSource | 2 | Open | 002 |
-| LHU-009 | OBD PID decoder | 3 | Open | 004 |
-| LHU-010 | ELM327 response parser and command allowlist | 5 | Open | 001, 010 |
-| LHU-011 | ELM327 emulator with fault injection (Python) | 1 | Open | — |
-| LHU-012 | `Elm327ObdSource`: transport, polling loop, integration tests against emulator | 4 | Open | 002, 008 |
-| LHU-014 | Sprint review, measurements so far, release v0.1.0 | 1.5 | Open | — |
-| LHU-015 | Thermal and power logger script, with a unit test of the flag decoding against a fake command runner | 0.75 | Open | — |
-| LHU-013 (stretch) | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | Open | 011, 012 |
+| Ticket | Work | Build | Design gate | Total | Status on 2026-10-02 | REQ |
+|---|---|---|---|---|---|---|
+| LHU-001 | Hardware is purchased. Remaining: record the power bank model and rated output (OQ-3) | 0.25 | exempt | 0.25 | Ready | — |
+| LHU-002 | Dev environment: Debian 13 in WSL, toolchain, build directory inside WSL, QML window via WSLg | 2.5 | exempt | 2.5 | **Done 2026-10-01** | — |
+| LHU-003 | Repo bootstrap: folder connected to the public remote, `dev` created, first PR, rulesets, labels, Projects board with all tickets | 2 | exempt | 2 | **Done 2026-10-02** | — |
+| LHU-005 | CMake skeleton, GoogleTest, CI (build, test, format, tidy, sanitizers, privacy check), design note template; then the check names are added to the rulesets. Done before LHU-004 (D-032) | 2.75 (was 1.75) | exempt | 2.75 | In progress | — |
+| LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, architecture, safety statement, ADR-001 | 3 (was 2) | exempt | 3 | Ready | all |
+| LHU-006 | Signal model and SignalStore with staleness | 4 | 1.75 | 5.75 | Backlog | 003, 006 |
+| LHU-007 | Connection state machine | 3 | 1.75 | 4.75 | Backlog | 007 |
+| LHU-008 | `VehicleDataSource` interface and FakeSource | 2 | 1.75 | 3.75 | Backlog | 002 |
+| LHU-009 | OBD PID decoder | 3 | 1.75 | 4.75 | Backlog | 004 |
+| LHU-010 | ELM327 response parser and command allowlist | 5 | 1.75 | 6.75 | Backlog | 001, 010 |
+| LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 1.75 | 2.75 | Backlog | — |
+| LHU-012 | `Elm327ObdSource`: transport, polling loop, integration tests against emulator | 4 | 1.75 | 5.75 | Backlog | 002, 008 |
+| LHU-014 | Sprint review, measurements so far, release v0.1.0 | 1.5 | exempt | 1.5 | Backlog | — |
+| LHU-015 | Thermal and power logger script, with a unit test of the flag decoding against a fake command runner | 0.75 | 1.75 | 2.5 | Backlog | — |
+| **Committed** | | **34.75** | **14** | **48.75** | 4.5 done, 44.25 remaining | |
+| LHU-013 (stretch) | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | 1.75 | 4.75 | Backlog | 011, 012 |
+
+**Capacity is 35 hours. The committed total is 48.75 hours, 13.75 hours over.** Before the gate the committed total was 34.75 hours. Sprint 1 therefore does not fit as listed: which tickets move to sprint 2, or which tickets get a shorter form of the gate, is decided before LHU-006 starts and recorded in the next revision of this plan.
 
 Mid-sprint checkpoint after LHU-007: compare actual to estimated hours and re-plan.
 
@@ -296,7 +318,7 @@ Sprint 3 outline (Oct 15 to 22): boot and memory baseline then fixed-list optimi
 |---|---|---|---|
 | 1 | Hardware purchased but not arrived; week 2 depends on delivery | Sprint 1 needs none; the emulator path keeps desk work going if parts are late | Unchanged |
 | 2 | Learning C++17 and Qt while writing the core | Core is plain C++ without Qt; any ticket past 2x estimate is re-planned at once: split it or cut its scope | Unchanged |
-| 3 | Solo process overhead (PRs, reviews, traceability, docs) | Templates, the review checklist and the traceability script; small PRs; about 20% of hours budgeted | Unchanged |
+| 3 | Solo process overhead (PRs, reviews, traceability, docs, and from revision 4 the design-first gate) | Templates, the review checklist and the traceability script; small PRs; about 20% of hours budgeted for PRs, reviews and docs. The gate adds an estimated 1.75 hours per component ticket: 14 hours on the 8 committed sprint 1 tickets, which is 40% of one week's capacity. Drafts are time-boxed; the cost is measured on the first two notes and the plan re-set at the mid-sprint checkpoint | **Raised in revision 4** (D-033) |
 | 4 | vLinker MC+ pairing on Raspberry Pi OS: dual-mode adapter, `rfcomm` tool deprecated, clone-grade ELM327 behaviour | Ordered pairing spike (LHU-017); direct RFCOMM socket behind `ByteTransport`; base `AT` commands only; USB adapter as last resort | Unchanged |
 | 5 | Portrait-native 5-inch display: rotation and touch under Qt, and small physical size | Day-one spike on the Pi; kiosk compositor as fallback; sizes in millimetres (D-024) | Unchanged |
 | 6 | GS350 unknowns: supported PIDs, achievable poll rate | Supported-PID discovery is a requirement; priority polling; latency measured from source receipt | Unchanged |
