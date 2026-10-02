@@ -7,6 +7,16 @@ LHU-nnn: <ticket title>
 <!-- List every requirement this PR implements or verifies, for example REQ-003, REQ-006.
      Write "None: process or documentation only" if no requirement is touched. -->
 
+## Design
+
+<!-- Keep the sentence below and fill in the design note number.
+     Write "Exempt: documentation, build or CI only" if the ticket has no design note. -->
+
+Implements DN-nnn; deviations from the design are listed with reasons.
+
+- Deviations: <!-- "None", or each deviation with its reason -->
+- [ ] The design note is marked Approved and is in this PR or already on `dev`
+
 ## What changed and why
 
 <!-- A few sentences. Say what the reader should look at first. -->

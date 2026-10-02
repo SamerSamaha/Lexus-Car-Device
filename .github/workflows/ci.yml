@@ -1,0 +1,139 @@
+# Continuous integration: every pull request into dev or main, and every push
+# to those branches, must pass these jobs.
+#
+# All jobs run in a Debian 13 container, so the compiler, CMake and GoogleTest
+# versions are the same as at the desk and on the Raspberry Pi. The container
+# holds only what a job installs.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+# The workflow only reads the repository.
+permissions:
+  contents: read
+
+# A newer commit on the same branch or pull request cancels the older run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and unit tests
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 15
+    steps:
+      # git is installed before the checkout so the checkout is a real git
+      # clone and not a downloaded archive.
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates cmake git ninja-build \
+            libgmock-dev libgtest-dev
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Print tool versions
+        run: |
+          g++ --version
+          cmake --version
+          ninja --version
+
+      - name: Configure (debug with sanitizers)
+        run: cmake --preset sanitizers
+
+      - name: Build (debug with sanitizers)
+        run: cmake --build --preset sanitizers
+
+      - name: Unit tests under AddressSanitizer and UndefinedBehaviorSanitizer
+        run: ctest --preset sanitizers
+
+      - name: Configure (release)
+        run: cmake --preset release
+
+      - name: Build (release)
+        run: cmake --build --preset release
+
+      - name: Unit tests (release)
+        run: ctest --preset release
+
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 15
+    steps:
+      - name: Install analysis tools
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates clang clang-format clang-tidy cmake git \
+            ninja-build libgmock-dev libgtest-dev
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Inside a container the checked-out folder belongs to another user, and
+      # git refuses to read a repository it does not own unless told it is safe.
+      - name: Mark the repository as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Print tool versions
+        run: |
+          clang++ --version
+          clang-format --version
+          clang-tidy --version
+
+      # Formatting check. git lists every tracked C++ file, xargs hands the list to
+      # clang-format, and clang-format reports any file it would change. Nothing is
+      # rewritten: the step only passes or fails.
+      - name: Check formatting with clang-format
+        run: |
+          git ls-files -z '*.cpp' '*.h' | xargs -0 --no-run-if-empty clang-format --style=file --dry-run --Werror
+
+      - name: Configure (clang-tidy)
+        run: cmake --preset static-analysis
+
+      # clang-tidy runs on every source file as it is compiled. Any warning
+      # fails the build (WarningsAsErrors in .clang-tidy).
+      - name: Build with clang-tidy
+        run: cmake --build --preset static-analysis
+
+  privacy-check:
+    name: Privacy check
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 5
+    steps:
+      - name: Install git and Python
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends ca-certificates git python3
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Inside a container the checked-out folder belongs to another user, and
+      # git refuses to read a repository it does not own unless told it is safe.
+      - name: Mark the repository as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Unit tests of the privacy check
+        run: python3 -m unittest discover --start-directory tools --pattern "test_*.py" --verbose
+
+      - name: No VIN-shaped or Bluetooth-address-shaped string in tracked files
+        run: python3 tools/check_private_data.py

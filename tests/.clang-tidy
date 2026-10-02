@@ -1,0 +1,11 @@
+# Test code: the repository rules apply, minus two checks that do not suit it.
+#   readability-magic-numbers: literal expected values are the point of a test.
+#   non-private member variables: a GoogleTest fixture shares its members with
+#   the tests through "protected", which is how TEST_F is designed to be used.
+---
+InheritParentConfig: true
+Checks: >
+  -readability-magic-numbers,
+  -misc-non-private-member-variables-in-classes,
+  -cppcoreguidelines-non-private-member-variables-in-classes
+...
