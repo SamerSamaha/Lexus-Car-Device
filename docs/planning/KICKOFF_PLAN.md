@@ -1,10 +1,11 @@
 # Lexus Head Unit — project plan
 
-**Revision 4, 2026-10-02.**
+**Revision 5, 2026-10-03.**
 - Revision 1: kickoff plan, approved by Samer.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
 - Revision 4: design-first gate added (D-033); sprint 1 estimates and statuses updated; LHU-005 before LHU-004 (D-032).
+- Revision 5: design-first gate made tiered and LHU-011, LHU-012 moved to sprint 2 (D-037); LHU-004 re-estimated to 4 h (D-039); actual hours of LHU-002, LHU-003 and LHU-005 recorded; CI status checks required on both branches.
 
 The canonical copy of this file is `docs/planning/KICKOFF_PLAN.md` in the repository. Ticket LHU-004 splits it into the other `docs/` files.
 
@@ -40,7 +41,8 @@ Nothing has arrived as of 2026-10-01.
 | Desk environment check | See "Desk environment" below | Verified, 1 run each |
 | vcan in WSL2 | `modinfo vcan`: not found; no CONFIG_CAN_VCAN | Verified absent |
 | Local repository | `origin/main` is one commit, 414ff66 "Initial commit"; `main`, `dev` and the first feature branch created locally | Verified |
-| GitHub protection | Classic branch protection works on public Free repos. Rulesets on a personal Free public repo expected to work | Classic verified from docs; rulesets unverified until the settings page is opened |
+| GitHub protection | Rulesets `protect-main` and `protect-dev` active on a personal Free public repository: deletion and force pushes blocked, pull request required, and since 2026-10-02 the three CI checks "Build and unit tests", "Static analysis" and "Privacy check" required on both branches | Verified through the API, 2026-10-03 |
+| CI on GitHub | First two runs (PR #17) green in 17 to 44 s per job inside a `debian:trixie` container: `actions/checkout@v7` and AddressSanitizer work on the hosted runner | Verified, 2 runs |
 | GitHub arm64 runners | `ubuntu-24.04-arm` free for public repos | Unverified by us |
 | vcan on GitHub-hosted runners | Not shipped; fragile to add | Unverified by us |
 | vLinker MC+ | Dual mode, Bluetooth 3.0 classic plus BLE 4.0; classic name "vLinker MC-Android"; BLE name "vLinker MC-IOS" | Unverified until paired |
@@ -270,34 +272,41 @@ Before any ticket that adds or changes a component moves to In progress, its des
 5. **Commit.** The note is committed with the code PR or before it. The PR body states: "Implements DN-nnn; deviations from the design are listed with reasons."
 6. **After merge.** Samer adds a short "Design vs. implementation" section to the note.
 
-**Applies to:** LHU-006 to LHU-013 and LHU-015 in sprint 1, and every later ticket that adds or changes a component. **Exempt:** tickets that only change documentation, the build or CI, including LHU-004 and LHU-005.
+**Applies to:** LHU-006 to LHU-013 and LHU-015, and every later ticket that adds or changes a component. **Exempt:** tickets that only change documentation, the build or CI, including LHU-004 and LHU-005.
 
-**Cost, estimated and unverified until the first two notes are done:** 1.75 hours per ticket (draft 0.75, review 0.5, comparison and revision 0.25, section after merge 0.25). Draft time and review time are recorded separately on each note, and the figure is re-set at the mid-sprint checkpoint from the measured values.
+**Two forms (D-037, 2026-10-02).** The gate is tiered by how much design a ticket needs:
+
+| Form | Tickets | Note contents | Estimated cost |
+|---|---|---|---|
+| Full | LHU-006, 007, 008, 010, 012, 013 | All nine sections of the template | 1.75 h (draft 0.75, review 0.5, comparison and revision 0.25, section after merge 0.25) |
+| Light | LHU-009, 011, 015 | One page: problem, public interface, failure cases, test plan | 0.75 h (draft 15 to 20 min, review 15 min, the rest as above) |
+
+The costs are estimates and unverified until the first two notes are done. Draft time and review time are recorded separately on each note, and the figures are re-set at the mid-sprint checkpoint from the measured values.
 
 ## Sprint 1 (Thu 2026-10-01 to Wed 2026-10-07, desk only, no hardware needed)
 
-Hours are Samer's hours and are estimates, unverified until the first tickets give a velocity. "Build" is the estimate for the work itself; "Design gate" is the 1.75 hours of the design-first gate (D-033).
+Hours are Samer's hours and are estimates, unverified until the first tickets give a velocity. "Build" is the estimate for the work itself; "Design gate" is the design-first gate in its full (1.75 h) or light (0.75 h) form (D-033, D-037). "Actual" is the hours entered on the board when the ticket closed.
 
-| Ticket | Work | Build | Design gate | Total | Status on 2026-10-02 | REQ |
-|---|---|---|---|---|---|---|
-| LHU-001 | Hardware is purchased. Remaining: record the power bank model and rated output (OQ-3) | 0.25 | exempt | 0.25 | Ready | — |
-| LHU-002 | Dev environment: Debian 13 in WSL, toolchain, build directory inside WSL, QML window via WSLg | 2.5 | exempt | 2.5 | **Done 2026-10-01** | — |
-| LHU-003 | Repo bootstrap: folder connected to the public remote, `dev` created, first PR, rulesets, labels, Projects board with all tickets | 2 | exempt | 2 | **Done 2026-10-02** | — |
-| LHU-005 | CMake skeleton, GoogleTest, CI (build, test, format, tidy, sanitizers, privacy check), design note template; then the check names are added to the rulesets. Done before LHU-004 (D-032) | 2.75 (was 1.75) | exempt | 2.75 | In progress | — |
-| LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, architecture, safety statement, ADR-001 | 3 (was 2) | exempt | 3 | Ready | all |
-| LHU-006 | Signal model and SignalStore with staleness | 4 | 1.75 | 5.75 | Backlog | 003, 006 |
-| LHU-007 | Connection state machine | 3 | 1.75 | 4.75 | Backlog | 007 |
-| LHU-008 | `VehicleDataSource` interface and FakeSource | 2 | 1.75 | 3.75 | Backlog | 002 |
-| LHU-009 | OBD PID decoder | 3 | 1.75 | 4.75 | Backlog | 004 |
-| LHU-010 | ELM327 response parser and command allowlist | 5 | 1.75 | 6.75 | Backlog | 001, 010 |
-| LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 1.75 | 2.75 | Backlog | — |
-| LHU-012 | `Elm327ObdSource`: transport, polling loop, integration tests against emulator | 4 | 1.75 | 5.75 | Backlog | 002, 008 |
-| LHU-014 | Sprint review, measurements so far, release v0.1.0 | 1.5 | exempt | 1.5 | Backlog | — |
-| LHU-015 | Thermal and power logger script, with a unit test of the flag decoding against a fake command runner | 0.75 | 1.75 | 2.5 | Backlog | — |
-| **Committed** | | **34.75** | **14** | **48.75** | 4.5 done, 44.25 remaining | |
-| LHU-013 (stretch) | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | 1.75 | 4.75 | Backlog | 011, 012 |
+| Ticket | Work | Build | Design gate | Total | Actual | Status on 2026-10-03 | REQ |
+|---|---|---|---|---|---|---|---|
+| LHU-001 | Hardware is purchased. Remaining: record the power bank model and rated output (OQ-3) | 0.25 | exempt | 0.25 | | Ready | — |
+| LHU-002 | Dev environment: Debian 13 in WSL, toolchain, build directory inside WSL, QML window via WSLg | 2.5 | exempt | 2.5 | 1.5 | **Done 2026-10-01** | — |
+| LHU-003 | Repo bootstrap: folder connected to the public remote, `dev` created, first PR, rulesets, labels, Projects board with all tickets | 2 | exempt | 2 | 1.0 | **Done 2026-10-02** | — |
+| LHU-005 | CMake skeleton, GoogleTest, CI (build, test, format, tidy, sanitizers, privacy check), design note template; the three check names required in both rulesets. Done before LHU-004 (D-032) | 2.75 | exempt | 2.75 | 2.0 | **Done 2026-10-02** (PR #17) | — |
+| LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, architecture, safety statement, ADR-001, README | 4 (was 3, D-039) | exempt | 4 | | In progress | all |
+| LHU-006 | Signal model and SignalStore with staleness | 4 | 1.75 full | 5.75 | | Backlog | 003, 006 |
+| LHU-007 | Connection state machine | 3 | 1.75 full | 4.75 | | Backlog | 007 |
+| LHU-008 | `VehicleDataSource` interface and FakeSource | 2 | 1.75 full | 3.75 | | Backlog | 002 |
+| LHU-009 | OBD PID decoder | 3 | 0.75 light | 3.75 | | Backlog | 004, 010 |
+| LHU-010 | ELM327 response parser and command allowlist | 5 | 1.75 full | 6.75 | | Backlog | 001, 010 |
+| LHU-014 | Sprint review, measurements so far, release v0.1.0 | 1.5 | exempt | 1.5 | | Backlog | — |
+| LHU-015 | Thermal and power logger script, with a unit test of the flag decoding against a fake command runner | 0.75 | 0.75 light | 1.5 | | Backlog | — |
+| **Committed** | | **30.75** | **8.5** | **39.25** | 4.5 on 7.25 estimated | 7.25 done, 32.0 remaining | |
+| LHU-013 (stretch) | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | 1.75 full | 4.75 | | Backlog | 011, 012 |
 
-**Capacity is 35 hours. The committed total is 48.75 hours, 13.75 hours over.** Before the gate the committed total was 34.75 hours. Sprint 1 therefore does not fit as listed: which tickets move to sprint 2, or which tickets get a shorter form of the gate, is decided before LHU-006 starts and recorded in the next revision of this plan.
+Moved to the start of sprint 2 by D-037: LHU-011 (ELM327 emulator, 1 + 0.75 light = 1.75 h) and LHU-012 (`Elm327ObdSource`, 4 + 1.75 full = 5.75 h). Sprint 1 therefore ends without the end-to-end ELM327 path; v0.1.0 contains the service layer, the state machine, the source interface, the PID decoder and the parser with the allowlist, each with unit tests.
+
+**Capacity is 35 hours. The committed total is 39.25 hours, 4.25 hours over.** The three closed tickets took 4.5 h against 7.25 h estimated (62%); if that ratio holds the sprint fits. Re-checked at the mid-sprint checkpoint with the measured gate times.
 
 Mid-sprint checkpoint after LHU-007: compare actual to estimated hours and re-plan.
 
@@ -305,6 +314,8 @@ Mid-sprint checkpoint after LHU-007: compare actual to estimated hours and re-pl
 
 | Ticket | Work | Hours |
 |---|---|---|
+| LHU-011 | ELM327 emulator with fault injection (Python); light design note. Moved from sprint 1 (D-037) | 1.75 |
+| LHU-012 | `Elm327ObdSource`: transport, polling loop, reconnect with backoff, integration tests against the emulator; full design note. Moved from sprint 1 (D-037) | 5.75 |
 | LHU-016 | Run the thermal and power logger in every bring-up and on-car session; commit the CSVs; raise bugs on any fail | 1.5 |
 | LHU-017 | vLinker MC+ pairing spike, following the ordered list above; record every reply | 2 |
 | LHU-018 | Build-strategy measurement on the 2GB Pi: peak memory, swap activity, temperature, build time at 2 jobs | 1 |
@@ -318,7 +329,7 @@ Sprint 3 outline (Oct 15 to 22): boot and memory baseline then fixed-list optimi
 |---|---|---|---|
 | 1 | Hardware purchased but not arrived; week 2 depends on delivery | Sprint 1 needs none; the emulator path keeps desk work going if parts are late | Unchanged |
 | 2 | Learning C++17 and Qt while writing the core | Core is plain C++ without Qt; any ticket past 2x estimate is re-planned at once: split it or cut its scope | Unchanged |
-| 3 | Solo process overhead (PRs, reviews, traceability, docs, and from revision 4 the design-first gate) | Templates, the review checklist and the traceability script; small PRs; about 20% of hours budgeted for PRs, reviews and docs. The gate adds an estimated 1.75 hours per component ticket: 14 hours on the 8 committed sprint 1 tickets, which is 40% of one week's capacity. Drafts are time-boxed; the cost is measured on the first two notes and the plan re-set at the mid-sprint checkpoint | **Raised in revision 4** (D-033) |
+| 3 | Solo process overhead (PRs, reviews, traceability, docs, and from revision 4 the design-first gate) | Templates, the review checklist and the traceability script; small PRs; about 20% of hours budgeted for PRs, reviews and docs. The gate is tiered (D-037): 8.5 hours on the 6 committed sprint 1 component tickets, 24% of one week's capacity, down from 14 hours at the full rate. Drafts are time-boxed; the cost is measured on the first two notes and the plan re-set at the mid-sprint checkpoint | **Reduced in revision 5** (D-037) |
 | 4 | vLinker MC+ pairing on Raspberry Pi OS: dual-mode adapter, `rfcomm` tool deprecated, clone-grade ELM327 behaviour | Ordered pairing spike (LHU-017); direct RFCOMM socket behind `ByteTransport`; base `AT` commands only; USB adapter as last resort | Unchanged |
 | 5 | Portrait-native 5-inch display: rotation and touch under Qt, and small physical size | Day-one spike on the Pi; kiosk compositor as fallback; sizes in millimetres (D-024) | Unchanged |
 | 6 | GS350 unknowns: supported PIDs, achievable poll rate | Supported-PID discovery is a requirement; priority polling; latency measured from source receipt | Unchanged |
