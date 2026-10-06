@@ -56,7 +56,7 @@ Positive:
 - The sample record (value, unit, timestamp, status) mirrors how a vehicle hardware abstraction layer in an automotive OS presents properties to applications. The shape is familiar to anyone who has worked with one; no compatibility with any specific platform is claimed.
 
 Negative, accepted:
-- Source-specific detail is hidden. A diagnostics screen that wants to show raw frames or adapter text needs a side channel, not the main interface. That is acceptable for the MVP; the diagnostics screen is sprint 2.
+- Source-specific detail is hidden. A diagnostics screen that wants to show raw frames or adapter text needs a side channel, not the main interface. That is acceptable: the diagnostics screen (REQ-021, LHU-030) gets trouble codes and vehicle information through dedicated decoders beside the main interface.
 - Each source carries its own decoder, so a decoding bug is fixed per source. The oracles above are the mitigation.
 - Staleness is judged above the interface from timestamps, so every source must stamp samples with the same monotonic clock. The `Clock` interface in the service layer exists for this reason.
 
