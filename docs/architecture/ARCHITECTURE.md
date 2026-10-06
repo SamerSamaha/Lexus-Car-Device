@@ -2,13 +2,48 @@
 
 This document describes the parts of the Lexus Head Unit, what each one owns, how data moves between them, and the rules that keep them apart. It is the reference that design notes (`docs/design/`) and code reviews are checked against. Decisions with alternatives are recorded in `docs/adr/`; this file states the result.
 
-Status on 2026-10-03: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024). Only the service library skeleton exists in code. Each component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, after its design note is approved.
+Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. Only the service library skeleton exists in code. Each component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, after its design note is approved.
 
 ## 1. What the system is
 
-A plug-in, read-only infotainment head unit: a Raspberry Pi 5 (2GB) with the official 5-inch Touch Display 2, powered over USB-C, reading vehicle data from a 2013 Lexus GS350 through a Bluetooth OBD-II adapter (Vgate vLinker MC+). It shows live vehicle signals and connection status. It never writes to the vehicle. At the desk, the same software runs against an ELM327 emulator or a simulated CAN bus.
+A plug-in, read-only infotainment platform: a Raspberry Pi 5 (2GB) with the official 5-inch Touch Display 2, powered from a USB-C power bank, reading vehicle data from a 2013 Lexus GS350 through a Bluetooth OBD-II adapter (Vgate vLinker MC+). A full-screen hub launches apps. The vehicle-data app shows live signals, derived trip values and connection status; the diagnostics screen shows trouble codes and power status; web apps run in the system browser; audio goes to the car stereo over Bluetooth. It never writes to the vehicle. At the desk, the same software runs against an ELM327 emulator or a simulated CAN bus.
 
-## 2. Layers
+The vehicle-data path is the core of the project and is built first (milestone v0.1.0). The hub, the service boundary and the apps follow (v0.2.0), then the CAN path, diagnostics, analytics and measurements (v1.0.0).
+
+## 2. Process view
+
+```
++-------------------+   +----------------------+   +--------------------------+
+| hub               |   | vehicle-data app     |   | system browser           |
+| QML launcher,     |   | QML screens: home,   |   | web apps: video, audio,  |
+| app registry,     |   | vehicle data,        |   | games (one process per   |
+| process manager,  |   | diagnostics          |   | URL entry)               |
+| status strip      |   |                      |   |                          |
++---------+---------+   +----------+-----------+   +--------------------------+
+          | D-Bus (VehicleDataClient)           |      started and tracked by the hub
+          +-----------------+-------------------+
+                            |
++---------------------------v----------------------------------------------+
+| vehicle-data service (one process)                                       |
+|   D-Bus adapter (Qt D-Bus) <- the only Qt code in this process           |
+|   service layer (plain C++17): SignalStore, StalenessMonitor,            |
+|     ConnectionStateMachine, DerivedSignalEngine, PowerStatusProvider     |
+|   VehicleDataSource: Elm327ObdSource | SocketCanDbcSource | ReplaySource |
++--------------------------------------------------------------------------+
+| operating system: Raspberry Pi OS desktop, labwc Wayland compositor,     |
+| BlueZ (OBD link and audio to the car), PipeWire, systemd units           |
++--------------------------------------------------------------------------+
+```
+
+Rules of the process view:
+- The vehicle-data service is the only process that talks to the vehicle. Every other process reads signals through `VehicleDataClient` over D-Bus (REQ-017). The read-only guarantee (REQ-001) therefore lives in one process.
+- The hub starts, tracks and stops app processes and is visible again when one exits (REQ-016). It never exits while the system runs. How the user returns to the hub from a fullscreen browser is settled by the LHU-020 spike (OQ-29).
+- Web apps are URL entries in the hub's registry, opened in the system browser full screen (REQ-018). They are content, not product code; the hub, the service and the measurements are the product.
+- Memory is budgeted per process (REQ-014). The browser dominates and is measured separately.
+
+This is the shape of an automotive platform in Linux terms: a launcher, apps, and one central service that owns vehicle data and hands it to any app that asks. The analogy is stated as a design influence, not as compatibility with any product.
+
+## 3. Layers inside the vehicle-data path
 
 ```
 +--------------------------------------------------------------------------+
@@ -38,9 +73,11 @@ A plug-in, read-only infotainment head unit: a Raspberry Pi 5 (2GB) with the off
 
 Data flows upward only. Nothing above the `VehicleDataSource` line knows which source is running (REQ-002). Nothing below the view models knows that Qt exists (D-008).
 
-## 3. Components
+In milestone v0.1.0 the view models and the service layer live in one process and the queued-signal line above is the boundary. From v0.2.0 (LHU-022) the service layer moves into the vehicle-data service process and the queued-signal line becomes D-Bus: the view models talk to `VehicleDataClient`, which receives D-Bus signals on the UI thread's event loop. The service layer itself does not change; the D-Bus adapter is the only new code in the service process, and it is the only Qt code there.
 
-### 3.1 Hardware layer, `src/hardware/`
+## 4. Components
+
+### 4.1 Hardware layer, `src/hardware/`
 
 | Component | Responsibility | Notes |
 |---|---|---|
@@ -52,11 +89,13 @@ Data flows upward only. Nothing above the `VehicleDataSource` line knows which s
 | `Elm327ObdSource` | Owns a `ByteTransport`, an `Elm327Protocol`, the polling loop and PID discovery; drives the `ConnectionStateMachine`; reconnects with backoff | REQ-004, REQ-008 |
 | `CanFrameReader` | Interface. Delivers raw CAN frames (id, length, 8 data bytes, timestamp) | Implementations: a SocketCAN socket on `vcan0` or a real interface; a fake for tests. **Has no send method** (REQ-001) |
 | `DbcDecoder` | Decodes a raw frame into signal values using a DBC file | Both byte orders, signed and unsigned, scale and offset (REQ-005). Wrong frame length is a counted error, not a sample (REQ-010) |
-| `SocketCanDbcSource` | Owns a `CanFrameReader` and a `DbcDecoder`; converts decoded values into `SignalSample` | Sprint 2 |
-| `ReplaySource` | Reads a recorded session file and re-emits its bytes or samples with the original timing | REQ-015, sprint 2 |
+| `SocketCanDbcSource` | Owns a `CanFrameReader` and a `DbcDecoder`; converts decoded values into `SignalSample` | LHU-028, v1.0.0 |
+| `ReplaySource` | Reads a recorded session file and re-emits its bytes or samples with the original timing | REQ-015, LHU-029, v1.0.0 |
 | `FakeSource` | Test double that emits whatever a test scripts | Lets the service layer be tested without any hardware code |
+| `DtcDecoder`, `VehicleInfoDecoder` | Turn a Mode 03 reply into trouble codes with their standard text, and a Mode 09 reply into vehicle information | REQ-021, LHU-030. Pure functions of bytes to values. There is still no Mode 04 and no Mode 02 (freeze frame); the allowlist of D-009 is unchanged |
+| `GpsSource` | Roadmap: delivers latitude, longitude, speed and heading as signals from a position stream sent by the phone over the hotspot | LHU-036; proves the interface a third time, with a non-vehicle source |
 
-### 3.2 Service layer, `src/service/`
+### 4.2 Service layer, `src/service/`
 
 | Component | Responsibility | Notes |
 |---|---|---|
@@ -66,18 +105,36 @@ Data flows upward only. Nothing above the `VehicleDataSource` line knows which s
 | `StalenessMonitor` | Marks a signal Stale when its timeout has passed since its last sample | Driven by an injected `Clock` so tests control time (REQ-006) |
 | `ConnectionStateMachine` | Four states, Disconnected, Connecting, Connected, Error, and a written transition table; rejects illegal transitions | REQ-007. The table is in the design note DN-007 and copied here when approved |
 | `Clock` | Interface returning monotonic milliseconds | Real implementation uses `std::chrono::steady_clock`; tests inject a manual clock |
+| `DerivedSignalEngine` | Computes derived signals from stored samples: fuel economy from mass air flow and speed, trip distance, time in RPM bands, warm-up time; writes them into the `SignalStore` like any source | REQ-022, LHU-031. Constants (air-fuel ratio, fuel density) are stated in DN-031. No model training on the device; offline statistics are tooling (LHU-037) |
+| `PowerStatusProvider` | Interface returning the firmware's under-voltage and throttling flags; real implementation reads them on the Pi, a fake sets them in tests | REQ-020, LHU-025 |
 
 The service layer depends on the C++17 standard library only. No Qt header is included anywhere under `src/service/` (D-008); this is checked by the fact that the library target links to nothing but the build-settings target.
 
-### 3.3 HMI, `src/hmi/`
+### 4.2a Vehicle-data service process and client, `src/service_dbus/`
+
+| Component | Responsibility | Notes |
+|---|---|---|
+| `VehicleDataService` | Hosts the service layer and the active source in its own process; publishes every signal change and connection state change over D-Bus; answers a current-state query so a late-joining client starts complete | REQ-017, LHU-022. Qt D-Bus adapter only; the service layer underneath is unchanged |
+| `VehicleDataClient` | Client-side mirror: subscribes, holds the latest sample per signal, exposes them to view models | The only path from a view model to vehicle data (REQ-011 from v0.2.0). Used by the vehicle-data app and the hub's status strip |
+| D-Bus interface definition | Introspection XML in `src/service_dbus/` naming the signals and the state query | Versioned; the test of REQ-017 runs two clients against it |
+
+### 4.3 HMI, `src/hmi/`
 
 | Component | Responsibility | Notes |
 |---|---|---|
 | View models (`src/hmi/viewmodels/`) | `QObject` classes exposing `Q_PROPERTY` values, units, status text and connection state; receive service-layer updates through queued signals and own the thread hop | The only classes QML may bind to (REQ-011) |
-| QML screens (`src/hmi/qml/`) | Home (2 primary values and a status strip), vehicle data (4 x 2 grid of signal tiles), diagnostics (scrolling list) | Bindings only; no logic beyond formatting |
-| `app` (`src/app/`) | `main()`: reads configuration, constructs the chosen source, the service layer, the view models and the QML engine; starts the worker thread | The one place that knows every concrete type |
+| QML screens (`src/hmi/qml/`) | Home (2 primary values and a status strip), vehicle data (4 x 2 grid of signal tiles, LHU-039), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting |
+| `app` (`src/app/`) | `main()` of the vehicle-data app: reads configuration, constructs the view models and the QML engine. In v0.1.0 it also constructs the source and the service layer in-process and starts the worker thread; from v0.2.0 that moves to the service process and `app` constructs a `VehicleDataClient` | The one place that knows every concrete type |
 
-## 4. The signal model
+### 4.4 Hub, `src/hub/`
+
+| Component | Responsibility | Notes |
+|---|---|---|
+| `AppRegistry` | Reads the app configuration file: name, icon, kind (native command or URL), command line | REQ-016, REQ-018, LHU-021. Web apps are URL entries; the browser command and its flags live in `deploy/` |
+| `ProcessManager` | Starts an app as a child process, tracks it, stops it, reports its exit; restart policy per entry | REQ-016. Plain C++17 over POSIX process calls, unit-tested with a fake process |
+| `AppHub` and QML (`src/hub/qml/`) | Full-screen icon grid sized in millimetres (D-024); status strip with connection state and power flags from `VehicleDataClient` and `PowerStatusProvider`; shutdown control (REQ-020) | Return-to-hub mechanism decided by the LHU-020 spike (OQ-29) |
+
+## 5. The signal model
 
 Every piece of vehicle data is a `SignalSample`:
 
@@ -97,7 +154,7 @@ NeverReceived --first sample--> Valid --timeout passes--> Stale --new sample--> 
 
 A source never emits a Stale sample; staleness is the service layer's judgement about time. A malformed input produces no sample at all and increments the source's error counter (REQ-010).
 
-## 5. Connection state
+## 6. Connection state
 
 ```
 Disconnected --start()--> Connecting --handshake ok--> Connected
@@ -109,7 +166,7 @@ any state    --stop()--> Disconnected
 
 The full transition table, including which transitions are illegal, is fixed in the design note of LHU-007 and verified by its unit tests (REQ-007). The backoff schedule is REQ-008.
 
-## 6. Threads
+## 7. Threads
 
 | Thread | Runs | Owns |
 |---|---|---|
@@ -122,7 +179,7 @@ Rules:
 - Blocking I/O (socket reads, adapter timeouts) happens only on the worker thread, so the screen never stalls on the adapter.
 - A code review states which thread runs each new function (checklist item 6).
 
-## 7. Main data flow, ELM327 path
+## 8. Main data flow, ELM327 path
 
 1. `Elm327ObdSource` writes an allowlisted request (for example `010D`, vehicle speed) through `ByteTransport`.
 2. `Elm327Protocol` reads bytes until the `>` prompt or a timeout, and classifies the reply.
@@ -133,7 +190,7 @@ Rules:
 7. QML bindings re-render the tile. The time from step 4 to the rendered frame is what REQ-009 measures.
 8. Meanwhile `StalenessMonitor` checks every stored signal against its timeout and flips it to Stale when exceeded (REQ-006).
 
-## 8. Dependency rules, checked
+## 9. Dependency rules, checked
 
 | Rule | Checked by |
 |---|---|
@@ -143,7 +200,7 @@ Rules:
 | No send path on the CAN side; only allowlisted commands on the OBD side | Unit tests of REQ-001; fake reader fails on write |
 | No adapter-specific `ST` commands | Code review; the allowlist holds only `AT` setup commands |
 
-## 9. HMI sizing rules (D-024)
+## 10. HMI sizing rules (D-024)
 
 The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 110.4 mm, which is 11.6 pixels per millimetre. The panel is portrait-native and is used in landscape, so the software rotates (OQ-6).
 
@@ -153,19 +210,24 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 - Home shows 2 primary values and a status strip. Vehicle data shows the 8 signals of REQ-004 as a 4 x 2 grid of tiles about 27 x 27 mm. Diagnostics scrolls.
 - A Stale signal is drawn in a visibly different style (REQ-006, REQ-012); the exact style is decided with LHU-013.
 
-## 10. Deployment
+## 11. Deployment
 
-- Target: Raspberry Pi OS 64-bit (Debian 13 based) on the Pi 5, Qt 6.8.2 from the distribution packages, the application started by a systemd unit (`deploy/`).
+- Target: Raspberry Pi OS 64-bit desktop (Debian 13 based, Trixie) on the Pi 5, Qt 6.8.2 from the distribution packages. The desktop image and its labwc Wayland compositor are the display stack (D-045): the hub needs a compositor to run beside the system browser, so Qt eglfs on the bare framebuffer is rejected. The panel is rotated to landscape in the compositor configuration; touch follows. First-boot steps are in `deploy/PI_SETUP.md`.
+- Processes are started by systemd units in `deploy/`: the vehicle-data service first, then the hub; apps are started by the hub.
+- Bluetooth: BlueZ carries both the RFCOMM link to the OBD adapter and, from v0.2.0, the audio link to the car stereo (PipeWire, REQ-019). Their coexistence on one radio is measured, not assumed (OQ-28).
 - Desk: Debian 13 in WSL2 with the same Qt version; the application runs against the ELM327 emulator over a pseudo-terminal or against `vcan0` on the Pi only (WSL2 has no vcan module).
-- CI: Debian 13 container; unit, integration, scenario and HMI tests on the offscreen platform; arm64 release build later.
-- Display stack on the Pi (Qt eglfs directly, or a kiosk Wayland compositor) is undecided until the bring-up spike (OQ-6).
+- CI: Debian 13 container; unit, integration, scenario and HMI tests on the offscreen platform; arm64 release build (LHU-033).
 
-## 11. Not decided yet
+## 12. Not decided yet
 
 | Item | Decided by |
 |---|---|
 | Exact `ConnectionStateMachine` transition table | DN-007 |
 | Signal id and unit enumerations, the signal table | DN-006 |
 | Configuration file format and the source-selection key | DN-012 |
-| Display stack and rotation on the Pi | Bring-up spike, sprint 2 |
-| Diagnostics screen content (trouble codes, power status) | Sprint 2 requirements, REQ-016 onward |
+| D-Bus interface names, signal payload layout, current-state query | DN-022 |
+| App registry file format; how the user returns to the hub from a fullscreen browser (OQ-29) | LHU-020 spike, then DN-021 |
+| Whether the system browser plays protected audio on this unit (OQ-27) | LHU-023, recorded as a fact either way |
+| Audio and OBD links sharing one Bluetooth radio (OQ-28) | LHU-024, measured |
+| Per-process memory budgets replacing the single 150 MB figure of REQ-014 | LHU-032 baseline (OQ-8) |
+| Derived-signal constants and formulas | DN-031 |

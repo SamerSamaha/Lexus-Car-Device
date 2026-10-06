@@ -1,6 +1,6 @@
 # Release checklist
 
-`dev` is promoted to `main` only through a release pull request, and only after every item below is checked and recorded in that pull request's description. The release is tagged on `main` with an annotated tag `vX.Y.Z`. Planned releases: v0.1.0 (sprint 1), v0.2.0 (sprint 2), v1.0.0 (sprint 3).
+`dev` is promoted to `main` only through a release pull request, and only after every item below is checked and recorded in that pull request's description. The release is tagged on `main` with an annotated tag `vX.Y.Z`. Releases are milestones, not dates (plan revision 6): v0.1.0 Core, v0.2.0 Platform, v1.0.0 Head unit; each is cut when its milestone's tickets are done and this checklist passes.
 
 The pull request into `main` uses a merge commit (the `main` ruleset allows only that), so `main` keeps the exact squash commits that were reviewed on `dev`.
 

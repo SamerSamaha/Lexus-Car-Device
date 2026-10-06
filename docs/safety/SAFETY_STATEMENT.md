@@ -46,7 +46,7 @@ Exactly these, and nothing else (REQ-001, decision D-009):
 
 Honesty about the limits:
 
-- **Bus load.** Even read requests are frames transmitted on the diagnostic CAN bus. The request rate is kept low (a few per second; the achievable rate is measured in sprint 2). Standard OBD-II polling at this rate is what a handheld scan tool does. Whether the 2013 GS350 places a gateway between the diagnostic port and its other buses has not been verified by this project, so the request rate is treated as a measured parameter, not an assumption.
+- **Bus load.** Even read requests are frames transmitted on the diagnostic CAN bus. The request rate is kept low (a few per second; the achievable rate is measured in the first parked session, LHU-017). Standard OBD-II polling at this rate is what a handheld scan tool does. Whether the 2013 GS350 places a gateway between the diagnostic port and its other buses has not been verified by this project, so the request rate is treated as a measured parameter, not an assumption.
 - **The adapter itself.** The Bluetooth adapter is a third-party device with its own firmware. This software controls what it is asked to do, not what its firmware is capable of. The adapter pairs with a fixed PIN and stays powered whenever it is in the port, so the operating rule is: **unplug it when not testing.**
 - **A fault in the vehicle's own diagnostic implementation.** Nothing in this project can rule that out; it is why on-car testing starts parked.
 
@@ -80,7 +80,7 @@ This is not a hazard analysis in the sense of any standard. It is the list of wa
 | 3 | Driver trusts a wrong or stale value | Every value carries a status; Stale is shown distinctly (REQ-006, REQ-012); the factory cluster remains the authority (section 1) |
 | 4 | Bare board shorts against vehicle metal or a connector is strained | Mounting decided and recorded before the first on-car test (OQ-14) |
 | 5 | Overheating of an uncooled Pi 5 in a cabin | Temperature logged every 5 s; 80°C is a fail; firmware throttles at 80°C to 85°C (D-025) |
-| 6 | Power bank sags or cuts out, corrupting the SD card | Under-voltage flag logged and treated as a fail; clean-shutdown handling planned (sprint 2 requirements) |
+| 6 | Power bank sags or cuts out, corrupting the SD card | Under-voltage flag logged and treated as a fail; clean-shutdown handling and on-screen flags (REQ-020, LHU-025) |
 | 7 | Adapter left in the port, paired with a fixed PIN | Operating rule: unplug when not testing |
 | 8 | Private vehicle data published | Privacy rule and CI check (section 4) |
 

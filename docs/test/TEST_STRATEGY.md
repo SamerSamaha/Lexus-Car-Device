@@ -15,11 +15,11 @@ How each kind of claim in this project is verified, where each test runs, and wh
 | Tier | What | Framework | Runs on | Exists since |
 |---|---|---|---|---|
 | T1 Unit | Every non-UI class in isolation: service layer, decoders, protocol, allowlist, state machine. Built with `-Wall -Wextra -Werror` and, in CI, with AddressSanitizer and UndefinedBehaviorSanitizer | GoogleTest and GoogleMock | WSL, CI | LHU-005 (one smoke test) |
-| T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal | GoogleTest; emulator in Python | WSL, CI | LHU-012 (sprint 2) |
-| T3 vcan | A Python traffic generator writes frames to `vcan0`; the application decodes them live. ctest label `vcan` | GoogleTest plus Python | Pi only; CI if later proven | Sprint 2 |
-| T4 Scenarios | Scripted fault injection through the emulator: see section 3 | Python driving the emulator, GoogleTest asserting | WSL, CI; some Pi only | LHU-011, LHU-012 (sprint 2) |
+| T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal | GoogleTest; emulator in Python | WSL, CI | LHU-012 (v0.1.0) |
+| T3 vcan | A Python traffic generator writes frames to `vcan0`; the application decodes them live. ctest label `vcan` | GoogleTest plus Python | Pi only; CI if later proven | LHU-028 (v1.0.0) |
+| T4 Scenarios | Scripted fault injection through the emulator: see section 3 | Python driving the emulator, GoogleTest asserting | WSL, CI; some Pi only | LHU-011, LHU-012 (v0.1.0) |
 | T5 HMI | View models and QML screens with a fake view model on the offscreen platform | Qt Quick Test | WSL, CI | LHU-013 |
-| T6 On-car manual | A written procedure, parked first, results recorded per run | `docs/test/MANUAL_ON_CAR_PROCEDURE.md`, results in `docs/test/results/` | Car | Sprint 2 |
+| T6 On-car manual | A written procedure, parked first, results recorded per run | `docs/test/MANUAL_ON_CAR_PROCEDURE.md`, results in `docs/test/results/` | Car | LHU-017 (first parked session), LHU-034 (procedure) |
 
 Checks that are not tests of the software but run in CI on every pull request:
 
@@ -45,7 +45,7 @@ Each scenario is a script that drives the emulator and a test that asserts what 
 | Corrupt frames and text | Emulator garbles bytes; wrong CAN frame length | No Valid sample from the bad input; error counter increments; no crash | REQ-010 |
 | Ignition off and on | Emulator answers `UNABLE TO CONNECT` then `NO DATA`, then recovers | Error or Stale as appropriate, then Valid again without restart | REQ-007, REQ-008, REQ-010 |
 | Cold boot | Pi powered on from off, 10 or more times | Time to first home-screen frame recorded for every boot | REQ-013 |
-| Low power | Pi: `get_throttled` flags surfaced; desk: fake provider sets the flags | Flags shown on the diagnostics screen; logged | Sprint 2 requirement |
+| Low power | Pi: `get_throttled` flags surfaced; desk: fake provider sets the flags | Flags shown on the hub status strip and the diagnostics screen within 5 s; logged | REQ-020 |
 
 ## 4. Measurements
 
@@ -59,7 +59,7 @@ One script per metric in `tools/measure/`. Each produces a CSV committed under `
 | SoC temperature, throttling, under-voltage | `log_thermal_power.py` | 1 row per 5 s per session | count, min, median, max temperature; every flag seen |
 | Build on the Pi (LHU-018) | `/usr/bin/time -v`, `vmstat` | 1 clean build per configuration | peak memory, swap activity, temperature, time |
 
-Before-and-after comparisons (sprint 3 optimisation) show both data sets, not a percentage alone.
+Before-and-after comparisons (the optimisation pass of LHU-032) show both data sets, not a percentage alone. From v0.2.0 memory is measured per process (service, hub, vehicle-data app, browser), because the browser is expected to dominate and must not hide the application's own figure.
 
 ## 5. Requirement tags in tests
 
@@ -82,7 +82,7 @@ The same line, with the comment marker of the language, is used in Python and QM
 
 ## 7. Deliberately not tested, and why
 
-- **Real CAN frames from the GS350.** The DBC describes an invented vehicle and is labelled so. Decoding the real car's broadcast frames is after the MVP.
+- **Real CAN frames from the GS350.** The DBC describes an invented vehicle and is labelled so. Decoding the real car's broadcast frames is not planned before v1.0.0.
 - **The adapter's firmware.** Only the software's behaviour toward it is tested; the adapter is a black box exercised by the on-car procedure.
 - **The display's touch under the final display stack**, until the bring-up spike decides the stack (OQ-6).
 - **Safety.** There is no safety function to test (see `docs/safety/SAFETY_STATEMENT.md`). The REQ-001 tests verify read-only behaviour of this software, nothing more.
