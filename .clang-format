@@ -1,12 +1,8 @@
-# Formatting rules for all C++ in this repository (clang-format 19).
-# Check without changing files:  clang-format --dry-run --Werror <files>
-# Rewrite files in place:        clang-format -i <files>
 ---
 Language: Cpp
 BasedOnStyle: LLVM
 Standard: c++17
 
-# Layout
 IndentWidth: 4
 ContinuationIndentWidth: 4
 AccessModifierOffset: -4
@@ -14,13 +10,10 @@ ColumnLimit: 100
 UseTab: Never
 NamespaceIndentation: None
 
-# Pointers and references bind to the type: "const Signal& signal", "char* text".
 DerivePointerAlignment: false
 PointerAlignment: Left
 ReferenceAlignment: Left
 
-# Keep control flow on its own lines so every branch can take a breakpoint
-# and shows up in coverage.
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
@@ -29,18 +22,14 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortLambdasOnASingleLine: Empty
 InsertBraces: true
 
-# One argument or parameter per line once they no longer fit on one line.
 BinPackArguments: false
 BinPackParameters: false
 
-# Constructor initialisers: one per line when they do not fit on one line.
 PackConstructorInitializers: NextLine
 BreakConstructorInitializers: BeforeColon
 
 AlwaysBreakTemplateDeclarations: Yes
 
-# Includes: sorted inside each block; blocks are kept as written, so the
-# file's own header stays first.
 SortIncludes: CaseSensitive
 IncludeBlocks: Preserve
 

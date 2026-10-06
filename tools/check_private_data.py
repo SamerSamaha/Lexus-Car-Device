@@ -1,35 +1,14 @@
 #!/usr/bin/env python3
-"""Fail if a tracked file contains a VIN-shaped or Bluetooth-address-shaped string.
+"""Fail if a tracked file name or content contains a VIN-shaped or Bluetooth-address-shaped string.
 
-The repository is public. The vehicle's VIN and any Bluetooth address must
-never be committed. This script scans the name and the content of every file
-tracked by git and reports:
+VIN-shaped: a standalone 17-character run of the VIN alphabet (no I, O, Q) with at least one
+letter and one digit. Bluetooth-address-shaped: six two-digit hexadecimal groups separated by
+colons or hyphens. Documented false positives live in private_data_allowlist.txt.
 
-  VIN-shaped string
-      A standalone run of exactly 17 characters from the VIN alphabet (digits
-      and capital letters except I, O and Q) that contains at least one letter
-      and at least one digit.
+Shapes only: a lower-case or hexadecimal-encoded VIN is not found, so raw recordings stay in
+local_recordings/ until scrubbed.
 
-  Bluetooth-address-shaped string
-      Six groups of two hexadecimal digits separated by colons or hyphens.
-
-Documented false positives are listed in private_data_allowlist.txt, each with
-the reason it is safe.
-
-Known limits: the check works on shapes, so it does not find a VIN written in
-lower case or a VIN encoded as hexadecimal bytes, which is how an OBD adapter
-returns it. Raw recordings therefore stay in the ignored local_recordings/
-folder until they have been scrubbed.
-
-Usage:
-    python3 tools/check_private_data.py                  scan every tracked file
-    python3 tools/check_private_data.py FILE [FILE ...]  scan only these files
-    python3 tools/check_private_data.py --show-matches   print matches unmasked
-
-Run it before every commit: once a commit has been pushed, its content is public.
-
-Exit code: 0 no finding, 1 at least one finding, 2 the check could not run.
-Python standard library only.
+Usage: check_private_data.py [--show-matches] [FILE ...]. Exit 0 clean, 1 finding, 2 could not run.
 """
 
 from __future__ import annotations
@@ -49,13 +28,8 @@ EXIT_CODE_CHECK_COULD_NOT_RUN = 2
 KIND_VIN_SHAPED = "VIN-shaped string"
 KIND_BLUETOOTH_ADDRESS_SHAPED = "Bluetooth-address-shaped string"
 
-# "Standalone" means the character before and the character after the run are
-# not letters or digits. An underscore or a hyphen therefore ends a run, so a
-# VIN inside a file name such as drive_<VIN>_morning.csv is still found.
 VIN_SHAPED_PATTERN = re.compile(r"(?<![A-Za-z0-9])[A-HJ-NPR-Z0-9]{17}(?![A-Za-z0-9])")
 
-# A longer run of groups (for example seven) is reported too: the first six
-# groups match. Reporting too much is the safe direction for this check.
 BLUETOOTH_ADDRESS_SHAPED_PATTERN = re.compile(
     r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{2}(?:[:-][0-9A-Fa-f]{2}){5}(?![0-9A-Fa-f])"
 )
@@ -219,8 +193,6 @@ def scan_files(
             if is_binary(content):
                 skipped_files.append(f"{relative_path} (binary content)")
             else:
-                # Undecodable bytes are replaced, not dropped, so the rest of
-                # the file is still scanned.
                 text = content.decode("utf-8", errors="replace")
                 candidate_findings.extend(scan_text(text, relative_path))
         for candidate_finding in candidate_findings:

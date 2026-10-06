@@ -1,4 +1,4 @@
-# Raw on-car recordings stay local until scrubbed (decision D-023)
+# Raw on-car recordings stay local until scrubbed
 local_recordings/
 
 # Build output

@@ -1,7 +1,7 @@
 # Lexus Head Unit — project plan
 
 **Revision 6, 2026-10-05.**
-- Revision 1: kickoff plan, approved by Samer.
+- Revision 1: kickoff plan.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
 - Revision 4: design-first gate added (D-033); sprint 1 estimates and statuses updated; LHU-005 before LHU-004 (D-032).
@@ -245,7 +245,7 @@ Ignored, never committed: `local_recordings/`, build output.
 ## Branch, review and release model (D-014 to D-020, D-043)
 
 - `main` production, `dev` integration, both protected by rulesets. `feature/LHU-nnn-description` and `bugfix/LHU-nnn-description` off `dev`.
-- PR into `dev`: required CI checks green; the review checklist filled in as a PR comment; requirement IDs and the design note (DN-nnn) in the PR body, with deviations from the design listed; squash merge by Samer. Required approvals are off.
+- PR into `dev`: required CI checks green; the review checklist filled in as a PR comment; requirement IDs and the design note (DN-nnn) in the PR body, with deviations from the design listed; squash merge by the repository owner. Required approvals are off.
 - `dev` to `main`: release PR, `RELEASE_CHECKLIST.md` passed, merge commit, annotated tag. Releases are the milestones v0.1.0 Core, v0.2.0 Platform, v1.0.0 Head unit (D-043).
 - The bootstrap exception is the "Initial commit" 414ff66 made by GitHub.
 - All pushes are made by the repository owner.
@@ -339,12 +339,12 @@ First data, 2026-10-05, desk charger, basement room: idle 51°C, 59.3°C peak du
 
 Before any ticket that adds or changes a component moves to In progress, its design is written down, reviewed and approved. The process and the template are in `docs/design/`.
 
-1. **Draft.** Samer writes the design note alone, time-boxed to 30 to 45 minutes, as `docs/design/DN-nnn-<short-name>.md`, where `nnn` is the ticket number. Sections, in order: problem in two sentences; clarifying questions with the assumption made for each; nouns to classes with each class's responsibility; what each class stores (constructor and fields); verbs to methods (public interface with inputs, outputs and units); interaction sequence for the main scenario; failure cases and how the design handles each; test plan mapped to requirement IDs; at least one alternative considered and why it was rejected.
-2. **Design review.** A senior reviewer questions the design, one or two questions at a time, and points at gaps by asking, not by telling. The reviewer's own design is not shown until Samer has defended or revised his.
-3. **Comparison and revision.** The reviewer shows how they would have designed it and the key differences. Samer revises the note.
-4. **Approval.** Samer marks the note Approved. Coding does not start before this.
+1. **Draft.** The author writes the design note alone, time-boxed to 30 to 45 minutes, as `docs/design/DN-nnn-<short-name>.md`, where `nnn` is the ticket number. Sections, in order: problem in two sentences; clarifying questions with the assumption made for each; nouns to classes with each class's responsibility; what each class stores (constructor and fields); verbs to methods (public interface with inputs, outputs and units); interaction sequence for the main scenario; failure cases and how the design handles each; test plan mapped to requirement IDs; at least one alternative considered and why it was rejected.
+2. **Design review.** A senior reviewer questions the design, one or two questions at a time, and points at gaps by asking, not by telling. The reviewer's own design is not shown until the author has defended or revised it.
+3. **Comparison and revision.** The reviewer shows how they would have designed it and the key differences. The author revises the note.
+4. **Approval.** The author marks the note Approved. Coding does not start before this.
 5. **Commit.** The note is committed with the code PR or before it. The PR body states: "Implements DN-nnn; deviations from the design are listed with reasons."
-6. **After merge.** Samer adds a short "Design vs. implementation" section to the note.
+6. **After merge.** The author adds a short "Design vs. implementation" section to the note.
 
 **Applies to** every ticket that adds or changes a component. **Exempt:** tickets that only change documentation, the build or CI, spikes, measurement sessions and releases.
 
@@ -360,7 +360,7 @@ The costs are estimates and unverified until the first two notes are done. Draft
 
 ## Tickets by milestone
 
-Hours are the author's hours and are estimates, unverified until the first code tickets give a velocity. "Build" is the work itself; "Gate" is the design-first gate in its full (1.75 h) or light (0.75 h) form. "Actual" is the hours entered on the board when the ticket closed. Issue numbers are on the GitHub board.
+Hours are estimates, unverified until the first code tickets give a velocity. "Build" is the work itself; "Gate" is the design-first gate in its full (1.75 h) or light (0.75 h) form. "Actual" is the hours entered on the board when the ticket closed. Issue numbers are on the GitHub board.
 
 ### v0.1.0 Core
 

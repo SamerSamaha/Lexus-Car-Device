@@ -1,6 +1,3 @@
-# Static analysis rules for all C++ in this repository (clang-tidy 19).
-# Run through the build:  cmake --preset static-analysis && cmake --build --preset static-analysis
-# tests/.clang-tidy relaxes a few checks for test code.
 ---
 Checks: >
   -*,
@@ -17,19 +14,13 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -modernize-use-trailing-return-type
 
-# Every warning fails the build. A check that is wrong for this codebase is
-# switched off above with a reason in the pull request, not ignored.
 WarningsAsErrors: '*'
 
-# Report findings in this project's own headers, not in system or library headers.
 HeaderFilterRegex: '.*/(src|tests)/.*'
 
 FormatStyle: file
 
 CheckOptions:
-  # Project rule: no single-letter names, not even loop counters, exception
-  # variables or parameters. The "Ignored..." defaults would allow i, j, k, e
-  # and n, so each is replaced by a pattern that matches no real name.
   - key: readability-identifier-length.MinimumVariableNameLength
     value: 3
   - key: readability-identifier-length.MinimumParameterNameLength
@@ -47,13 +38,6 @@ CheckOptions:
   - key: readability-identifier-length.IgnoredExceptionVariableNames
     value: '^$'
 
-  # Naming convention (Qt style, because the HMI layer is Qt):
-  #   types and enumerators  CamelCase     SignalStore, SignalStatus::Stale
-  #   functions and methods  camelBack     latestSample()
-  #   variables, parameters  camelBack     timeoutMilliseconds
-  #   private members        m_camelBack   m_latestSamples
-  #   namespaces             lower_case    lexus_head_unit
-  #   macros                 UPPER_CASE
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
   - key: readability-identifier-naming.StructCase
@@ -89,7 +73,6 @@ CheckOptions:
   - key: readability-identifier-naming.MacroDefinitionCase
     value: UPPER_CASE
 
-  # A struct whose members are all public is a plain data record and is allowed.
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
 ...
