@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""Unit tests for check_private_data.py.
+"""Tests for check_private_data.py.
 
-Run from the repository root:
-    python3 -m unittest discover --start-directory tools --pattern "test_*.py" --verbose
-
-This file is itself scanned by the check. The only shaped strings written out
-in full here are the two documented samples on the allowlist. Every other test
-value is built from them at run time, so it never appears as text in this file.
+Run: python3 -m unittest discover --start-directory tools --pattern "test_*.py"
+Only the two allowlisted sample strings appear in full here; every other value is derived at run time.
 """
 
 import contextlib
@@ -19,13 +15,10 @@ from pathlib import Path
 
 import check_private_data
 
-# Hypothetical VIN from the check-digit example in the Wikipedia article
-# "Vehicle identification number". On the allowlist.
+# Allowlisted samples: a hypothetical VIN and an RFC 7042 documentation address.
 SAMPLE_VIN = "1M8GDM9AXKP042788"
-# Address from the range RFC 7042 reserves for documentation. On the allowlist.
 SAMPLE_BLUETOOTH_ADDRESS = "00:00:5E:00:53:01"
 
-# Shaped strings that are NOT on the allowlist, built at run time.
 UNLISTED_VIN = SAMPLE_VIN[::-1]
 UNLISTED_BLUETOOTH_ADDRESS = ":".join(reversed(SAMPLE_BLUETOOTH_ADDRESS.split(":")))
 
@@ -96,7 +89,6 @@ class VinShapedStringTest(unittest.TestCase):
         self.assertEqual(kinds_found("A" * 17), [])
 
     def test_lower_case_vin_is_not_found(self):
-        # Documents a known limit of the shape check, stated in the script.
         self.assertEqual(kinds_found(SAMPLE_VIN.lower()), [])
 
 
@@ -131,7 +123,6 @@ class BluetoothAddressShapedStringTest(unittest.TestCase):
         self.assertEqual(kinds_found(five_groups), [])
 
     def test_seven_groups_are_reported(self):
-        # Reporting too much is the safe direction: the first six groups match.
         self.assertEqual(
             check_private_data.find_shaped_strings(SAMPLE_BLUETOOTH_ADDRESS + ":02"),
             [(check_private_data.KIND_BLUETOOTH_ADDRESS_SHAPED, SAMPLE_BLUETOOTH_ADDRESS)],

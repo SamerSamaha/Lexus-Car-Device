@@ -1,10 +1,3 @@
-# Continuous integration: every pull request into dev or main, and every push
-# to those branches, must pass these jobs.
-#
-# All jobs run in a Debian 13 container, so the compiler, CMake and GoogleTest
-# versions are the same as at the desk and on the Raspberry Pi. The container
-# holds only what a job installs.
-
 name: CI
 
 on:
@@ -13,18 +6,13 @@ on:
   push:
     branches: [dev, main]
 
-# The workflow only reads the repository.
 permissions:
   contents: read
 
-# A newer commit on the same branch or pull request cancels the older run.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Every step runs in bash with "pipefail": a step fails if any command in a
-# pipeline fails, not only the last one. The container's default shell (sh)
-# would let a failed first command pass unnoticed.
 defaults:
   run:
     shell: bash
@@ -36,8 +24,6 @@ jobs:
     container: debian:trixie
     timeout-minutes: 15
     steps:
-      # git is installed before the checkout so the checkout is a real git
-      # clone and not a downloaded archive.
       - name: Install build tools
         run: |
           apt-get update
@@ -92,8 +78,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # Inside a container the checked-out folder belongs to another user, and
-      # git refuses to read a repository it does not own unless told it is safe.
       - name: Mark the repository as safe for git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
@@ -103,10 +87,6 @@ jobs:
           clang-format --version
           clang-tidy --version
 
-      # Formatting check. git lists every tracked C++ file, xargs hands the list to
-      # clang-format, and clang-format reports any file it would change. Nothing is
-      # rewritten: the step only passes or fails. The first line prints the files
-      # that are checked, so the log shows the check was not empty.
       - name: Check formatting with clang-format
         run: |
           git ls-files '*.cpp' '*.h'
@@ -115,8 +95,6 @@ jobs:
       - name: Configure (clang-tidy)
         run: cmake --preset static-analysis
 
-      # clang-tidy runs on every source file as it is compiled. Any warning
-      # fails the build (WarningsAsErrors in .clang-tidy).
       - name: Build with clang-tidy
         run: cmake --build --preset static-analysis
 
@@ -136,8 +114,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # Inside a container the checked-out folder belongs to another user, and
-      # git refuses to read a repository it does not own unless told it is safe.
       - name: Mark the repository as safe for git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
