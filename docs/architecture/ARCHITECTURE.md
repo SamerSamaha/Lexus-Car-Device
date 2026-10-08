@@ -2,7 +2,7 @@
 
 This document describes the parts of the Lexus Head Unit, what each one owns, how data moves between them, and the rules that keep them apart. It is the reference that design notes (`docs/design/`) and code reviews are checked against. Decisions with alternatives are recorded in `docs/adr/`; this file states the result.
 
-Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor` and the clocks exist in code (LHU-006, DN-006). Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
+Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor`, the clocks (LHU-006, DN-006) and `ConnectionStateMachine` (LHU-007, DN-007) exist in code. Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
 
 ## 1. What the system is
 
@@ -103,7 +103,7 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 | `SignalDefinition` | Static description of a signal: id, name, unit, staleness timeout | Table of the signals the system knows; the default timeout is 1000 ms (REQ-006) |
 | `SignalStore` | Holds the latest `SignalSample` per signal in an array indexed by `SignalId`; rejects a sample whose timestamp is not newer than the stored one, a sample with the wrong unit, or an unknown id, and counts each kind; notifies one listener of each change; holds the per-signal staleness timeouts | REQ-003. Single-writer: only the worker thread writes. The source's status field is ignored: the store writes Valid, the monitor writes Stale |
 | `StalenessMonitor` | Marks a signal Stale when its timeout has passed since its last sample | Driven by an injected `Clock` so tests control time (REQ-006) |
-| `ConnectionStateMachine` | Four states, Disconnected, Connecting, Connected, Error, and a written transition table; rejects illegal transitions | REQ-007. The table is in the design note DN-007 and copied here when approved |
+| `ConnectionStateMachine` | Four states, Disconnected, Connecting, Connected, Error; six triggers; an 8-row transition table applied by `handle(trigger)`; illegal pairs rejected and counted; each accepted transition recorded with trigger and time and handed to one listener | REQ-007. The table is in section 6 |
 | `Clock` | Interface returning monotonic milliseconds | `SteadyClock` uses `std::chrono::steady_clock`; `ManualClock` (in the library, for tests and tooling) is advanced by hand |
 | `DerivedSignalEngine` | Computes derived signals from stored samples: fuel economy from mass air flow and speed, trip distance, time in RPM bands, warm-up time; writes them into the `SignalStore` like any source | REQ-022, LHU-031. Constants (air-fuel ratio, fuel density) are stated in DN-031. No model training on the device; offline statistics are tooling (LHU-037) |
 | `PowerStatusProvider` | Interface returning the firmware's under-voltage and throttling flags; real implementation reads them on the Pi, a fake sets them in tests | REQ-020, LHU-025 |
@@ -164,7 +164,20 @@ Error        --backoff elapsed--> Connecting        (1, 2, 4, 8, 10, 10, ... s)
 any state    --stop()--> Disconnected
 ```
 
-The full transition table, including which transitions are illegal, is fixed in the design note of LHU-007 and verified by its unit tests (REQ-007). The backoff schedule is REQ-008.
+The full transition table (DN-007), verified by a unit test over every one of the 24 state and trigger pairs (REQ-007):
+
+| From | Trigger | To |
+|---|---|---|
+| Disconnected | StartRequested | Connecting |
+| Connecting | HandshakeSucceeded | Connected |
+| Connecting | HandshakeFailed | Error |
+| Connecting | StopRequested | Disconnected |
+| Connected | LinkLost | Error |
+| Connected | StopRequested | Disconnected |
+| Error | BackoffElapsed | Connecting |
+| Error | StopRequested | Disconnected |
+
+Every other pair is rejected, counted, and leaves the state unchanged; no listener is called. The machine records each accepted transition with its trigger (the cause) and the clock time, which is the connection log of REQ-019. The backoff timer that raises BackoffElapsed, and its schedule, are REQ-008 and live in the source's reconnect loop (LHU-012).
 
 ## 7. Threads
 
@@ -222,7 +235,6 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 
 | Item | Decided by |
 |---|---|
-| Exact `ConnectionStateMachine` transition table | DN-007 |
 | Configuration file format and the source-selection key | DN-012 |
 | D-Bus interface names, signal payload layout, current-state query | DN-022 |
 | App registry file format; how the user returns to the hub from a fullscreen browser (OQ-29) | LHU-020 spike, then DN-021 |

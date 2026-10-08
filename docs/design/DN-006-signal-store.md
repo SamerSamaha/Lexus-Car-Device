@@ -5,7 +5,7 @@
 | Ticket | LHU-006 |
 | Requirements | REQ-003, REQ-006 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 20 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -131,4 +131,4 @@ StalenessMonitor --check()-----+  (reads Clock, calls markStale)
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #48 (7d430ca). No deviations. Two details the note did not spell out: the unknown-id guard is tested through an out-of-range cast behind a `NOLINTNEXTLINE`, because the static analyser flags the cast itself; and `signalCount` is a literal that must be kept equal to the enumeration by hand (a review finding, to be guarded when LHU-031 extends the enumeration). Status: Implemented.

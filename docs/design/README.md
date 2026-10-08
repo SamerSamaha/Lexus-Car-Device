@@ -55,4 +55,5 @@ In this order:
 
 | Note | Ticket | Status |
 |---|---|---|
-| [DN-006](DN-006-signal-store.md) Signal model and SignalStore with staleness | LHU-006 | Approved |
+| [DN-006](DN-006-signal-store.md) Signal model and SignalStore with staleness | LHU-006 | Implemented |
+| [DN-007](DN-007-connection-state-machine.md) Connection state machine | LHU-007 | Approved |

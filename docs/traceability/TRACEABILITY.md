@@ -14,7 +14,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-004 | `ObdPidDecoder`; PID discovery in `Elm327ObdSource` | LHU-009; LHU-012 | `tests/unit/obd/obd_pid_decoder_test.cpp` (5 vectors per PID); `tests/integration/pid_discovery_test.cpp` (unsupported PID never requested over 100 cycles) | Planned |
 | REQ-005 | `DbcDecoder` with `dbc/simulated_vehicle.dbc` | LHU-027 | `tests/unit/can/dbc_decoder_test.cpp` against a `cantools` oracle, 10,000 or more frames | Planned |
 | REQ-006 | `StalenessMonitor`, `SignalDefinition` (per-signal timeout), `Clock` | LHU-006; LHU-013 and LHU-039 (styling) | `tests/unit/service/staleness_monitor_test.cpp`, `tests/unit/service/signal_store_test.cpp`; `tests/hmi/signal_tile_test.qml` (stale never drawn live) | Unit tests tagged and merged with LHU-006; the HMI styling test is planned (LHU-039) |
-| REQ-007 | `ConnectionStateMachine` with the transition table of DN-007 | LHU-007; LHU-013 (display within 500 ms) | `tests/unit/service/connection_state_machine_test.cpp` (every legal and illegal transition); `tests/hmi/connection_status_test.qml` | Planned |
+| REQ-007 | `ConnectionStateMachine` with the transition table of DN-007 | LHU-007; LHU-013 (display within 500 ms) | `tests/unit/service/connection_state_machine_test.cpp` (all 24 state and trigger pairs: 8 accepted, 16 rejected); `tests/hmi/connection_status_test.qml` | Unit test tagged and merged with LHU-007; the HMI timing test is planned (LHU-013) |
 | REQ-008 | Reconnect loop and backoff in `Elm327ObdSource` | LHU-012 | `tests/scenarios/reconnect_after_emulator_restart_test.cpp` (20 trials) | Planned |
 | REQ-009 | Whole path, source to rendered frame, including the D-Bus hop | LHU-032; LHU-022 (hop measured) | `tools/measure/measure_latency.py`; raw data in `docs/measurements/latency/` | Planned |
 | REQ-010 | `Elm327Protocol`, `ObdPidDecoder`, `DbcDecoder` | LHU-010; LHU-009; LHU-027 | `tests/unit/obd/elm327_protocol_malformed_input_test.cpp` (named corpus plus 100,000 random strings under sanitizers); `tests/unit/can/dbc_decoder_malformed_frame_test.cpp` | Planned |
@@ -39,7 +39,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 2 (REQ-003, REQ-006) |
+| With a test that exists and is tagged | 3 (REQ-003, REQ-006, REQ-007) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
