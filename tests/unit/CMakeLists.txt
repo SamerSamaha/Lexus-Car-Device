@@ -1,4 +1,5 @@
 add_executable(lexus_head_unit_unit_tests
+    service/connection_state_machine_test.cpp
     service/service_library_smoke_test.cpp
     service/signal_sample_test.cpp
     service/signal_store_test.cpp
