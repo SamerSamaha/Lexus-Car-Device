@@ -202,7 +202,7 @@ Rules:
 
 ## 10. HMI sizing rules (D-024)
 
-The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 110.4 mm, which is 11.6 pixels per millimetre. The panel is portrait-native and is used in landscape, so the software rotates (OQ-6).
+The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 110.4 mm, which is 11.6 pixels per millimetre. The panel is portrait-native and is used in landscape; the compositor rotates it and touch follows (D-045, verified on the unit 2026-10-05).
 
 - All sizes are written in millimetres and converted through one constant, `pixelsPerMillimetre = 11.6`, defined once in the HMI.
 - Touch targets are at least 10 mm (116 px) on each side.

@@ -1,12 +1,13 @@
 # Lexus Head Unit — project plan
 
-**Revision 6, 2026-10-05.**
+**Revision 7, 2026-10-08.**
 - Revision 1: kickoff plan.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
 - Revision 4: design-first gate added (D-033); sprint 1 estimates and statuses updated; LHU-005 before LHU-004 (D-032).
 - Revision 5: design-first gate made tiered and LHU-011, LHU-012 moved to sprint 2 (D-037); LHU-004 re-estimated to 4 h (D-039); actual hours of LHU-002, LHU-003 and LHU-005 recorded; CI status checks required on both branches.
 - Revision 6: scope review closed (D-042 to D-047): the head unit becomes a platform (app hub, vehicle-data service over D-Bus, apps); milestones replace dates and the MVP date is withdrawn (D-043); no further purchases (D-044); desktop image and labwc as the display stack (D-045); REQ-016 to REQ-022 added; tickets LHU-016 to LHU-039 created with milestones; hardware as arrived and the Pi bring-up recorded; LHU-001 closed (power bank record).
+- Revision 7: ticket statuses brought up to date (LHU-019 and LHU-040 done, LHU-041 added); design notes for the build-out written by the implementer and reviewed after merge (D-049); `docs/release/PI_BRINGUP_CHECKLIST.md` created as the single list of steps that need the Pi or the car.
 
 The canonical copy of this file is `docs/planning/KICKOFF_PLAN.md` in the repository. Ticket LHU-004 split it into the other `docs/` files; those files are the detailed references and this file is the plan.
 
@@ -58,7 +59,7 @@ Each milestone is a tagged release from `dev` to `main` after `docs/release/RELE
 
 | Milestone | Content | Tickets | Estimated hours |
 |---|---|---|---|
-| **v0.1.0 Core** | Service layer, connection state machine, source interface, PID decoder, ELM327 parser and allowlist, emulator, `Elm327ObdSource`, home and vehicle-data screens on the Pi, adapter paired, first parked car session, thermal logging, build measurement, this revision | LHU-001, 006 to 015, 016 to 019, 039 | 50.75 remaining (table below) |
+| **v0.1.0 Core** | Service layer, connection state machine, source interface, PID decoder, ELM327 parser and allowlist, emulator, `Elm327ObdSource`, home and vehicle-data screens on the Pi, adapter paired, first parked car session, thermal logging, build measurement, this revision | LHU-001, 006 to 015, 016 to 019, 039, 040, 041 | 49.25 remaining (table below) |
 | **v0.2.0 Platform** | Return-to-hub spike, hub launcher, vehicle-data service over D-Bus, web apps, Bluetooth audio to the car, power status and clean shutdown, release | LHU-020 to 026 | 32.75 |
 | **v1.0.0 Head unit** | DBC decoder, SocketCAN source, record and replay, diagnostics screen, trip analytics, whole-system measurements and one optimisation pass, arm64 CI build, on-car procedure and drives, docs, demo video, license, release | LHU-027 to 035 | 48.75 |
 | **Roadmap** | GPS from phone position and map tiles, offline statistics, call and notification status (optional) | LHU-036 to 038 | 32.75, not scheduled |
@@ -348,6 +349,8 @@ Before any ticket that adds or changes a component moves to In progress, its des
 
 **Applies to** every ticket that adds or changes a component. **Exempt:** tickets that only change documentation, the build or CI, spikes, measurement sessions and releases.
 
+**Build-out form (D-049, 2026-10-08).** For the build-out from v0.1.0 to v1.0.0 the note is written by the implementer of the ticket, in the full or light form of the table below, marked Approved and committed in the same pull request as the code; the repository owner reviews the note and the code together after merge, and the "Design vs. implementation" section is added then. The sections, the forms and the PR sentence are unchanged; what changes is that the review happens after merge instead of before coding. Every assumption made in place of a hardware fact is listed in the note's clarifying questions and in the assumptions table of `docs/release/PI_BRINGUP_CHECKLIST.md`, and is implemented as configuration rather than a constant.
+
 **Two forms (D-037).** The gate is tiered by how much design a ticket needs:
 
 | Form | Tickets | Note contents | Estimated cost |
@@ -364,7 +367,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 
 ### v0.1.0 Core
 
-| Ticket | Work | Build | Gate | Total | Actual | Status on 2026-10-05 | REQ |
+| Ticket | Work | Build | Gate | Total | Actual | Status on 2026-10-08 | REQ |
 |---|---|---|---|---|---|---|---|
 | LHU-001 | Hardware purchased; power bank model and rated output recorded (above) | 0.25 | exempt | 0.25 | | **Done with this revision** | — |
 | LHU-002 | Dev environment: Debian 13 in WSL, toolchain, build directory inside WSL, QML window via WSLg | 2.5 | exempt | 2.5 | 1.5 | **Done 2026-10-01** | — |
@@ -384,9 +387,11 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Backlog | — |
 | LHU-017 | vLinker MC+ pairing and first parked car session; PID support and request rate recorded | 2 | exempt | 2 | | Backlog | feeds 004 |
 | LHU-018 | Build-strategy measurement on the 2GB Pi | 1 | exempt | 1 | | Backlog | — |
-| LHU-019 | Plan revision 6, hardware record, Pi first-boot checklist (this PR) | 1.5 | exempt | 1.5 | | In progress | 016 to 022 (docs) |
+| LHU-019 | Plan revision 6, hardware record, Pi first-boot checklist | 1.5 | exempt | 1.5 | | **Done 2026-10-06** (PR #43) | 016 to 022 (docs) |
+| LHU-040 | README front page and repository cleanup | 1 | exempt | 1 | 1.0 (estimated after the fact) | **Done 2026-10-06** (PR #45) | — |
+| LHU-041 | Plan status fixes, build-out design-note process (D-049), Pi bring-up checklist created | 0.5 | exempt | 0.5 | | **Done with this revision** | — |
 | LHU-014 | Release v0.1.0 Core: review, measurements so far | 1.5 | exempt | 1.5 | | Backlog | — |
-| **Remaining** | | | | **50.75** | 5.5 actual on 11.25 estimated for the four closed tickets | | |
+| **Remaining** | | | | **49.25** | 6.5 actual on 12.25 estimated for the five closed tickets with hours recorded; LHU-001 and LHU-019 have none | | |
 
 ### v0.2.0 Platform
 
