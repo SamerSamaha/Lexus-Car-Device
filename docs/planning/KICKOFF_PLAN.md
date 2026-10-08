@@ -376,8 +376,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, architecture, safety statement, ADR-001, README | 4 | exempt | 4 | 1.0 | **Done 2026-10-04** (PR #18) | all |
 | LHU-006 | Signal model and SignalStore with staleness; `tools/check_traceability.py` | 4 | 1.75 full | 5.75 | 2.0 (estimated) | **Done 2026-10-08** (PR #48) | 003, 006 |
 | LHU-007 | Connection state machine | 3 | 1.75 full | 4.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #49) | 007 |
-| LHU-008 | `VehicleDataSource` interface, `SignalStoreFeeder`, FakeSource, integration suite, link-graph CI check | 2 | 1.75 full | 3.75 | | **Done** (DN-008, this PR) | 002 |
-| LHU-009 | OBD PID decoder | 3 | 0.75 light | 3.75 | | Backlog | 004, 010 |
+| LHU-008 | `VehicleDataSource` interface, `SignalStoreFeeder`, FakeSource, integration suite, link-graph CI check | 2 | 1.75 full | 3.75 | 2.0 (estimated) | **Done 2026-10-08** (PR #50) | 002 |
+| LHU-009 | OBD PID decoder and supported-PID bitmaps | 3 | 0.75 light | 3.75 | | **Done** (DN-009, this PR) | 004, 010 |
 | LHU-010 | ELM327 response parser and command allowlist | 5 | 1.75 full | 6.75 | | Backlog | 001, 010 |
 | LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | | Backlog | fixture |
 | LHU-012 | `Elm327ObdSource`: transport, polling loop, reconnect with backoff, integration tests against the emulator | 4 | 1.75 full | 5.75 | | Backlog | 002, 004, 008 |
