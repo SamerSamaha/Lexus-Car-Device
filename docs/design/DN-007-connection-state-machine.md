@@ -5,7 +5,7 @@
 | Ticket | LHU-007 |
 | Requirements | REQ-007 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 15 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -116,4 +116,4 @@ The HMI half of REQ-007 (new state shown within 500 ms) is LHU-013.
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #49 (8a951a7). No deviations. The review asked that callers guard `stop()` with a state check so the rejected counter stays a fault indicator; `FakeSource` (LHU-008) does so and the real sources follow. Status: Implemented.

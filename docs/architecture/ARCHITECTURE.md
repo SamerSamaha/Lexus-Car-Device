@@ -2,7 +2,7 @@
 
 This document describes the parts of the Lexus Head Unit, what each one owns, how data moves between them, and the rules that keep them apart. It is the reference that design notes (`docs/design/`) and code reviews are checked against. Decisions with alternatives are recorded in `docs/adr/`; this file states the result.
 
-Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor`, the clocks (LHU-006, DN-006) and `ConnectionStateMachine` (LHU-007, DN-007) exist in code. Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
+Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor`, the clocks (LHU-006, DN-006) `ConnectionStateMachine` (LHU-007, DN-007), the `VehicleDataSource` interface, `SignalStoreFeeder` and `FakeSource` (LHU-008, DN-008) exist in code. Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
 
 ## 1. What the system is
 
@@ -81,7 +81,7 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| `VehicleDataSource` | Interface. Starts, stops, and delivers `SignalSample` and `ConnectionEvent` to one listener | The only way vehicle data enters the service layer (REQ-002). Defined in `src/hardware/`, implemented by each source below |
+| `VehicleDataSource` | Interface: `start(listener)`, `runOnce()`, `stop()`, `connectionState()`, `counters()`. A source owns its `ConnectionStateMachine` and reports each `SignalSample` and each `ConnectionTransition` to one `VehicleDataSourceListener` | The only way vehicle data enters the service layer (REQ-002). Defined in the service library (the consumer owns the interface, DN-008), implemented by each source below. No source owns a thread: the worker loop calls `runOnce()`, which does one bounded unit of work |
 | `ByteTransport` | Interface. Writes bytes to and reads bytes from one link | Implementations: a serial device or RFCOMM socket for the car; a pseudo-terminal for the emulator; a fake with scripted replies for unit tests |
 | `CommandAllowlist` | Decides whether a command may be sent | Holds the fixed list: OBD Mode 01, 03, 09 and the ELM327 setup commands. Anything else is refused and counted. There is no Mode 04 anywhere (REQ-001, D-009) |
 | `Elm327Protocol` | Sends one allowlisted command, reads the reply up to the `>` prompt, classifies it as a data reply or one of the named error replies, with a timeout | Base `AT` commands only, no adapter-specific `ST` commands, so the adapter can be swapped. Malformed text never escapes as data (REQ-010) |
@@ -91,7 +91,7 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 | `DbcDecoder` | Decodes a raw frame into signal values using a DBC file | Both byte orders, signed and unsigned, scale and offset (REQ-005). Wrong frame length is a counted error, not a sample (REQ-010) |
 | `SocketCanDbcSource` | Owns a `CanFrameReader` and a `DbcDecoder`; converts decoded values into `SignalSample` | LHU-028, v1.0.0 |
 | `ReplaySource` | Reads a recorded session file and re-emits its bytes or samples with the original timing | REQ-015, LHU-029, v1.0.0 |
-| `FakeSource` | Test double that emits whatever a test scripts | Lets the service layer be tested without any hardware code |
+| `FakeSource` | Scriptable source (`src/hardware/fake/`): samples, malformed inputs, link loss, reconnect, handshake failure, one step per `runOnce()` | Lets the service layer be tested without any hardware code; also the "fake" choice of the source configuration |
 | `DtcDecoder`, `VehicleInfoDecoder` | Turn a Mode 03 reply into trouble codes with their standard text, and a Mode 09 reply into vehicle information | REQ-021, LHU-030. Pure functions of bytes to values. There is still no Mode 04 and no Mode 02 (freeze frame); the allowlist of D-009 is unchanged |
 | `GpsSource` | Roadmap: delivers latitude, longitude, speed and heading as signals from a position stream sent by the phone over the hotspot | LHU-036; proves the interface a third time, with a non-vehicle source |
 
@@ -104,6 +104,7 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 | `SignalStore` | Holds the latest `SignalSample` per signal in an array indexed by `SignalId`; rejects a sample whose timestamp is not newer than the stored one, a sample with the wrong unit, or an unknown id, and counts each kind; notifies one listener of each change; holds the per-signal staleness timeouts | REQ-003. Single-writer: only the worker thread writes. The source's status field is ignored: the store writes Valid, the monitor writes Stale |
 | `StalenessMonitor` | Marks a signal Stale when its timeout has passed since its last sample | Driven by an injected `Clock` so tests control time (REQ-006) |
 | `ConnectionStateMachine` | Four states, Disconnected, Connecting, Connected, Error; six triggers; an 8-row transition table applied by `handle(trigger)`; illegal pairs rejected and counted; each accepted transition recorded with trigger and time and handed to one listener | REQ-007. The table is in section 6 |
+| `SignalStoreFeeder` | The service layer's `VehicleDataSourceListener`: writes each sample into the `SignalStore`, keeps the latest connection transition and counts, forwards transitions to a log hook | LHU-008. The wiring passes it to `source.start()` |
 | `Clock` | Interface returning monotonic milliseconds | `SteadyClock` uses `std::chrono::steady_clock`; `ManualClock` (in the library, for tests and tooling) is advanced by hand |
 | `DerivedSignalEngine` | Computes derived signals from stored samples: fuel economy from mass air flow and speed, trip distance, time in RPM bands, warm-up time; writes them into the `SignalStore` like any source | REQ-022, LHU-031. Constants (air-fuel ratio, fuel density) are stated in DN-031. No model training on the device; offline statistics are tooling (LHU-037) |
 | `PowerStatusProvider` | Interface returning the firmware's under-voltage and throttling flags; real implementation reads them on the Pi, a fake sets them in tests | REQ-020, LHU-025 |
@@ -208,7 +209,7 @@ Rules:
 | Rule | Checked by |
 |---|---|
 | Service layer includes no Qt | Library links only to the build-settings target; a reviewer checks includes |
-| Service and HMI targets have no link dependency on a concrete source | CI step inspecting the CMake link graph (REQ-002, with LHU-012) |
+| Service and HMI targets have no link dependency on a concrete source | CI step: `tools/check_link_graph.py` on `cmake --graphviz` output; any target ending in `_source` reachable from the service library or an HMI target fails (REQ-002, since LHU-008) |
 | QML and view models include nothing from `src/hardware/` or `src/service/` except through the view-model library | CI include check (REQ-011, with LHU-013) |
 | No send path on the CAN side; only allowlisted commands on the OBD side | Unit tests of REQ-001; fake reader fails on write |
 | No adapter-specific `ST` commands | Code review; the allowlist holds only `AT` setup commands |

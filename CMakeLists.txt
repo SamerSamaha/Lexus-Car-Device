@@ -59,9 +59,11 @@ if(LEXUS_HEAD_UNIT_ENABLE_SANITIZERS)
 endif()
 
 add_subdirectory(src/service)
+add_subdirectory(src/hardware)
 
 if(BUILD_TESTING)
     enable_testing()
     find_package(GTest REQUIRED)
     add_subdirectory(tests/unit)
+    add_subdirectory(tests/integration)
 endif()

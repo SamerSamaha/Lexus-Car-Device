@@ -56,4 +56,5 @@ In this order:
 | Note | Ticket | Status |
 |---|---|---|
 | [DN-006](DN-006-signal-store.md) Signal model and SignalStore with staleness | LHU-006 | Implemented |
-| [DN-007](DN-007-connection-state-machine.md) Connection state machine | LHU-007 | Approved |
+| [DN-007](DN-007-connection-state-machine.md) Connection state machine | LHU-007 | Implemented |
+| [DN-008](DN-008-vehicle-data-source.md) VehicleDataSource interface and FakeSource | LHU-008 | Approved |

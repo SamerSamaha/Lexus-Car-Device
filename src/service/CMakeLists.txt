@@ -6,6 +6,7 @@ add_library(lexus_head_unit_service STATIC
     source/signal_definition.cpp
     source/signal_id.cpp
     source/signal_store.cpp
+    source/signal_store_feeder.cpp
     source/staleness_monitor.cpp
 )
 

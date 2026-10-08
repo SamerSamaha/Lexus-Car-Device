@@ -9,7 +9,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | Requirement | Design element | Ticket | Test or measurement | Status |
 |---|---|---|---|---|
 | REQ-001 | `CommandAllowlist`, `Elm327Protocol` (single guarded send path); `CanFrameReader` (no send method) | LHU-010; LHU-028 | `tests/unit/obd/command_allowlist_test.cpp` (all 256 modes, Mode 04 named); `tests/unit/can/fake_can_frame_reader_test.cpp` (fails on write) | Planned |
-| REQ-002 | `VehicleDataSource` interface, `FakeSource`; source selection in the vehicle-data service | LHU-008; LHU-012; LHU-022; LHU-028 | `tests/integration/service_against_each_source_test.cpp`; CI link-graph check in `ci.yml` | Planned |
+| REQ-002 | `VehicleDataSource` interface, `SignalStoreFeeder`, `FakeSource`; source selection by configuration (LHU-012) | LHU-008; LHU-012; LHU-022; LHU-028; LHU-029 | `tests/integration/service_against_each_source_test.cpp` (parameterised by source harness: fake now, ELM327, CAN and replay as they land); `tests/unit/hardware/fake_source_test.cpp`; `tests/unit/service/signal_store_feeder_test.cpp`; CI step `tools/check_link_graph.py` on CMake's graphviz output | Tagged tests and the CI link check merged with LHU-008; further harnesses planned with LHU-012, LHU-028, LHU-029 |
 | REQ-003 | `SignalSample`, `SignalStore`, `Clock` | LHU-006 | `tests/unit/service/signal_sample_test.cpp`, `tests/unit/service/signal_store_test.cpp`, `tests/unit/service/staleness_monitor_test.cpp`, `tests/unit/service/steady_clock_test.cpp` | Tagged tests merged with LHU-006 |
 | REQ-004 | `ObdPidDecoder`; PID discovery in `Elm327ObdSource` | LHU-009; LHU-012 | `tests/unit/obd/obd_pid_decoder_test.cpp` (5 vectors per PID); `tests/integration/pid_discovery_test.cpp` (unsupported PID never requested over 100 cycles) | Planned |
 | REQ-005 | `DbcDecoder` with `dbc/simulated_vehicle.dbc` | LHU-027 | `tests/unit/can/dbc_decoder_test.cpp` against a `cantools` oracle, 10,000 or more frames | Planned |
@@ -39,7 +39,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 3 (REQ-003, REQ-006, REQ-007) |
+| With a test that exists and is tagged | 4 (REQ-002, REQ-003, REQ-006, REQ-007) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
