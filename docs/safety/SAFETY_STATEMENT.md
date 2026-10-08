@@ -36,7 +36,7 @@ Exactly these, and nothing else (REQ-001, decision D-009):
 
 | Layer | Mechanism | Verified by |
 |---|---|---|
-| Code structure | Every command passes through `CommandAllowlist` before it reaches the transport. There is one send path and it is guarded | Code review, architecture rule (section 8 of `ARCHITECTURE.md`) |
+| Code structure | Every command passes through `CommandAllowlist::decide` inside `Elm327Protocol::execute` before it reaches the transport; a refused command writes 0 bytes. There is one send path and it is guarded. `CommandAllowlist::obdRequest` can only build Mode 01, 03 and 09 texts | Code review, architecture rule (section 9 of `ARCHITECTURE.md`); `tests/unit/obd/command_allowlist_test.cpp` |
 | Unit test | All 256 possible mode values are offered to the command layer; only Mode 01, 03 and 09 reach the transport, 0 bytes are written for every other value, Mode 04 is named explicitly | REQ-001 test, run in CI on every pull request |
 | CAN side | `CanFrameReader` has no send function; the fake reader fails a test on write | REQ-001 test |
 | Review | The pull request template and the review checklist both ask "does anything send data toward the vehicle outside the allowlist?" | Every pull request |
