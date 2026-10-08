@@ -8,7 +8,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 
 | Requirement | Design element | Ticket | Test or measurement | Status |
 |---|---|---|---|---|
-| REQ-001 | `CommandAllowlist`, `Elm327Protocol` (single guarded send path); `CanFrameReader` (no send method) | LHU-010; LHU-028 | `tests/unit/obd/command_allowlist_test.cpp` (all 256 modes, Mode 04 named); `tests/unit/can/fake_can_frame_reader_test.cpp` (fails on write) | Planned |
+| REQ-001 | `CommandAllowlist`, `Elm327Protocol` (single guarded send path, `src/hardware/obd/`); `CanFrameReader` (no send method) | LHU-010; LHU-028 | `tests/unit/obd/command_allowlist_test.cpp` (all 256 modes through the protocol onto a fake transport: 3 written, 253 refused with 0 bytes, Mode 04 named); `tests/unit/obd/elm327_protocol_test.cpp`; `tests/unit/can/fake_can_frame_reader_test.cpp` (fails on write) | OBD side tagged and merged with LHU-010; the CAN side is planned (LHU-028) |
 | REQ-002 | `VehicleDataSource` interface, `SignalStoreFeeder`, `FakeSource`; source selection by configuration (LHU-012) | LHU-008; LHU-012; LHU-022; LHU-028; LHU-029 | `tests/integration/service_against_each_source_test.cpp` (parameterised by source harness: fake now, ELM327, CAN and replay as they land); `tests/unit/hardware/fake_source_test.cpp`; `tests/unit/service/signal_store_feeder_test.cpp`; CI step `tools/check_link_graph.py` on CMake's graphviz output | Tagged tests and the CI link check merged with LHU-008; further harnesses planned with LHU-012, LHU-028, LHU-029 |
 | REQ-003 | `SignalSample`, `SignalStore`, `Clock` | LHU-006 | `tests/unit/service/signal_sample_test.cpp`, `tests/unit/service/signal_store_test.cpp`, `tests/unit/service/staleness_monitor_test.cpp`, `tests/unit/service/steady_clock_test.cpp` | Tagged tests merged with LHU-006 |
 | REQ-004 | `decodePid` and `SupportedPidSet` (`src/hardware/obd/`); PID discovery in `Elm327ObdSource` | LHU-009; LHU-012 | `tests/unit/obd/obd_pid_decoder_test.cpp` (40 hand-computed vectors, 5 per PID); `tests/unit/obd/supported_pid_set_test.cpp` (bitmaps); `tests/integration/pid_discovery_test.cpp` (unsupported PID never requested over 100 cycles) | Decoder and bitmap tests tagged and merged with LHU-009; the discovery test is planned (LHU-012) |
@@ -17,7 +17,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-007 | `ConnectionStateMachine` with the transition table of DN-007 | LHU-007; LHU-013 (display within 500 ms) | `tests/unit/service/connection_state_machine_test.cpp` (all 24 state and trigger pairs: 8 accepted, 16 rejected); `tests/hmi/connection_status_test.qml` | Unit test tagged and merged with LHU-007; the HMI timing test is planned (LHU-013) |
 | REQ-008 | Reconnect loop and backoff in `Elm327ObdSource` | LHU-012 | `tests/scenarios/reconnect_after_emulator_restart_test.cpp` (20 trials) | Planned |
 | REQ-009 | Whole path, source to rendered frame, including the D-Bus hop | LHU-032; LHU-022 (hop measured) | `tools/measure/measure_latency.py`; raw data in `docs/measurements/latency/` | Planned |
-| REQ-010 | `Elm327Protocol`, `decodePid`, `DbcDecoder` | LHU-010; LHU-009; LHU-027 | `tests/unit/obd/obd_pid_decoder_test.cpp` (wrong byte counts, unknown PIDs, 10,000 random pairs); `tests/unit/obd/elm327_protocol_malformed_input_test.cpp` (named corpus plus 100,000 random strings under sanitizers); `tests/unit/can/dbc_decoder_malformed_frame_test.cpp` | Decoder part tagged and merged with LHU-009; the parser corpus (LHU-010) and the DBC part (LHU-027) are planned |
+| REQ-010 | `Elm327Protocol`, `decodePid`, `DbcDecoder` | LHU-010; LHU-009; LHU-027 | `tests/unit/obd/obd_pid_decoder_test.cpp` (wrong byte counts, unknown PIDs, 10,000 random pairs); `tests/unit/obd/elm327_protocol_malformed_input_test.cpp` (named corpus of 16 replies plus 100,000 random strings, run under sanitizers in CI); `tests/unit/can/dbc_decoder_malformed_frame_test.cpp` | Decoder (LHU-009) and parser (LHU-010) parts tagged and merged; the DBC part is planned (LHU-027) |
 | REQ-011 | View models as the only QML binding target; `VehicleDataClient` as the only path from a view model to vehicle data | LHU-013; LHU-022 | CI include check in `ci.yml` | Planned |
 | REQ-012 | QML home and vehicle-data screens, view models | LHU-013 (home); LHU-039 (vehicle data) | `tests/hmi/home_screen_test.qml`, `tests/hmi/vehicle_data_screen_test.qml` | Planned |
 | REQ-013 | Service and hub startup, systemd units | LHU-032 | `tools/measure/measure_boot_time.py`; raw data in `docs/measurements/boot_time/` | Planned, target provisional |
@@ -39,7 +39,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 6 (REQ-002, REQ-003, REQ-004, REQ-006, REQ-007, REQ-010) |
+| With a test that exists and is tagged | 7 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-006, REQ-007, REQ-010) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 

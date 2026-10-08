@@ -5,7 +5,7 @@
 | Ticket | LHU-009 |
 | Requirements | REQ-004, REQ-010 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Form | Light (one page: problem, public interface, failure cases, test plan) |
 | Draft written | 2026-10-08, about 10 minutes |
 | Design review | after merge, by the repository owner (D-049) |
@@ -61,4 +61,4 @@ Discovery over the real adapter (an unsupported PID is never requested over 100 
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #51 (c8dc0d6). No deviations. Review finding carried: `pidForSignal` has a fall-through return for an out-of-range id; revisit when LHU-031 adds signals without a PID. Status: Implemented.
