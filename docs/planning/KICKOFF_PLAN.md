@@ -374,7 +374,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-003 | Repo bootstrap: folder connected to the public remote, `dev` created, first PR, rulesets, labels, Projects board | 2 | exempt | 2 | 1.0 | **Done 2026-10-02** | — |
 | LHU-005 | CMake skeleton, GoogleTest, CI, design note template; check names required in both rulesets | 2.75 | exempt | 2.75 | 2.0 | **Done 2026-10-02** (PR #17) | — |
 | LHU-004 | Docs baseline: requirements, traceability, test strategy, release checklist, architecture, safety statement, ADR-001, README | 4 | exempt | 4 | 1.0 | **Done 2026-10-04** (PR #18) | all |
-| LHU-006 | Signal model and SignalStore with staleness | 4 | 1.75 full | 5.75 | | Ready; DN-006 primer given, draft pending | 003, 006 |
+| LHU-006 | Signal model and SignalStore with staleness; `tools/check_traceability.py` | 4 | 1.75 full | 5.75 | | **Done** (DN-006, this PR) | 003, 006 |
 | LHU-007 | Connection state machine | 3 | 1.75 full | 4.75 | | Backlog | 007 |
 | LHU-008 | `VehicleDataSource` interface and FakeSource | 2 | 1.75 full | 3.75 | | Backlog | 002 |
 | LHU-009 | OBD PID decoder | 3 | 0.75 light | 3.75 | | Backlog | 004, 010 |
