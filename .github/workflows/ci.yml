@@ -43,7 +43,10 @@ jobs:
           ninja --version
 
       - name: Configure (debug with sanitizers)
-        run: cmake --preset sanitizers
+        run: cmake --preset sanitizers --graphviz="$RUNNER_TEMP/link_graph.dot"
+
+      - name: Service and HMI targets link to no concrete source (REQ-002)
+        run: python3 tools/check_link_graph.py "$RUNNER_TEMP/link_graph.dot"
 
       - name: Build (debug with sanitizers)
         run: cmake --build --preset sanitizers

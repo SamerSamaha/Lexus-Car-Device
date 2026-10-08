@@ -15,7 +15,7 @@ How each kind of claim in this project is verified, where each test runs, and wh
 | Tier | What | Framework | Runs on | Exists since |
 |---|---|---|---|---|
 | T1 Unit | Every non-UI class in isolation: service layer, decoders, protocol, allowlist, state machine. Built with `-Wall -Wextra -Werror` and, in CI, with AddressSanitizer and UndefinedBehaviorSanitizer | GoogleTest and GoogleMock | WSL, CI | LHU-005 (one smoke test) |
-| T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal | GoogleTest; emulator in Python | WSL, CI | LHU-012 (v0.1.0) |
+| T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal. One suite, `service_against_each_source_test.cpp`, parameterised by a per-source harness | GoogleTest; emulator in Python | WSL, CI | LHU-008 (fake harness); LHU-012 (ELM327 harness) |
 | T3 vcan | A Python traffic generator writes frames to `vcan0`; the application decodes them live. ctest label `vcan` | GoogleTest plus Python | Pi only; CI if later proven | LHU-028 (v1.0.0) |
 | T4 Scenarios | Scripted fault injection through the emulator: see section 3 | Python driving the emulator, GoogleTest asserting | WSL, CI; some Pi only | LHU-011, LHU-012 (v0.1.0) |
 | T5 HMI | View models and QML screens with a fake view model on the offscreen platform | Qt Quick Test | WSL, CI | LHU-013 |
@@ -30,7 +30,7 @@ Checks that are not tests of the software but run in CI on every pull request:
 | Warnings as errors | `-Werror` in every preset | LHU-005 |
 | Privacy | `tools/check_private_data.py`: no VIN-shaped or Bluetooth-address-shaped string in tracked files or file names; the script has its own unit tests | LHU-005 |
 | Traceability | `tools/check_traceability.py`: every requirement ID in `REQUIREMENTS.md` appears in at least one test file tag (section 5) | LHU-006, with the first tagged test |
-| Dependency rules | Service and HMI targets link to no concrete source; QML and view models include nothing from hardware or service directly (REQ-002, REQ-011) | LHU-012, LHU-013 |
+| Dependency rules | Service and HMI targets link to no concrete source (`tools/check_link_graph.py`); QML and view models include nothing from hardware or service directly (REQ-002, REQ-011) | LHU-008 (link graph), LHU-013 (include check) |
 | Thermal and power | `tools/measure/log_thermal_power.py` runs during every Pi bring-up and on-car session; judged against the thresholds of D-025 | LHU-015 (script), LHU-016 (sessions) |
 
 ## 3. Scenario coverage (T4)
