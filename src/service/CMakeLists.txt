@@ -1,5 +1,11 @@
 add_library(lexus_head_unit_service STATIC
+    source/clock.cpp
     source/library_version.cpp
+    source/manual_clock.cpp
+    source/signal_definition.cpp
+    source/signal_id.cpp
+    source/signal_store.cpp
+    source/staleness_monitor.cpp
 )
 
 target_include_directories(lexus_head_unit_service

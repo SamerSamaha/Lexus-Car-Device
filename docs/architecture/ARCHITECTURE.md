@@ -2,7 +2,7 @@
 
 This document describes the parts of the Lexus Head Unit, what each one owns, how data moves between them, and the rules that keep them apart. It is the reference that design notes (`docs/design/`) and code reviews are checked against. Decisions with alternatives are recorded in `docs/adr/`; this file states the result.
 
-Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. Only the service library skeleton exists in code. Each component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, after its design note is approved.
+Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor` and the clocks exist in code (LHU-006, DN-006). Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
 
 ## 1. What the system is
 
@@ -101,10 +101,10 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 |---|---|---|
 | `SignalSample` | Value type: signal id, value, unit, monotonic timestamp (ms), status | Shaped like a property value in a vehicle hardware abstraction layer: one record per signal carrying value, timestamp and status. The mapping is a design influence, not a claim of compatibility |
 | `SignalDefinition` | Static description of a signal: id, name, unit, staleness timeout | Table of the signals the system knows; the default timeout is 1000 ms (REQ-006) |
-| `SignalStore` | Holds the latest `SignalSample` per signal; rejects out-of-order timestamps; notifies the listener of each change | REQ-003. Single-writer: only the worker thread writes |
+| `SignalStore` | Holds the latest `SignalSample` per signal in an array indexed by `SignalId`; rejects a sample whose timestamp is not newer than the stored one, a sample with the wrong unit, or an unknown id, and counts each kind; notifies one listener of each change; holds the per-signal staleness timeouts | REQ-003. Single-writer: only the worker thread writes. The source's status field is ignored: the store writes Valid, the monitor writes Stale |
 | `StalenessMonitor` | Marks a signal Stale when its timeout has passed since its last sample | Driven by an injected `Clock` so tests control time (REQ-006) |
 | `ConnectionStateMachine` | Four states, Disconnected, Connecting, Connected, Error, and a written transition table; rejects illegal transitions | REQ-007. The table is in the design note DN-007 and copied here when approved |
-| `Clock` | Interface returning monotonic milliseconds | Real implementation uses `std::chrono::steady_clock`; tests inject a manual clock |
+| `Clock` | Interface returning monotonic milliseconds | `SteadyClock` uses `std::chrono::steady_clock`; `ManualClock` (in the library, for tests and tooling) is advanced by hand |
 | `DerivedSignalEngine` | Computes derived signals from stored samples: fuel economy from mass air flow and speed, trip distance, time in RPM bands, warm-up time; writes them into the `SignalStore` like any source | REQ-022, LHU-031. Constants (air-fuel ratio, fuel density) are stated in DN-031. No model training on the device; offline statistics are tooling (LHU-037) |
 | `PowerStatusProvider` | Interface returning the firmware's under-voltage and throttling flags; real implementation reads them on the Pi, a fake sets them in tests | REQ-020, LHU-025 |
 
@@ -223,7 +223,6 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 | Item | Decided by |
 |---|---|
 | Exact `ConnectionStateMachine` transition table | DN-007 |
-| Signal id and unit enumerations, the signal table | DN-006 |
 | Configuration file format and the source-selection key | DN-012 |
 | D-Bus interface names, signal payload layout, current-state query | DN-022 |
 | App registry file format; how the user returns to the hub from a fullscreen browser (OQ-29) | LHU-020 spike, then DN-021 |

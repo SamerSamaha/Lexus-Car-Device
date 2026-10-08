@@ -55,4 +55,4 @@ In this order:
 
 | Note | Ticket | Status |
 |---|---|---|
-| (none yet) | | |
+| [DN-006](DN-006-signal-store.md) Signal model and SignalStore with staleness | LHU-006 | Approved |

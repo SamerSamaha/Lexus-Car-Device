@@ -1,19 +1,19 @@
 # Traceability matrix
 
-For every requirement: the design element that implements it, the ticket that builds it, and the test or measurement that verifies it. This file is updated in the same pull request that changes any of the three. A row whose test does not exist yet says so in the Status column; CI will fail the pull request once `tools/check_traceability.py` exists (LHU-006) and a requirement has no tagged test.
+For every requirement: the design element that implements it, the ticket that builds it, and the test or measurement that verifies it. This file is updated in the same pull request that changes any of the three. A row whose test does not exist yet says "Planned" in the Status column and is reported as pending by `tools/check_traceability.py`, which CI runs on every pull request (since LHU-006). Any other row must point at a tagged test that exists, or at a measurement script or manual procedure file that exists; a tagged test whose row still says Planned fails the check, so the row is updated in the pull request that adds the test.
 
 Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are named by the file that will carry the tag `// Verifies: REQ-nnn` (see `docs/test/TEST_STRATEGY.md` section 5). Every ticket is numbered since plan revision 6; the milestone each ticket belongs to is on the GitHub board.
 
 ## Matrix
 
-| Requirement | Design element | Ticket | Test or measurement | Status on 2026-10-05 |
+| Requirement | Design element | Ticket | Test or measurement | Status |
 |---|---|---|---|---|
 | REQ-001 | `CommandAllowlist`, `Elm327Protocol` (single guarded send path); `CanFrameReader` (no send method) | LHU-010; LHU-028 | `tests/unit/obd/command_allowlist_test.cpp` (all 256 modes, Mode 04 named); `tests/unit/can/fake_can_frame_reader_test.cpp` (fails on write) | Planned |
 | REQ-002 | `VehicleDataSource` interface, `FakeSource`; source selection in the vehicle-data service | LHU-008; LHU-012; LHU-022; LHU-028 | `tests/integration/service_against_each_source_test.cpp`; CI link-graph check in `ci.yml` | Planned |
-| REQ-003 | `SignalSample`, `SignalStore` | LHU-006 | `tests/unit/service/signal_sample_test.cpp`, `tests/unit/service/signal_store_test.cpp` | Planned |
+| REQ-003 | `SignalSample`, `SignalStore`, `Clock` | LHU-006 | `tests/unit/service/signal_sample_test.cpp`, `tests/unit/service/signal_store_test.cpp`, `tests/unit/service/staleness_monitor_test.cpp`, `tests/unit/service/steady_clock_test.cpp` | Tagged tests merged with LHU-006 |
 | REQ-004 | `ObdPidDecoder`; PID discovery in `Elm327ObdSource` | LHU-009; LHU-012 | `tests/unit/obd/obd_pid_decoder_test.cpp` (5 vectors per PID); `tests/integration/pid_discovery_test.cpp` (unsupported PID never requested over 100 cycles) | Planned |
 | REQ-005 | `DbcDecoder` with `dbc/simulated_vehicle.dbc` | LHU-027 | `tests/unit/can/dbc_decoder_test.cpp` against a `cantools` oracle, 10,000 or more frames | Planned |
-| REQ-006 | `StalenessMonitor`, `SignalDefinition` (per-signal timeout), `Clock` | LHU-006; LHU-013 and LHU-039 (styling) | `tests/unit/service/staleness_monitor_test.cpp`; `tests/hmi/signal_tile_test.qml` (stale never drawn live) | Planned |
+| REQ-006 | `StalenessMonitor`, `SignalDefinition` (per-signal timeout), `Clock` | LHU-006; LHU-013 and LHU-039 (styling) | `tests/unit/service/staleness_monitor_test.cpp`, `tests/unit/service/signal_store_test.cpp`; `tests/hmi/signal_tile_test.qml` (stale never drawn live) | Unit tests tagged and merged with LHU-006; the HMI styling test is planned (LHU-039) |
 | REQ-007 | `ConnectionStateMachine` with the transition table of DN-007 | LHU-007; LHU-013 (display within 500 ms) | `tests/unit/service/connection_state_machine_test.cpp` (every legal and illegal transition); `tests/hmi/connection_status_test.qml` | Planned |
 | REQ-008 | Reconnect loop and backoff in `Elm327ObdSource` | LHU-012 | `tests/scenarios/reconnect_after_emulator_restart_test.cpp` (20 trials) | Planned |
 | REQ-009 | Whole path, source to rendered frame, including the D-Bus hop | LHU-032; LHU-022 (hop measured) | `tools/measure/measure_latency.py`; raw data in `docs/measurements/latency/` | Planned |
@@ -39,9 +39,9 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 0 |
+| With a test that exists and is tagged | 2 (REQ-003, REQ-006) |
 
-The last row is the number CI will enforce. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the commit that added it.
+The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
 ## Reverse view: ticket to requirements
 
