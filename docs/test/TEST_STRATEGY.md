@@ -84,7 +84,7 @@ The same line, with the comment marker of the language, is used in Python and QM
 
 - **Real CAN frames from the GS350.** The DBC describes an invented vehicle and is labelled so. Decoding the real car's broadcast frames is not planned before v1.0.0.
 - **The adapter's firmware.** Only the software's behaviour toward it is tested; the adapter is a black box exercised by the on-car procedure.
-- **The display's touch under the final display stack**, until the bring-up spike decides the stack (OQ-6).
+- **The display's touch under the compositor.** Rotation and touch under labwc were verified by hand on 2026-10-05 (D-045); there is no automated test of the touch input, and every on-Pi check of it is a step in `docs/release/PI_BRINGUP_CHECKLIST.md`.
 - **Safety.** There is no safety function to test (see `docs/safety/SAFETY_STATEMENT.md`). The REQ-001 tests verify read-only behaviour of this software, nothing more.
 
 ## 8. Test code conventions

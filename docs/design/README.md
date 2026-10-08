@@ -26,6 +26,10 @@ Tickets that only change documentation, the build, or CI are exempt.
 | 6. Commit | The note is committed with the code pull request, or before it | |
 | 7. After merge | The author adds the "Design vs. implementation" section: where the code differs from the note, and why. Status: Implemented | About 15 minutes |
 
+## Build-out form (D-049)
+
+For the build-out from v0.1.0 to v1.0.0 the note is written by the implementer of the ticket, in the same form and with the same sections, marked Approved, and committed in the pull request that implements it. The repository owner reviews the note and the code together after merge and adds the "Design vs. implementation" section. Assumptions made in place of a hardware fact are listed in section 2 of the note and in the assumptions table of `docs/release/PI_BRINGUP_CHECKLIST.md`.
+
 ## Rules
 
 - The draft is time-boxed. When the time is up, the draft goes to review as it is. An unfinished section is a finding for the review, not a reason to keep writing.
