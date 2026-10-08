@@ -5,7 +5,7 @@
 | Ticket | LHU-008 |
 | Requirements | REQ-002 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 20 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -108,4 +108,4 @@ Bad input: a scripted sample for an unknown id is emitted as is; the store rejec
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #50 (be74734). No deviations. Review findings carried: the placeholder unit for an unknown id in the fake is test behaviour, not product behaviour; the guarded target names in `check_link_graph.py` must be matched when LHU-013 names the HMI targets. Status: Implemented.
