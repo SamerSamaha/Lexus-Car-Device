@@ -125,7 +125,7 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 | Component | Responsibility | Notes |
 |---|---|---|
 | View models (`src/hmi/viewmodels/`) | `SignalTileModel` (name, value text, unit text, status flags), `ConnectionStatusModel` (state text, flags, last cause), `VehicleDataViewModel` (the eight tiles and the status model, the `vehicleData` context property); `WorkerBridge` carries `SignalSample` and `ConnectionTransition` by value from the worker thread through queued connections | The only classes QML may bind to (REQ-011). LHU-013, DN-013 |
-| QML screens (`src/hmi/qml/`) | `Sizes` singleton (11.6 px/mm), `SignalTile`, `StatusStrip`, `HomeScreen` (2 primary values and a status strip, LHU-013), vehicle data (4 x 2 grid of signal tiles, LHU-039), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting. Imports only Qt modules and `LexusHeadUnit` (checked in CI) |
+| QML screens (`src/hmi/qml/`) | `Sizes` singleton (11.6 px/mm), `SignalTile`, `StatusStrip` (with the navigation button), `HomeScreen` (2 primary values and a status strip, LHU-013), `VehicleDataScreen` (4 x 2 grid of signal tiles, LHU-039), `Screens` (the switch between them), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting. Imports only Qt modules and `LexusHeadUnit` (checked in CI) |
 | `app` (`src/app/`, executable `lexus-head-unit`) | `main()` of the vehicle-data app: reads `deploy/head_unit.conf`, builds the configured source (`buildSource`: `elm327` or `fake` with a demo script), the service layer, the bridge, the view model, the QML engine and the `WorkerLoop`. From v0.2.0 the source and the service layer move to the service process and `app` constructs a `VehicleDataClient` | The one place that knows every concrete type; the link-graph check does not guard it |
 
 ### 4.4 Hub, `src/hub/`
@@ -222,7 +222,7 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 - All sizes are written in millimetres and converted through one constant, `pixelsPerMillimetre = 11.6`, defined once in the HMI.
 - Touch targets are at least 10 mm (116 px) on each side.
 - Primary values have a character height of at least 4 mm (46 px). The 4 mm figure is about 20 arcminutes at 700 mm viewing distance; the 20-arcminute recommendation is attributed to ISO 15008 from memory and is **unverified**.
-- Home shows 2 primary values and a status strip. Vehicle data shows the 8 signals of REQ-004 as a 4 x 2 grid of tiles about 27 x 27 mm. Diagnostics scrolls.
+- Home shows 2 primary values and a status strip. Vehicle data shows the 8 signals of REQ-004 as a 4 x 2 grid of tiles 25 x 23 mm (DN-039; the strip is 10 mm because it carries the Home touch target). Diagnostics scrolls.
 - A Stale signal is drawn in a visibly different style (REQ-006, REQ-012): the value in the muted colour with a `STALE` badge beside the unit; NeverReceived shows `--`; only Valid uses the live colour. Decided in DN-013 and asserted by `tests/hmi/tst_home_screen.qml`.
 
 ## 11. Deployment

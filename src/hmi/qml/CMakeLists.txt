@@ -4,9 +4,11 @@ function(lexus_head_unit_add_qml_module target)
     set(qml_files
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/HomeScreen.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Main.qml
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Screens.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/SignalTile.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Sizes.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/StatusStrip.qml
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/VehicleDataScreen.qml
     )
     foreach(qml_file IN LISTS qml_files)
         get_filename_component(qml_name "${qml_file}" NAME)

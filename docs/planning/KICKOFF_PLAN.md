@@ -381,8 +381,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-010 | ELM327 response parser, command allowlist, byte transport interface and fake | 5 | 1.75 full | 6.75 | 2.5 (estimated) | **Done 2026-10-08** (PR #52) | 001, 010 |
 | LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #53) | fixture |
 | LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | 3.5 (estimated) | **Done 2026-10-08** (PR #54) | 002, 004, 008 |
-| LHU-013 | View models, worker loop, application, QML home screen sized in millimetres, HMI tests, REQ-011 CI check | 3 | 1.75 full | 4.75 | | **Done** (DN-013, this PR) | 006, 007, 011, 012 |
-| LHU-039 | Vehicle-data screen: 4 x 2 signal grid | 4 | 0.75 light | 4.75 | | Backlog (new in revision 6) | 006, 012 |
+| LHU-013 | View models, worker loop, application, QML home screen sized in millimetres, HMI tests, REQ-011 CI check | 3 | 1.75 full | 4.75 | 3.0 (estimated) | **Done 2026-10-08** (PR #55) | 006, 007, 011, 012 |
+| LHU-039 | Vehicle-data screen: 4 x 2 signal grid, navigation between the screens | 4 | 0.75 light | 4.75 | | **Done** (DN-039, this PR) | 006, 012 |
 | LHU-015 | Thermal and power logger script, with a unit test of the flag decoding | 0.75 | 0.75 light | 1.5 | | Backlog | — |
 | LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Backlog | — |
 | LHU-017 | vLinker MC+ pairing and first parked car session; PID support and request rate recorded | 2 | exempt | 2 | | Backlog | feeds 004 |

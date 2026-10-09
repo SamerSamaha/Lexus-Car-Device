@@ -5,7 +5,7 @@
 | Ticket | LHU-013 |
 | Requirements | REQ-006, REQ-007, REQ-011, REQ-012 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 30 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -109,4 +109,4 @@ Everything below the Qt boundary exists; nothing is on a screen. This ticket add
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #55 (86ecce3). Two implementation details the note did not spell out: the meta-type declarations live in `value_types.h`, included before any `Q_OBJECT` class that uses the types, because the moc of the view model instantiates them first; and the QML module is compiled without `qmlcachegen` because its generated loader needs a C++20 extension under clang. The QML `TestCase` is made visible so that visibility and mouse events are real. Review findings carried: the systemd unit must pass an absolute `--config` (LHU-022); the `Row` anchors in `SignalTile.qml` are replaced when LHU-039 touches the tile. Status: Implemented.

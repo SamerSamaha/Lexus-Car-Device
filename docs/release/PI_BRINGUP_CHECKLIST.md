@@ -77,7 +77,7 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 # (edit deploy/head_unit.conf so elm327.device = /tmp/obd for this run)
 ```
 
-Record in `docs/test/results/<date>_home_screen_on_pi.md`: whether the window fills the panel in landscape (A9); the measured height in millimetres of the digit "8" in the speed tile, with a ruler against the glass (A8; target at least 4 mm); whether a tap on "Vehicle data" registers (A9); the status strip going Connected; a value greying out with the `STALE` badge after `printf 'stale 0D\n'` on the control socket.
+Record in `docs/test/results/<date>_home_screen_on_pi.md`: whether the window fills the panel in landscape (A9); the measured height in millimetres of the digit "8" in the speed tile, with a ruler against the glass (A8; target at least 4 mm); whether a tap on "Vehicle data" opens the 4 x 2 grid and "Home" returns (A9); the status strip going Connected; a value greying out with the `STALE` badge after `printf 'stale 0D\n'` on the control socket; the measured width and height in millimetres of one grid tile (expected about 25 x 23 mm).
 
 Results: not yet measured.
 
