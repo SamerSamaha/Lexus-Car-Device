@@ -229,7 +229,7 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 - Target: Raspberry Pi OS 64-bit desktop (Debian 13 based, Trixie) on the Pi 5, Qt 6.8.2 from the distribution packages. The desktop image and its labwc Wayland compositor are the display stack (D-045): the hub needs a compositor to run beside the system browser, so Qt eglfs on the bare framebuffer is rejected. The panel is rotated to landscape in the compositor configuration; touch follows. First-boot steps are in `deploy/PI_SETUP.md`.
 - Processes are started by systemd units in `deploy/`: the vehicle-data service first, then the hub; apps are started by the hub.
 - Bluetooth: BlueZ carries both the RFCOMM link to the OBD adapter and, from v0.2.0, the audio link to the car stereo (PipeWire, REQ-019). Their coexistence on one radio is measured, not assumed (OQ-28).
-- Desk: Debian 13 in WSL2 with the same Qt version; the application runs against the ELM327 emulator over a pseudo-terminal or against `vcan0` on the Pi only (WSL2 has no vcan module).
+- Desk: Debian 13 in WSL2 with the same Qt version; the application runs against the ELM327 emulator (`tools/elm327_emulator/`, a pseudo-terminal behind a fixed symlink, faults injected over a control socket) or against `vcan0` on the Pi only (WSL2 has no vcan module).
 - CI: Debian 13 container; unit, integration, scenario and HMI tests on the offscreen platform; arm64 release build (LHU-033).
 
 ## 12. Not decided yet

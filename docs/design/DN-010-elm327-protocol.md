@@ -5,7 +5,7 @@
 | Ticket | LHU-010 |
 | Requirements | REQ-001, REQ-010 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 25 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -106,4 +106,4 @@ Everything the head unit says to the car goes through one text line to an ELM327
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #52 (6396c89). One addition: `Elm327Protocol::execute` drains and counts bytes the adapter sent before the new command is written (`discardedStaleByteCount`), because a late reply arriving after a timeout would otherwise be read as the answer to the next command; found while writing the chunked-reply test. One clarification: `Text` is a kind only for `AT` replies; printable text where data was expected is Malformed. Review finding carried to LHU-012: the real transports must honour a zero-millisecond read timeout, or the drain would block. Status: Implemented.
