@@ -79,7 +79,11 @@ The OBD adapter pairs on its classic-Bluetooth side (name ending in "-Android"; 
 
 The car stereo is paired the same way as an audio sink when LHU-024 is done; the two links share one radio and their coexistence is measured, not assumed (OQ-28).
 
-## 9. What is not done here
+## 9. Ready-built executables from CI
+
+Every CI run builds the release preset for arm64 and uploads it as the artifact `lexus-head-unit-arm64`. Instead of building on the Pi, it can be downloaded and copied over: `docs/release/PI_BRINGUP_CHECKLIST.md` step 3.12 has the commands and the checks. Building on the Pi stays the day-to-day route (D-022).
+
+## 10. What is not done here
 
 - No swap file on the SD card (D-022): the zram swap of the image is kept.
 - No packages beyond the image and the project's dependencies.

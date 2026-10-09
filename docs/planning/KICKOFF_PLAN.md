@@ -66,7 +66,7 @@ Each milestone is a tagged release from `dev` to `main` after `docs/release/RELE
 | **v1.0.0 Head unit** | DBC decoder, SocketCAN source, record and replay, diagnostics screen, trip analytics, whole-system measurements and one optimisation pass, arm64 CI build, on-car procedure and drives, docs, demo video, license, release | LHU-027 to 035 | 48.75 |
 | **Roadmap** | GPS from phone position and map tiles, offline statistics, call and notification status (optional) | LHU-036 to 038 | 32.75, not scheduled |
 
-Total planned to v1.0.0 after revision 9: 15 hours of v1.0.0 tickets not yet done (LHU-032 6, 033 2, 034 3, 035 4; LHU-027 to LHU-031 are done), plus the Pi and car steps of the six carried tickets (LHU-016, 017, 018, 020, 023, 024). At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
+Total planned to v1.0.0 after revision 9: 13 hours of v1.0.0 tickets not yet done (LHU-032 6, 034 3, 035 4; LHU-027 to LHU-031 and LHU-033 are done), plus the Pi and car steps of the six carried tickets (LHU-016, 017, 018, 020, 023, 024). At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
 
 ## Hardware as arrived (D-011, D-012, D-026, D-044)
 
@@ -98,7 +98,7 @@ No further purchases (D-044).
 | Local repository | `origin/main` is one commit, 414ff66 "Initial commit"; `dev` is the default branch | Verified |
 | GitHub protection | Rulesets `protect-main` and `protect-dev` active on a personal Free public repository: deletion and force pushes blocked, pull request required, and since 2026-10-02 the three CI checks "Build and unit tests", "Static analysis" and "Privacy check" required on both branches | Verified through the API, 2026-10-03 |
 | CI on GitHub | First two runs (PR #17) green in 17 to 44 s per job inside a `debian:trixie` container: `actions/checkout@v7` and AddressSanitizer work on the hosted runner | Verified, 2 runs |
-| GitHub arm64 runners | `ubuntu-24.04-arm` free for public repos | Unverified by us |
+| GitHub arm64 runners | `ubuntu-24.04-arm` runs the `debian:trixie` container on this public repository: first run 2026-10-09 (PR #73), release build of 253 steps in about 50 s, 276 of 276 tests passed on `aarch64`, the three executables checked as AArch64 by their ELF header | Verified, 1 run |
 | vcan on GitHub-hosted runners | Not shipped; fragile to add | Unverified by us |
 | vLinker MC+ | Dual mode, Bluetooth 3.0 classic plus BLE 4.0; classic name ends in "-Android"; BLE name ends in "-IOS" | Unverified until paired |
 | Pi 5 power input | Raspberry Pi docs: 5 V at 5 A, or 5 V at 3 A with a 600 mA USB peripheral limit | Docs verified; on the desk charger the Pi booted and ran the upgrade with 0x0 throttle flags (measured 2026-10-05); the power bank unverified |
@@ -162,6 +162,8 @@ The dev laptop is x86-64 and the Pi is arm64, so a desk build cannot simply be c
 | C. arm64 build in CI | `ubuntu-24.04-arm` runner, `debian:trixie` container, download the artifact | Native-speed arm64; reproducible | Minutes per iteration; same package-mismatch risk as B |
 
 **Decision:** route A day to day with 2 jobs and the default Raspberry Pi OS zram swap (verified 2 GiB). Route C as the release build and the fallback (LHU-033). Route B is not planned. True cross-compilation with a sysroot is rejected.
+
+**Route C in place (LHU-033, 2026-10-09):** every CI run builds the release preset on `ubuntu-24.04-arm` in `debian:trixie`, runs its tests on arm64, and uploads the artifact `lexus-head-unit-arm64` (the three executables, `deploy/`, the commit, and `build_environment.txt` with the package versions used), kept 30 days. Package match, first run: the container's `qt6-base-dev`, `libqt6core6t64` and `libqt6dbus6` are 6.8.2+dfsg-9+deb13u2, the same version `apt policy qt6-base-dev` showed on the Pi on 2026-10-05; `qt6-declarative-dev`, `libqt6qml6` and `libqt6quick6` are 6.8.2+dfsg-7 and have not been read on the Pi yet; `libc6` 2.41-12+deb13u4, `libstdc++6` 14.2.0-19. Whether the downloaded executables run on Raspberry Pi OS is checklist step 3.12 (A17). The job is not a required check: that is a ruleset change for the repository owner.
 
 Do not use a plain swap file on the SD card as working memory: it is slow and wears the card.
 
@@ -419,7 +421,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-030 | Diagnostics screen: trouble codes and vehicle information. **Done 2026-10-09** (DN-030), 3.0 h actual (estimated); the read on the car is checklist step 3.10 | 5 | 1.75 full | 6.75 | 021 |
 | LHU-031 | Trip analytics as derived signals. **Done 2026-10-09** (DN-031), 3.5 h actual (estimated); the comparison on the car is checklist step 3.11 | 7 | 1.75 full | 8.75 | 022 |
 | LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass. **Instruments done 2026-10-09** (latency probe, first-frame marker, three scripts); the runs, the target re-set and the optimisation pass need the Pi; 2.0 h actual (estimated) | 6 | exempt | 6 | 009, 013, 014 |
-| LHU-033 | arm64 release build in CI | 2 | exempt | 2 | — |
+| LHU-033 | arm64 release build in CI. **Done 2026-10-09**: the job "arm64 release build" uploads `lexus-head-unit-arm64`; 1.0 h actual (estimated) | 2 | exempt | 2 | — |
 | LHU-034 | Manual on-car test procedure and first drives; mounting decided (OQ-14) | 3 | exempt | 3 | — |
 | LHU-035 | Release v1.0.0: documentation, demo video, license (OQ-25) | 4 | exempt | 4 | — |
 | **Total** | | | | **48.75** | |

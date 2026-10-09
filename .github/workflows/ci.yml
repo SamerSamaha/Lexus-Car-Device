@@ -176,7 +176,7 @@ jobs:
             test "$file_type" = "b700"
           done
           cp -r deploy "$out/deploy"
-          git rev-parse HEAD > "$out/commit.txt"
+          echo "$GITHUB_SHA" > "$out/commit.txt"
           ls -l "$out"
 
       - name: Upload the arm64 build

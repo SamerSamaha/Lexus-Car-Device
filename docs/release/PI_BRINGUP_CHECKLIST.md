@@ -14,6 +14,7 @@ Rules:
 |---|---|---|
 | Thermal and power log in every Pi session | LHU-015, LHU-016 | Script written and unit-tested (LHU-015); no session logged with it yet; two raw CSVs from 2026-10-05 exist on the Pi under `~/measurements/` |
 | Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | Not yet done |
+| The CI arm64 build runs on the Pi | LHU-033 | Built and tested on `aarch64` in CI, artifact uploaded (LHU-033); step 3.12 not yet done |
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
 | Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
@@ -47,6 +48,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
 | A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
 | A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
+| A17 | Executables built in the `debian:trixie` container run on Raspberry Pi OS (same Debian 13 base): every shared library resolves, and the Qt QML and Quick packages on the Pi are the versions the container used (6.8.2+dfsg-7) | LHU-033 | Step 3.12 | Not yet verified |
 | A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
@@ -206,6 +208,25 @@ After a drive of at least 10 km by someone else, or with the screen ignored, par
 4. Pass for distance: within 2 % of the trip meter. The economy figure is a comparison, not a pass or fail: record the difference, and if it is over 10 % note whether E10 fuel or the density constant explains it (A16).
 
 Record in `docs/test/results/<date>_trip_values.md`.
+
+Results: not yet done.
+
+### 3.12 The CI arm64 build on the Pi (LHU-033)
+
+On the laptop, from the repository folder (PowerShell), download the artifact of the latest green run on `dev` and copy it over:
+
+```sh
+gh run list --branch dev --workflow CI --limit 1
+gh run download <run id> --name lexus-head-unit-arm64 --dir lexus-head-unit-arm64
+scp -r lexus-head-unit-arm64 lexus-pi:~/
+```
+
+On the Pi:
+
+1. `cat ~/lexus-head-unit-arm64/build_environment.txt` and compare each line with `dpkg-query --show libc6 libstdc++6 qt6-base-dev qt6-declarative-dev 'libqt6core6*' 'libqt6dbus6*' 'libqt6quick6*' 'libqt6qml6*'` on the Pi. Record every difference.
+2. `chmod +x ~/lexus-head-unit-arm64/lexus-*` (an artifact does not keep the executable bit), then `ldd ~/lexus-head-unit-arm64/lexus-head-unit | grep "not found"` prints nothing; the same for the other two.
+3. `~/lexus-head-unit-arm64/lexus-head-unit --source fake --fullscreen` shows the home screen with moving values; Trip and Diagnostics open.
+4. Record in `docs/test/results/<date>_ci_arm64_build_on_pi.md`: the run ID, the differences of item 1, the result of items 2 and 3. A17 is verified when items 2 and 3 pass.
 
 Results: not yet done.
 
