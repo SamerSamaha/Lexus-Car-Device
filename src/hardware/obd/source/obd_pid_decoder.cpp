@@ -16,6 +16,7 @@ constexpr double temperatureOffsetDegreesCelsius = 40.0;
 constexpr double rpmDivisor = 4.0;
 constexpr double millivoltsPerVolt = 1000.0;
 constexpr double highByteWeight = 256.0;
+constexpr double massAirFlowDivisor = 100.0;
 
 double twoByteValue(const std::vector<std::uint8_t>& dataBytes) {
     return (highByteWeight * dataBytes.at(0)) + dataBytes.at(1);
@@ -23,7 +24,7 @@ double twoByteValue(const std::vector<std::uint8_t>& dataBytes) {
 
 } // namespace
 
-ObdPid pidForSignal(SignalId signalId) {
+std::optional<ObdPid> pidForSignal(SignalId signalId) {
     switch (signalId) {
     case SignalId::VehicleSpeed:
         return ObdPid::VehicleSpeed;
@@ -41,8 +42,11 @@ ObdPid pidForSignal(SignalId signalId) {
         return ObdPid::ControlModuleVoltage;
     case SignalId::FuelLevel:
         return ObdPid::FuelLevel;
+    case SignalId::MassAirFlow:
+        return ObdPid::MassAirFlow;
+    default:
+        return std::nullopt;
     }
-    return ObdPid::VehicleSpeed;
 }
 
 std::optional<SignalId> signalForPid(std::uint8_t pid) {
@@ -63,6 +67,8 @@ std::optional<SignalId> signalForPid(std::uint8_t pid) {
         return SignalId::ControlModuleVoltage;
     case pidByte(ObdPid::FuelLevel):
         return SignalId::FuelLevel;
+    case pidByte(ObdPid::MassAirFlow):
+        return SignalId::MassAirFlow;
     default:
         return std::nullopt;
     }
@@ -76,6 +82,7 @@ std::optional<std::size_t> expectedDataByteCount(std::uint8_t pid) {
         return 4;
     case pidByte(ObdPid::EngineRpm):
     case pidByte(ObdPid::ControlModuleVoltage):
+    case pidByte(ObdPid::MassAirFlow):
         return 2;
     case pidByte(ObdPid::VehicleSpeed):
     case pidByte(ObdPid::CoolantTemperature):
@@ -122,6 +129,12 @@ std::optional<DecodedPid> decodePid(std::uint8_t pid, const std::vector<std::uin
         decoded.value = twoByteValue(dataBytes) / millivoltsPerVolt;
         decoded.unit = Unit::Volts;
         break;
+    case SignalId::MassAirFlow:
+        decoded.value = twoByteValue(dataBytes) / massAirFlowDivisor;
+        decoded.unit = Unit::GramsPerSecond;
+        break;
+    default:
+        return std::nullopt;
     }
     return decoded;
 }

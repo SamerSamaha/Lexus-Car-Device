@@ -16,6 +16,7 @@ add_executable(lexus_head_unit_unit_tests
     obd/supported_pid_set_test.cpp
     replay/recording_test.cpp
     service/connection_state_machine_test.cpp
+    service/derived_signal_engine_test.cpp
     service/key_value_configuration_test.cpp
     service/power_status_test.cpp
     service/reconnect_backoff_test.cpp

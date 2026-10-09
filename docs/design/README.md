@@ -72,3 +72,4 @@ In this order:
 | [DN-029](DN-029-record-and-replay.md) Record and replay with vehicle-identification scrub | LHU-029 | Implemented |
 | [DN-025](DN-025-power-status-and-shutdown.md) Power status and clean shutdown (light) | LHU-025 | Implemented |
 | [DN-030](DN-030-diagnostics-screen.md) Diagnostics screen: trouble codes and vehicle information | LHU-030 | Implemented |
+| [DN-031](DN-031-trip-analytics.md) Trip analytics as derived signals | LHU-031 | Implemented |

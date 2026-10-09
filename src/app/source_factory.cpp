@@ -69,6 +69,8 @@ constexpr double voltageBase = 14.1;
 constexpr double voltageSwing = 0.1;
 constexpr double fuelStartPercent = 63.0;
 constexpr double fuelSecondsPerPercent = 600.0;
+constexpr double massAirFlowBaseGramsPerSecond = 4.0;
+constexpr double massAirFlowSwingGramsPerSecond = 3.0;
 } // namespace demo
 
 } // namespace
@@ -166,6 +168,10 @@ void FakeVehicleDemo::scriptNextCycle(std::int64_t nowMilliseconds) {
     m_source->scriptSample(
         SignalId::FuelLevel,
         std::fmax(0.0, demo::fuelStartPercent - (seconds / demo::fuelSecondsPerPercent)));
+    m_source->scriptSample(SignalId::MassAirFlow,
+                           demo::massAirFlowBaseGramsPerSecond +
+                               (demo::massAirFlowSwingGramsPerSecond *
+                                (1.0 + std::sin(seconds / demo::rpmPeriodSeconds))));
 }
 
 } // namespace lexus_head_unit::app

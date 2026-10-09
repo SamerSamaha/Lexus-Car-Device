@@ -59,8 +59,9 @@ TEST(DBusTypesTest, EverySignalAndStatusRoundTrips) {
 TEST(DBusTypesTest, OutOfRangeNumbersAreRejected) {
     const DBusSample good{0, 1.0, 0, 5, 1};
     EXPECT_TRUE(lexus_head_unit::fromDBus(good).has_value());
-    EXPECT_FALSE(lexus_head_unit::fromDBus(DBusSample{8, 1.0, 0, 5, 1}).has_value());
-    EXPECT_FALSE(lexus_head_unit::fromDBus(DBusSample{0, 1.0, 5, 5, 1}).has_value());
+    EXPECT_TRUE(lexus_head_unit::fromDBus(DBusSample{16, 1.0, 8, 5, 1}).has_value());
+    EXPECT_FALSE(lexus_head_unit::fromDBus(DBusSample{17, 1.0, 0, 5, 1}).has_value());
+    EXPECT_FALSE(lexus_head_unit::fromDBus(DBusSample{0, 1.0, 9, 5, 1}).has_value());
     EXPECT_FALSE(lexus_head_unit::fromDBus(DBusSample{0, 1.0, 0, 5, 3}).has_value());
     EXPECT_FALSE(lexus_head_unit::connectionStateFromDBus(4).has_value());
     EXPECT_FALSE(lexus_head_unit::transitionFromDBus(0, 6, 1, 0).has_value());

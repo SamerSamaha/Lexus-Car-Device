@@ -22,6 +22,7 @@ Rules:
 | Bluetooth audio to the car stereo | LHU-024 | Output script, session log and summariser ready (LHU-024); the audio section of `docs/test/MANUAL_ON_CAR_PROCEDURE.md` not yet run |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
 | vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
+| Trip values compared with the car's own trip meter; PID 0x10 supported or not | LHU-031 | Engine, trip screen and replay test built at the desk (LHU-031); step 3.11 not yet done |
 | Trouble codes and vehicle identification read from the car | LHU-030 | Decoders, source, D-Bus members and screen built and tested at the desk against the emulator (LHU-030); step 3.10 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
 | On-car procedure and drives | LHU-034 | Not yet done |
@@ -46,6 +47,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
 | A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
 | A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
+| A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
 ## 3. Steps
@@ -188,6 +190,22 @@ Parked, ignition on, adapter bound as in 3.2, the vehicle-data app running on th
 4. If the car has no stored codes, step 1 shows the zero case only; that is a valid result. Codes are never cleared by this unit (REQ-001); do not clear them with another tool for this test.
 
 Record in `docs/test/results/<date>_diagnostics.md`: the code lists, "matches" or "does not match", whether the reply was multi-frame (from the raw request log, scrubbed as in LHU-029), and A15 confirmed or not.
+
+Results: not yet done.
+
+### 3.11 Trip values against the car (LHU-031)
+
+The screen is not touched while driving. Before setting off, parked:
+
+1. In the session log or the raw request log of 3.2, check whether `0110` is answered. If it is `NO DATA` or missing from the `0100` bitmap, PID 0x10 is unsupported: record that under OQ-32; the two economy tiles stay empty and the rest of this step still applies.
+2. Reset the car's trip meter B. Start the vehicle-data app on the real source; the trip starts with the first sample.
+
+After a drive of at least 10 km by someone else, or with the screen ignored, parked again:
+
+3. Open Trip from Home. Record the trip distance against trip meter B, the trip average economy against the car's own average if it shows one, the warm-up time, and the four band times.
+4. Pass for distance: within 2 % of the trip meter. The economy figure is a comparison, not a pass or fail: record the difference, and if it is over 10 % note whether E10 fuel or the density constant explains it (A16).
+
+Record in `docs/test/results/<date>_trip_values.md`.
 
 Results: not yet done.
 

@@ -2,6 +2,7 @@ add_library(lexus_head_unit_service STATIC
     source/clock.cpp
     source/key_value_configuration.cpp
     source/connection_state_machine.cpp
+    source/derived_signal_engine.cpp
     source/library_version.cpp
     source/manual_clock.cpp
     source/power_status.cpp

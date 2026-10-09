@@ -16,7 +16,7 @@ constexpr std::size_t bitsPerByte = 8;
 constexpr std::size_t bitsPerBitmap = supportedPidBitmapByteCount * bitsPerByte;
 constexpr std::uint8_t highestBitmapBase = 0xE0;
 
-constexpr std::array<ObdPid, 8> pollOrder = {
+constexpr std::array<ObdPid, 9> pollOrder = {
     ObdPid::VehicleSpeed,
     ObdPid::EngineRpm,
     ObdPid::CoolantTemperature,
@@ -25,6 +25,7 @@ constexpr std::array<ObdPid, 8> pollOrder = {
     ObdPid::IntakeAirTemperature,
     ObdPid::ControlModuleVoltage,
     ObdPid::FuelLevel,
+    ObdPid::MassAirFlow,
 };
 
 bool isBitmapBase(std::uint8_t basePid) {

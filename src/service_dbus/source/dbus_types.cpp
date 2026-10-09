@@ -17,7 +17,6 @@ namespace lexus_head_unit {
 
 namespace {
 
-constexpr quint32 unitCount = 5;
 constexpr quint32 statusCount = 3;
 
 template <typename Enumeration>

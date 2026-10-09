@@ -28,7 +28,7 @@ struct NameMapping {
     SignalId signalId;
 };
 
-constexpr std::array<NameMapping, signalCount> nameMappings = {{
+constexpr std::array<NameMapping, gridSignalCount> nameMappings = {{
     {"VehicleSpeed", SignalId::VehicleSpeed},
     {"EngineSpeed", SignalId::EngineRpm},
     {"CoolantTemperature", SignalId::CoolantTemperature},

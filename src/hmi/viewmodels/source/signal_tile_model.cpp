@@ -15,7 +15,7 @@ namespace lexus_head_unit {
 
 namespace {
 
-constexpr int voltsDecimals = 1;
+constexpr int oneDecimalPlace = 1;
 
 QString textOf(std::string_view text) {
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
@@ -77,7 +77,10 @@ void SignalTileModel::applySample(const SignalSample& sample) {
 }
 
 QString SignalTileModel::formatValue(double value, Unit unit) {
-    const int decimals = unit == Unit::Volts ? voltsDecimals : 0;
+    const bool oneDecimal = unit == Unit::Volts || unit == Unit::GramsPerSecond ||
+                            unit == Unit::LitresPer100Kilometres || unit == Unit::Kilometres ||
+                            unit == Unit::Minutes;
+    const int decimals = oneDecimal ? oneDecimalPlace : 0;
     return QString::number(value, 'f', decimals);
 }
 
