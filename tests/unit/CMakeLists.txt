@@ -1,4 +1,5 @@
 add_executable(lexus_head_unit_unit_tests
+    can/dbc_decoder_test.cpp
     elm327/elm327_obd_source_test.cpp
     elm327/reconnect_backoff_test.cpp
     hardware/fake_byte_transport_test.cpp
@@ -26,6 +27,7 @@ add_executable(lexus_head_unit_unit_tests
 target_link_libraries(lexus_head_unit_unit_tests
     PRIVATE
         lexus_head_unit_service
+        lexus_head_unit_can
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_hub_core
@@ -35,7 +37,14 @@ target_link_libraries(lexus_head_unit_unit_tests
         GTest::gtest_main
 )
 
+target_compile_definitions(lexus_head_unit_unit_tests
+    PRIVATE
+        LEXUS_HEAD_UNIT_DBC_PATH="${CMAKE_SOURCE_DIR}/dbc/simulated_vehicle.dbc"
+)
+
 include(GoogleTest)
 gtest_discover_tests(lexus_head_unit_unit_tests
     DISCOVERY_TIMEOUT 30
 )
+
+add_subdirectory(can)

@@ -412,7 +412,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 
 | Ticket | Work | Build | Gate | Total | REQ |
 |---|---|---|---|---|---|
-| LHU-027 | DBC decoder with an independent oracle; `simulated_vehicle.dbc` | 5 | 1.75 full | 6.75 | 005, 010 |
+| LHU-027 | DBC decoder with an independent oracle; `simulated_vehicle.dbc`. **Done 2026-10-09** (DN-027), 2.0 h actual (estimated) | 5 | 1.75 full | 6.75 | 005, 010 |
 | LHU-028 | SocketCAN source and vcan tests on the Pi | 5 | 0.75 light | 5.75 | 001, 002 |
 | LHU-029 | Record and replay with vehicle-identification scrub | 4 | 1.75 full | 5.75 | 015 |
 | LHU-030 | Diagnostics screen: trouble codes and vehicle information | 5 | 1.75 full | 6.75 | 021 |

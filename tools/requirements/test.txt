@@ -1,0 +1,4 @@
+# Python packages for the test suite only (never installed system-wide, never on the Pi).
+# Installed into a virtual environment by tools/setup_test_venv.sh.
+# cantools is the independent oracle of the DBC decoder test (REQ-005, LHU-027).
+cantools==44.2.1
