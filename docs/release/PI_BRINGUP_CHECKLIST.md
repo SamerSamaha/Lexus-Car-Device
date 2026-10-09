@@ -18,7 +18,7 @@ Rules:
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
 | Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
 | Vehicle-data service and hub as systemd user units, the app reading the service over D-Bus | LHU-022 | Built and tested at the desk on a private bus (LHU-022); step 3.6 not yet done |
-| Web apps, protected audio, browser memory | LHU-023 | Not yet done |
+| Web apps, protected audio, browser memory | LHU-023 | Procedure, browser flags and memory sampler ready (LHU-023); `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` not yet run |
 | Bluetooth audio to the car stereo | LHU-024 | Not yet done |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
 | vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
@@ -44,6 +44,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A11 | The Raspberry Pi OS panel stays visible above a maximised app window under labwc, and a launcher on it runs `lexus-hub --send return` from a tap | DN-021 | Step 3.5, items 3 and 4 | Not yet verified |
 | A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
 | A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
+| A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
 
 ## 3. Steps
 
@@ -116,7 +117,7 @@ lexus-hub --send status    # expected: state idle app - hub_pid <n> app_pid - wi
 2. Tap "Vehicle data". Expected: the vehicle-data app covers the hub; `lexus-hub --send status` says `state running app vehicle_data`.
 3. Copy `deploy/lexus-hub-return.desktop` to `~/.local/share/applications/` and add it to the panel as a launcher (right-click the panel, add or remove launchers). Record whether the panel stays visible over the app (A11). Fallback if it does not: a labwc key binding in `~/.config/labwc/rc.xml` running `lexus-hub --send return`, then `labwc --reconfigure`.
 4. Tap the Hub launcher. Record whether the hub is in front within 1 s, timed by video or stopwatch, 10 times (A11, A12).
-5. Add a URL app to `deploy/hub.conf` (any public page), restart the hub, launch it, and record whether `lexus-hub --send status` stays `running` while the browser is open (A10), and the browser's memory with `ps -o rss= -p <app_pid>` (the LHU-020 memory question).
+5. Run `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` (the three URL apps in `deploy/hub.conf`): it records whether `lexus-hub --send status` stays `running` while the browser is open (A10) and the browser's memory with `tools/measure/sample_process_memory.py` (the LHU-020 memory question).
 6. Close the vehicle-data app from inside (if it has no close control, `kill <app_pid>`): the hub must be in front within 1 s.
 
 Record everything in `docs/test/results/<date>_hub_on_pi.md`.

@@ -50,6 +50,7 @@ target_include_directories(lexus_head_unit_unit_tests
 target_compile_definitions(lexus_head_unit_unit_tests
     PRIVATE
         LEXUS_HEAD_UNIT_DBC_PATH="${CMAKE_SOURCE_DIR}/dbc/simulated_vehicle.dbc"
+        LEXUS_HEAD_UNIT_HUB_CONF="${CMAKE_SOURCE_DIR}/deploy/hub.conf"
 )
 
 include(GoogleTest)

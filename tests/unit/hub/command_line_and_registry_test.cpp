@@ -146,6 +146,22 @@ url = https://example.org
     EXPECT_EQ(registry.errors(), expectedErrors);
 }
 
+TEST(AppRegistryTest, TheShippedRegistryLoadsWithItsFourAppsAndNoError) {
+    KeyValueConfiguration configuration;
+    ASSERT_TRUE(configuration.loadFromFile(LEXUS_HEAD_UNIT_HUB_CONF));
+    const AppRegistry registry = AppRegistry::fromConfiguration(configuration);
+    EXPECT_EQ(registry.errors(), Words{});
+    std::vector<std::string> identifiers;
+    for (const AppEntry& entry : registry.entries()) {
+        identifiers.push_back(entry.id);
+    }
+    EXPECT_EQ(identifiers, (Words{"vehicle_data", "video", "drm_check", "game"}));
+    const AppEntry* game = registry.find("game");
+    ASSERT_NE(game, nullptr);
+    EXPECT_EQ(game->arguments.front(), "chromium");
+    EXPECT_EQ(game->arguments.back(), "--app=https://play2048.co/");
+}
+
 TEST(AppRegistryTest, KindAndPolicyNames) {
     EXPECT_EQ(toString(AppKind::Native), "native");
     EXPECT_EQ(toString(AppKind::Url), "url");
