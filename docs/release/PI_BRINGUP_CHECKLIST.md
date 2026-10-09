@@ -15,6 +15,7 @@ Rules:
 | Thermal and power log in every Pi session | LHU-015, LHU-016 | Script not yet written; two raw CSVs from 2026-10-05 exist on the Pi under `~/measurements/` |
 | Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | Not yet done |
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
+| Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
 | Return to the hub from a fullscreen app | LHU-020, LHU-021 | Not yet done |
 | Web apps, protected audio, browser memory | LHU-023 | Not yet done |
 | Bluetooth audio to the car stereo | LHU-024 | Not yet done |
@@ -36,6 +37,8 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A5 | `rfcomm bind` on the Pi gives a `/dev/rfcomm0` that the serial transport can open, write and `poll`-read like the emulator's pseudo-terminal, and that reads end-of-file when the adapter disappears | DN-012 | Step 3.2, items 6 and 7 | Not yet verified |
 | A6 | The adapter answers fast enough that polling with `poll_interval_ms = 0` is acceptable to the car and the adapter; the actual request rate is unknown | DN-012 | Step 3.2, item 5; `poll_interval_ms` in `deploy/head_unit.conf` is the brake if not | Not yet verified |
 | A7 | The adapter's reply to one request arrives within 1 s (`reply_timeout_ms`), so that link loss is declared within 2 s only when the link is really gone | DN-012 | Step 3.2, item 5 (worst reply time over 100 requests) | Not yet verified |
+| A8 | A primary value drawn with a font pixel size of `mm(5.7)` has a cap height of about 4 mm on the panel (the font's cap height is assumed to be 0.7 of the em size) | DN-013 | Step 3.4 | Not yet verified |
+| A9 | The 1280 x 720 window fills the rotated panel under labwc and touch lands where the button is drawn | D-045, DN-013 | Step 3.4 | Not yet verified |
 
 ## 3. Steps
 
@@ -60,6 +63,21 @@ ls -l /dev/rfcomm0
 ```
 
 7. Run the head unit against it with `elm327.device = /dev/rfcomm0` in `deploy/head_unit.conf` (the application arrives with LHU-013) and record: Connected reached (yes or no), the number of PIDs in the poll list, samples per second over one minute, and whether unplugging the adapter gives Error within 2 s and replugging gives Connected again (assumption A5).
+
+Results: not yet measured.
+
+### 3.4 Home screen on the panel (LHU-013)
+
+After a build on the Pi (3.3) and with the emulator or the adapter:
+
+```sh
+# Against the emulator, no car needed:
+python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/obd.control &
+~/build/lexus-car-device/release/src/app/lexus-head-unit --source elm327 --config deploy/head_unit.conf --fullscreen
+# (edit deploy/head_unit.conf so elm327.device = /tmp/obd for this run)
+```
+
+Record in `docs/test/results/<date>_home_screen_on_pi.md`: whether the window fills the panel in landscape (A9); the measured height in millimetres of the digit "8" in the speed tile, with a ruler against the glass (A8; target at least 4 mm); whether a tap on "Vehicle data" registers (A9); the status strip going Connected; a value greying out with the `STALE` badge after `printf 'stale 0D\n'` on the control socket.
 
 Results: not yet measured.
 

@@ -22,12 +22,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 option(LEXUS_HEAD_UNIT_WARNINGS_AS_ERRORS
     "Treat every compiler warning as an error" ON)
 option(LEXUS_HEAD_UNIT_ENABLE_SANITIZERS
     "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 option(BUILD_TESTING
     "Build the unit tests" ON)
+option(LEXUS_HEAD_UNIT_BUILD_HMI
+    "Build the Qt view models, the QML application and the HMI tests" ON)
 
 add_library(lexus_head_unit_build_settings INTERFACE)
 
@@ -58,8 +63,17 @@ if(LEXUS_HEAD_UNIT_ENABLE_SANITIZERS)
     )
 endif()
 
+if(LEXUS_HEAD_UNIT_BUILD_HMI)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickTest Test)
+    qt_standard_project_setup()
+endif()
+
 add_subdirectory(src/service)
 add_subdirectory(src/hardware)
+if(LEXUS_HEAD_UNIT_BUILD_HMI)
+    add_subdirectory(src/hmi)
+    add_subdirectory(src/app)
+endif()
 
 if(BUILD_TESTING)
     enable_testing()
@@ -67,4 +81,8 @@ if(BUILD_TESTING)
     add_subdirectory(tests/unit)
     add_subdirectory(tests/integration)
     add_subdirectory(tests/scenarios)
+    if(LEXUS_HEAD_UNIT_BUILD_HMI)
+        add_subdirectory(tests/unit/hmi)
+        add_subdirectory(tests/hmi)
+    endif()
 endif()

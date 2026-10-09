@@ -18,7 +18,7 @@ How each kind of claim in this project is verified, where each test runs, and wh
 | T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal. One suite, `service_against_each_source_test.cpp`, parameterised by a per-source harness | GoogleTest; emulator in Python | WSL, CI | LHU-008 (fake harness); LHU-012 (ELM327 harness) |
 | T3 vcan | A Python traffic generator writes frames to `vcan0`; the application decodes them live. ctest label `vcan` | GoogleTest plus Python | Pi only; CI if later proven | LHU-028 (v1.0.0) |
 | T4 Scenarios | Scripted fault injection through the emulator (`tools/elm327_emulator/`, control socket): see section 3. `tests/scenarios/`, ctest label `scenario`, real clock, about one minute | GoogleTest spawns the emulator (`tests/integration/emulator_process.cpp`), drives it through its control socket and asserts | WSL, CI | LHU-011 (emulator), LHU-012 (scenarios) |
-| T5 HMI | View models and QML screens with a fake view model on the offscreen platform | Qt Quick Test | WSL, CI | LHU-013 |
+| T5 HMI | View models (GoogleTest with a `QCoreApplication`, `tests/unit/hmi/`) and QML screens with a fake view model on the offscreen platform (`tests/hmi/`, ctest label `hmi`, `QT_QPA_PLATFORM=offscreen`) | GoogleTest; Qt Quick Test | WSL, CI | LHU-013 (home screen) |
 | T6 On-car manual | A written procedure, parked first, results recorded per run | `docs/test/MANUAL_ON_CAR_PROCEDURE.md`, results in `docs/test/results/` | Car | LHU-017 (first parked session), LHU-034 (procedure) |
 
 Checks that are not tests of the software but run in CI on every pull request:
@@ -30,7 +30,7 @@ Checks that are not tests of the software but run in CI on every pull request:
 | Warnings as errors | `-Werror` in every preset | LHU-005 |
 | Privacy | `tools/check_private_data.py`: no VIN-shaped or Bluetooth-address-shaped string in tracked files or file names; the script has its own unit tests | LHU-005 |
 | Traceability | `tools/check_traceability.py`: every requirement ID in `REQUIREMENTS.md` appears in at least one test file tag (section 5) | LHU-006, with the first tagged test |
-| Dependency rules | Service and HMI targets link to no concrete source (`tools/check_link_graph.py`); QML and view models include nothing from hardware or service directly (REQ-002, REQ-011) | LHU-008 (link graph), LHU-013 (include check) |
+| Dependency rules | Service and HMI targets link to no concrete source (`tools/check_link_graph.py`); the HMI includes no hardware header and only value-type service headers, and QML imports only Qt and `LexusHeadUnit` (`tools/check_hmi_includes.py`) (REQ-002, REQ-011) | LHU-008 (link graph), LHU-013 (include check) |
 | Thermal and power | `tools/measure/log_thermal_power.py` runs during every Pi bring-up and on-car session; judged against the thresholds of D-025 | LHU-015 (script), LHU-016 (sessions) |
 
 ## 3. Scenario coverage (T4)
@@ -76,7 +76,7 @@ The same line, with the comment marker of the language, is used in Python and QM
 | Environment | What runs | What cannot run |
 |---|---|---|
 | WSL2, Debian 13 | T1, T2, T4, T5; static checks; privacy check | T3 (no vcan module in the WSL kernel), measurements |
-| CI, Debian 13 container | Everything WSL runs, with sanitizers on T1 | T3, T6, measurements |
+| CI, Debian 13 container | Everything WSL runs, with sanitizers on T1; Qt from the Debian packages, offscreen platform | T3, T6, measurements |
 | Raspberry Pi 5 | Everything plus T3 and the measurements | T6 |
 | Car | T6 and the thermal and power log | — |
 

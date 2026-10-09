@@ -5,7 +5,7 @@
 | Ticket | LHU-012 |
 | Requirements | REQ-002, REQ-004, REQ-008 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Draft written | 2026-10-08, about 30 minutes |
 | Design review | after merge, by the repository owner (D-049) |
 | Approved | 2026-10-08 |
@@ -114,4 +114,4 @@ The pieces exist (store, state machine, interface, decoder, protocol, allowlist,
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #54 (250d38f). No deviations. Noted: two samples of the same signal in one millisecond are rejected by the store (DN-006), which the emulator can produce and the adapter cannot; the discovery test counts them. Review finding carried: reply timeouts are not yet visible in `SourceCounters` (add for the diagnostics screen, LHU-030). Status: Implemented.

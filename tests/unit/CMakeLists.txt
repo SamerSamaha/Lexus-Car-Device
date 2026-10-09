@@ -17,6 +17,7 @@ add_executable(lexus_head_unit_unit_tests
     service/signal_store_test.cpp
     service/staleness_monitor_test.cpp
     service/steady_clock_test.cpp
+    service/worker_loop_test.cpp
 )
 
 target_link_libraries(lexus_head_unit_unit_tests
