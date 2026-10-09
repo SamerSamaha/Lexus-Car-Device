@@ -1,9 +1,12 @@
 #include "source_factory.h"
 
+#include "lexus_head_unit/hardware/dbc_database.h"
 #include "lexus_head_unit/hardware/elm327_obd_source.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/hardware/file_descriptor_byte_transport.h"
+#include "lexus_head_unit/hardware/socket_can_dbc_source.h"
+#include "lexus_head_unit/hardware/socket_can_frame_reader.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
 #include "lexus_head_unit/service/signal_definition.h"
@@ -78,6 +81,15 @@ BuiltSource buildSource(const KeyValueConfiguration& configuration,
             std::make_unique<FileDescriptorByteTransport>(elm327Configuration.devicePath);
         built.source = std::make_unique<Elm327ObdSource>(*transport, clock, elm327Configuration);
         built.transport = std::move(transport);
+        return built;
+    }
+    if (built.kind == "can") {
+        const CanSourceConfiguration canConfiguration =
+            CanSourceConfiguration::fromConfiguration(configuration);
+        auto reader = std::make_unique<SocketCanFrameReader>(canConfiguration.interfaceName);
+        built.source = std::make_unique<SocketCanDbcSource>(
+            *reader, DbcDatabase::loadFromFile(canConfiguration.dbcPath), clock, canConfiguration);
+        built.canReader = std::move(reader);
         return built;
     }
     built.kind = "fake";

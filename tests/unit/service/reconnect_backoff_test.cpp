@@ -1,6 +1,6 @@
 // Verifies: REQ-008
 
-#include "lexus_head_unit/hardware/reconnect_backoff.h"
+#include "lexus_head_unit/service/reconnect_backoff.h"
 
 #include <gtest/gtest.h>
 

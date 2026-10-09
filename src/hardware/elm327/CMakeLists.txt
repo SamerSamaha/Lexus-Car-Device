@@ -1,7 +1,6 @@
 add_library(lexus_head_unit_elm327_source STATIC
     source/elm327_obd_source.cpp
     source/elm327_source_configuration.cpp
-    source/reconnect_backoff.cpp
 )
 
 target_include_directories(lexus_head_unit_elm327_source

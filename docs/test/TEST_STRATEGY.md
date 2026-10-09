@@ -101,4 +101,4 @@ Some tests need Python packages that are not part of the product. They are insta
 - File names end in `_test.cpp`; the test suite name is the class under test; the test name says the behaviour, in words (`MarksSignalStaleAfterTimeout`), not the method name.
 - Time is injected through the `Clock` interface; no test sleeps to wait for a timeout.
 - `tests/.clang-tidy` relaxes exactly two checks for test code (magic numbers, non-private members in fixtures). Everything else applies.
-- A test that needs the Pi carries the ctest label `vcan` or `pi` and is excluded in CI by label.
+- A test that needs the Pi carries the ctest label `vcan` or `pi`. Where its hardware is missing (WSL, CI) it skips with the ticket in the reason, for example "LHU-028: vcan0 is not present", so the skip is visible in every run and never silent.

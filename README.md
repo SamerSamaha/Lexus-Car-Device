@@ -60,6 +60,8 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 ~/build/lexus-car-device/debug/src/app/lexus-head-unit --config deploy/head_unit.conf
 # or without the emulator, with moving demo values:
 ~/build/lexus-car-device/debug/src/app/lexus-head-unit --source fake
+# or the CAN path on a Pi with vcan0 (sudo deploy/setup_vcan.sh; python3 tools/can_traffic_generator.py):
+~/build/lexus-car-device/debug/src/app/lexus-head-unit --source can
 ```
 
 Run the platform as on the Pi: the vehicle-data service owns the source and publishes on the session bus, the hub launches the vehicle-data app, which reads the service (no hardware needed):

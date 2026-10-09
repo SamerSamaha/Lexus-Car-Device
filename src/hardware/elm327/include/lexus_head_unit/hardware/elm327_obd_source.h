@@ -4,10 +4,10 @@
 #include "lexus_head_unit/hardware/elm327_protocol.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/obd_pid_decoder.h"
-#include "lexus_head_unit/hardware/reconnect_backoff.h"
 #include "lexus_head_unit/hardware/supported_pid_set.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/reconnect_backoff.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
 #include <cstddef>
