@@ -5,6 +5,6 @@
 namespace {
 
 TEST(ServiceLibrarySmokeTest, ReportsTheProjectVersion) {
-    EXPECT_EQ(lexus_head_unit::serviceVersion(), "0.1.0");
+    EXPECT_EQ(lexus_head_unit::serviceVersion(), "0.2.0");
 }
 } // namespace

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(LexusHeadUnit
-    VERSION 0.1.0
+    VERSION 0.2.0
     DESCRIPTION "Read-only infotainment head unit for a 2013 Lexus GS350"
     LANGUAGES CXX
 )
