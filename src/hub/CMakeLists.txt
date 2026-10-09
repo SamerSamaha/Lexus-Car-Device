@@ -1,0 +1,6 @@
+add_subdirectory(core)
+if(LEXUS_HEAD_UNIT_BUILD_HMI)
+    add_subdirectory(viewmodels)
+    include(qml/CMakeLists.txt)
+    add_subdirectory(app)
+endif()

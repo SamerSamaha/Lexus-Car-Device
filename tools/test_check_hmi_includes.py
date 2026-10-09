@@ -55,6 +55,23 @@ class CheckHmiIncludesTest(unittest.TestCase):
         self.assertEqual(exit_code, check_hmi_includes.EXIT_CODE_FINDING)
         self.assertIn("imports outside", output)
 
+    def test_hub_view_models_and_qml_are_checked_too(self):
+        self.write("src/hub/viewmodels/hub.cpp", '#include "lexus_head_unit/hub/app_process_manager.h"\n')
+        self.write("src/hub/qml/Main.qml", "import QtQuick\nimport LexusHub\nItem {}\n")
+        exit_code, output, _ = run_main(self.root)
+        self.assertEqual(exit_code, check_hmi_includes.EXIT_CODE_NO_FINDING, output)
+        self.write("src/hub/viewmodels/bad.cpp", '#include "lexus_head_unit/hardware/elm327_obd_source.h"\n')
+        self.write("src/hub/qml/Bad.qml", 'import "../../hardware"\nItem {}\n')
+        exit_code, output, _ = run_main(self.root)
+        self.assertEqual(exit_code, check_hmi_includes.EXIT_CODE_FINDING)
+        self.assertIn("src/hub/viewmodels/bad.cpp:1: includes a hardware header", output)
+        self.assertIn("src/hub/qml/Bad.qml:1: imports outside", output)
+
+    def test_hub_core_is_not_an_hmi_folder(self):
+        self.write("src/hub/core/source/app_registry.cpp", '#include "lexus_head_unit/service/key_value_configuration.h"\n')
+        exit_code, output, _ = run_main(self.root)
+        self.assertEqual(exit_code, check_hmi_includes.EXIT_CODE_NO_FINDING, output)
+
     def test_missing_hmi_folder_cannot_run(self):
         with tempfile.TemporaryDirectory() as empty:
             exit_code, _, error = run_main(Path(empty))

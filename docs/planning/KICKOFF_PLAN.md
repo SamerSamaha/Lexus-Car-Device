@@ -398,8 +398,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 
 | Ticket | Work | Build | Gate | Total | REQ |
 |---|---|---|---|---|---|
-| LHU-020 | Spike: return to the hub from a fullscreen app under labwc (OQ-29) | 2 | exempt | 2 | — |
-| LHU-021 | App hub launcher: registry, process manager, grid, status strip | 8 | 1.75 full | 9.75 | 016 |
+| LHU-020 | Spike: return to the hub from a fullscreen app under labwc (OQ-29). Desk part answered in DN-021 (stop the app in front; panel launcher); Pi part is checklist step 3.5 | 2 | exempt | 2 | — |
+| LHU-021 | App hub launcher: registry, process manager, grid, status strip. **Done 2026-10-08** (DN-021), 3.0 h actual (estimated) | 8 | 1.75 full | 9.75 | 016 |
 | LHU-022 | Vehicle-data service over D-Bus; client library; systemd units | 6 | 1.75 full | 7.75 | 017, 002, 011 |
 | LHU-023 | Web apps in the system browser; protected-audio and memory facts recorded (OQ-27) | 3 | exempt | 3 | 018 |
 | LHU-024 | Bluetooth audio from the Pi to the car stereo; coexistence measured (OQ-28) | 4 | exempt | 4 | 019 |

@@ -23,7 +23,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-013 | Service and hub startup, systemd units | LHU-032 | `tools/measure/measure_boot_time.py`; raw data in `docs/measurements/boot_time/` | Planned, target provisional |
 | REQ-014 | Every process: service, hub, vehicle-data app, browser | LHU-032 | `tools/measure/measure_memory.py` (per process); raw data in `docs/measurements/memory/` | Planned, target provisional, to be re-set per process |
 | REQ-015 | Recorder in `ByteTransport`, `ReplaySource`, scrub step | LHU-029 | `tests/integration/replay_reproduces_samples_test.cpp`; `tools/check_private_data.py` on scrubbed recordings | Planned |
-| REQ-016 | `AppHub`, `AppRegistry`, `ProcessManager` | LHU-021 (after the LHU-020 spike) | `tests/integration/hub_process_cycles_test.cpp` (20 cycles, foreground within 1 s, same PID); `tests/hmi/hub_grid_test.qml` (8 targets at or above 10 mm) | Planned |
+| REQ-016 | `AppRegistry`, `AppProcessManager` over `PosixProcessLauncher`, `HubViewModel`, `HubControlServer`, the `LexusHub` QML grid (DN-021) | LHU-021 (with the LHU-020 question) | `tests/integration/hub_process_cycle_test.cpp` (20 real start-and-exit cycles, each seen within 1 s, same process ID, nothing left unreaped; process-group kill); `tests/integration/hub_end_to_end_test.cpp` (the `lexus-hub` executable: 20 cycles through the control socket, idle with a visible window within 1 s, same hub process ID, stop on SIGTERM); `tests/hmi_hub/tst_hub_screen.qml` (8 apps give 8 tiles at or above 10 mm, tap launches, grid disabled while an app runs); `tests/unit/hub/` and `tests/unit/hmi/hub_view_model_test.cpp`; stacking on the panel in `docs/release/PI_BRINGUP_CHECKLIST.md` step 3.5 | Desk part tagged and merged (LHU-021); the panel part is a Pi step (A10 to A12) |
 | REQ-017 | `VehicleDataService` (D-Bus adapter over the service layer), `VehicleDataClient` | LHU-022 | `tests/integration/dbus_two_clients_test.cpp`; `tests/integration/dbus_late_join_test.cpp`; hop time in `docs/measurements/latency/` | Planned |
 | REQ-018 | URL entries in `AppRegistry`; browser launch configuration in `deploy/` | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`; results in `docs/test/results/`; browser memory in `docs/measurements/memory/` | Planned |
 | REQ-019 | Operating-system audio configuration in `deploy/`; connection log of `ConnectionStateMachine` | LHU-024 | `docs/test/MANUAL_ON_CAR_PROCEDURE.md` (audio section); results and logs in `docs/test/results/` | Planned |
@@ -39,7 +39,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 10 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012) |
+| With a test that exists and is tagged | 11 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-016) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
@@ -58,7 +58,7 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-015, LHU-016, LHU-018 | none; measurement tools and sessions (D-013) |
 | LHU-017 | none; fixes the PID list of REQ-004 for this vehicle |
 | LHU-019 | none; documentation (this revision) |
-| LHU-020 | none; spike for REQ-016 |
+| LHU-020 | none; its desk question is answered in DN-021, its Pi part is checklist step 3.5 |
 | LHU-021 | REQ-016 |
 | LHU-022 | REQ-017, REQ-002, REQ-011, REQ-009 (hop) |
 | LHU-023 | REQ-018 |
