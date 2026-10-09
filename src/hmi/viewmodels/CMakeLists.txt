@@ -19,6 +19,7 @@ target_include_directories(lexus_head_unit_hmi_viewmodels
 
 target_link_libraries(lexus_head_unit_hmi_viewmodels
     PUBLIC
+        lexus_head_unit_qt_value_types
         lexus_head_unit_service
         Qt6::Core
     PRIVATE

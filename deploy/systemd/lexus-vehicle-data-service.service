@@ -1,0 +1,16 @@
+# User unit (DN-022): the one process that reads the vehicle. Install with
+#   install -D -m 644 deploy/systemd/*.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now lexus-vehicle-data-service
+# %h is the user's home directory; the repository is expected at ~/Lexus-Car-Device.
+[Unit]
+Description=Lexus Head Unit vehicle-data service
+
+[Service]
+Type=dbus
+BusName=io.github.samersamaha.LexusHeadUnit
+ExecStart=/usr/local/bin/lexus-vehicle-data-service --config %h/Lexus-Car-Device/deploy/head_unit.conf
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

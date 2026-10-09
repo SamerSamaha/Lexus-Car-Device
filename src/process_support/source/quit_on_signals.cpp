@@ -1,4 +1,4 @@
-#include "quit_on_signals.h"
+#include "lexus_head_unit/process_support/quit_on_signals.h"
 
 #include <QCoreApplication>
 #include <QSocketNotifier>
@@ -12,7 +12,7 @@
 // glibc and Qt declare these symbols in internal headers; the public headers above are the
 // right ones to include.
 // NOLINTBEGIN(misc-include-cleaner)
-namespace lexus_head_unit::hub_app {
+namespace lexus_head_unit {
 
 namespace {
 
@@ -50,5 +50,5 @@ bool installQuitOnSignals() {
            ::sigaction(SIGINT, &action, nullptr) == 0;
 }
 
-} // namespace lexus_head_unit::hub_app
+} // namespace lexus_head_unit
 // NOLINTEND(misc-include-cleaner)

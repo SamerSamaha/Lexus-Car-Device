@@ -4,6 +4,7 @@
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/signal_store.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
 #include <cstdint>
@@ -20,6 +21,9 @@ struct BuiltSource {
     std::string kind;
     std::int64_t minimumCycleMilliseconds = 0;
 };
+
+// Per-signal staleness overrides: staleness.<snake_case_name>_ms, else staleness.default_ms.
+void applyStalenessConfiguration(const KeyValueConfiguration& configuration, SignalStore& store);
 
 // Builds the source named by source.kind ("elm327" or "fake"); an unknown kind gives "fake".
 BuiltSource buildSource(const KeyValueConfiguration& configuration,

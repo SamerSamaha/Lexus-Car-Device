@@ -62,9 +62,10 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 ~/build/lexus-car-device/debug/src/app/lexus-head-unit --source fake
 ```
 
-Run the hub, which launches the vehicle-data app as a separate process (no hardware needed):
+Run the platform as on the Pi: the vehicle-data service owns the source and publishes on the session bus, the hub launches the vehicle-data app, which reads the service (no hardware needed):
 
 ```sh
+~/build/lexus-car-device/debug/src/service_dbus/lexus-vehicle-data-service --source fake &
 PATH=~/build/lexus-car-device/debug/src/app:$PATH ~/build/lexus-car-device/debug/src/hub/app/lexus-hub --registry deploy/hub.conf &
 ~/build/lexus-car-device/debug/src/hub/app/lexus-hub --send status    # or: --send "launch vehicle_data", --send return
 ```

@@ -3,9 +3,9 @@
 #include "lexus_head_unit/hub/hub_control_server.h"
 #include "lexus_head_unit/hub/hub_view_model.h"
 #include "lexus_head_unit/hub/posix_process_launcher.h"
+#include "lexus_head_unit/process_support/quit_on_signals.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
-#include "quit_on_signals.h"
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
@@ -128,7 +128,7 @@ int runHub(int argumentCount, char** argumentValues) {
         std::cerr << "lexus-hub: " << listenError.toStdString() << "\n";
         return exitCodeAlreadyRunning;
     }
-    if (!lexus_head_unit::hub_app::installQuitOnSignals()) {
+    if (!lexus_head_unit::installQuitOnSignals()) {
         std::cerr << "lexus-hub: could not install the signal handlers\n";
     }
 
