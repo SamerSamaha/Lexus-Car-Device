@@ -120,6 +120,73 @@ jobs:
       - name: Build with clang-tidy
         run: cmake --build --preset static-analysis
 
+  arm64-release:
+    name: arm64 release build
+    runs-on: ubuntu-24.04-arm
+    container: debian:trixie
+    timeout-minutes: 25
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates cmake dbus-daemon git ninja-build \
+            libgmock-dev libgtest-dev python3 \
+            qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Test-only Python environment (cantools oracle, REQ-005)
+        run: sh tools/setup_test_venv.sh
+
+      - name: Record the architecture and the package versions the build used
+        run: |
+          mkdir -p "$RUNNER_TEMP/lexus-head-unit-arm64"
+          {
+            echo "machine: $(uname -m)"
+            echo "os: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            dpkg-query --show --showformat='${Package} ${Version} ${Architecture}\n' \
+              libc6 'libstdc++6' g++ cmake qt6-base-dev qt6-declarative-dev \
+              'libqt6core6*' 'libqt6dbus6*' 'libqt6quick6*' 'libqt6qml6*'
+          } | tee "$RUNNER_TEMP/lexus-head-unit-arm64/build_environment.txt"
+
+      - name: Configure (release)
+        run: cmake --preset release
+
+      - name: Build (release)
+        run: cmake --build --preset release
+
+      - name: Unit tests (release, arm64)
+        run: ctest --preset release
+
+      - name: Collect the executables and the deployment files
+        run: |
+          build="$HOME/build/lexus-car-device/release"
+          out="$RUNNER_TEMP/lexus-head-unit-arm64"
+          for program in lexus-head-unit lexus-vehicle-data-service lexus-hub; do
+            path="$(find "$build" -type f -name "$program" -perm -u+x | head -n 1)"
+            test -n "$path" || { echo "missing: $program"; exit 1; }
+            cp "$path" "$out/"
+            file_type="$(od -An -tx1 -j18 -N2 "$out/$program" | tr -d ' ')"
+            echo "$program: ELF machine $file_type (b700 is AArch64)"
+            test "$file_type" = "b700"
+          done
+          cp -r deploy "$out/deploy"
+          echo "$GITHUB_SHA" > "$out/commit.txt"
+          ls -l "$out"
+
+      - name: Upload the arm64 build
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: lexus-head-unit-arm64
+          path: ${{ runner.temp }}/lexus-head-unit-arm64
+          if-no-files-found: error
+          retention-days: 30
+
   privacy-check:
     name: Privacy check
     runs-on: ubuntu-24.04
