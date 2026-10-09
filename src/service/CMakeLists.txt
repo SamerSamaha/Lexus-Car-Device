@@ -9,6 +9,7 @@ add_library(lexus_head_unit_service STATIC
     source/signal_store.cpp
     source/signal_store_feeder.cpp
     source/staleness_monitor.cpp
+    source/worker_loop.cpp
 )
 
 target_include_directories(lexus_head_unit_service
@@ -17,6 +18,8 @@ target_include_directories(lexus_head_unit_service
 )
 
 target_link_libraries(lexus_head_unit_service
+    PUBLIC
+        Threads::Threads
     PRIVATE
         lexus_head_unit_build_settings
 )

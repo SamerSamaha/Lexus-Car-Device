@@ -380,8 +380,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-009 | OBD PID decoder and supported-PID bitmaps | 3 | 0.75 light | 3.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #51) | 004, 010 |
 | LHU-010 | ELM327 response parser, command allowlist, byte transport interface and fake | 5 | 1.75 full | 6.75 | 2.5 (estimated) | **Done 2026-10-08** (PR #52) | 001, 010 |
 | LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #53) | fixture |
-| LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | | **Done** (DN-012, this PR) | 002, 004, 008 |
-| LHU-013 | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | 1.75 full | 4.75 | | Backlog | 006, 007, 011, 012 |
+| LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | 3.5 (estimated) | **Done 2026-10-08** (PR #54) | 002, 004, 008 |
+| LHU-013 | View models, worker loop, application, QML home screen sized in millimetres, HMI tests, REQ-011 CI check | 3 | 1.75 full | 4.75 | | **Done** (DN-013, this PR) | 006, 007, 011, 012 |
 | LHU-039 | Vehicle-data screen: 4 x 2 signal grid | 4 | 0.75 light | 4.75 | | Backlog (new in revision 6) | 006, 012 |
 | LHU-015 | Thermal and power logger script, with a unit test of the flag decoding | 0.75 | 0.75 light | 1.5 | | Backlog | — |
 | LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Backlog | — |

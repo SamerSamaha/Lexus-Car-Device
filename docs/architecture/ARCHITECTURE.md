@@ -2,7 +2,7 @@
 
 This document describes the parts of the Lexus Head Unit, what each one owns, how data moves between them, and the rules that keep them apart. It is the reference that design notes (`docs/design/`) and code reviews are checked against. Decisions with alternatives are recorded in `docs/adr/`; this file states the result.
 
-Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor`, the clocks (LHU-006, DN-006) `ConnectionStateMachine` (LHU-007, DN-007), the `VehicleDataSource` interface, `SignalStoreFeeder` and `FakeSource` (LHU-008, DN-008), the OBD PID decoder (LHU-009, DN-009), the command allowlist, ELM327 protocol and byte transport interface with its fake (LHU-010, DN-010), the emulator (LHU-011, DN-011), and `Elm327ObdSource` with the serial transport and the configuration file (LHU-012, DN-012) exist in code. Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
+Status on 2026-10-05: the layering, interfaces and rules below are approved (D-001, D-002, D-008, D-009, D-024), and the scope decision of 2026-10-05 (plan revision 6) added the process view of section 2: an app hub, a vehicle-data service that other processes consume over D-Bus, and apps. The signal model, `SignalStore`, `StalenessMonitor`, the clocks (LHU-006, DN-006) `ConnectionStateMachine` (LHU-007, DN-007), the `VehicleDataSource` interface, `SignalStoreFeeder` and `FakeSource` (LHU-008, DN-008), the OBD PID decoder (LHU-009, DN-009), the command allowlist, ELM327 protocol and byte transport interface with its fake (LHU-010, DN-010), the emulator (LHU-011, DN-011), and `Elm327ObdSource` with the serial transport and the configuration file (LHU-012, DN-012), and the view models, worker loop, application and home screen (LHU-013, DN-013) exist in code. Each further component is built by the ticket named in `docs/traceability/TRACEABILITY.md`, with its design note.
 
 ## 1. What the system is
 
@@ -108,6 +108,7 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 | `Clock` | Interface returning monotonic milliseconds | `SteadyClock` uses `std::chrono::steady_clock`; `ManualClock` (in the library, for tests and tooling) is advanced by hand |
 | `DerivedSignalEngine` | Computes derived signals from stored samples: fuel economy from mass air flow and speed, trip distance, time in RPM bands, warm-up time; writes them into the `SignalStore` like any source | REQ-022, LHU-031. Constants (air-fuel ratio, fuel density) are stated in DN-031. No model training on the device; offline statistics are tooling (LHU-037) |
 | `PowerStatusProvider` | Interface returning the firmware's under-voltage and throttling flags; real implementation reads them on the Pi, a fake sets them in tests | REQ-020, LHU-025 |
+| `WorkerLoop` | Owns the worker thread: starts the source, then repeats `runOnce`, the staleness check, a per-cycle callback and a sleep for the source's idle hint (at most 50 ms) | LHU-013. Plain C++17 (`std::thread`); reused by the service process in LHU-022 |
 
 The service layer depends on the C++17 standard library only. No Qt header is included anywhere under `src/service/` (D-008); this is checked by the fact that the library target links to nothing but the build-settings target.
 
@@ -123,9 +124,9 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| View models (`src/hmi/viewmodels/`) | `QObject` classes exposing `Q_PROPERTY` values, units, status text and connection state; receive service-layer updates through queued signals and own the thread hop | The only classes QML may bind to (REQ-011) |
-| QML screens (`src/hmi/qml/`) | Home (2 primary values and a status strip), vehicle data (4 x 2 grid of signal tiles, LHU-039), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting |
-| `app` (`src/app/`) | `main()` of the vehicle-data app: reads configuration, constructs the view models and the QML engine. In v0.1.0 it also constructs the source and the service layer in-process and starts the worker thread; from v0.2.0 that moves to the service process and `app` constructs a `VehicleDataClient` | The one place that knows every concrete type |
+| View models (`src/hmi/viewmodels/`) | `SignalTileModel` (name, value text, unit text, status flags), `ConnectionStatusModel` (state text, flags, last cause), `VehicleDataViewModel` (the eight tiles and the status model, the `vehicleData` context property); `WorkerBridge` carries `SignalSample` and `ConnectionTransition` by value from the worker thread through queued connections | The only classes QML may bind to (REQ-011). LHU-013, DN-013 |
+| QML screens (`src/hmi/qml/`) | `Sizes` singleton (11.6 px/mm), `SignalTile`, `StatusStrip`, `HomeScreen` (2 primary values and a status strip, LHU-013), vehicle data (4 x 2 grid of signal tiles, LHU-039), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting. Imports only Qt modules and `LexusHeadUnit` (checked in CI) |
+| `app` (`src/app/`, executable `lexus-head-unit`) | `main()` of the vehicle-data app: reads `deploy/head_unit.conf`, builds the configured source (`buildSource`: `elm327` or `fake` with a demo script), the service layer, the bridge, the view model, the QML engine and the `WorkerLoop`. From v0.2.0 the source and the service layer move to the service process and `app` constructs a `VehicleDataClient` | The one place that knows every concrete type; the link-graph check does not guard it |
 
 ### 4.4 Hub, `src/hub/`
 
@@ -222,7 +223,7 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 - Touch targets are at least 10 mm (116 px) on each side.
 - Primary values have a character height of at least 4 mm (46 px). The 4 mm figure is about 20 arcminutes at 700 mm viewing distance; the 20-arcminute recommendation is attributed to ISO 15008 from memory and is **unverified**.
 - Home shows 2 primary values and a status strip. Vehicle data shows the 8 signals of REQ-004 as a 4 x 2 grid of tiles about 27 x 27 mm. Diagnostics scrolls.
-- A Stale signal is drawn in a visibly different style (REQ-006, REQ-012); the exact style is decided with LHU-013.
+- A Stale signal is drawn in a visibly different style (REQ-006, REQ-012): the value in the muted colour with a `STALE` badge beside the unit; NeverReceived shows `--`; only Valid uses the live colour. Decided in DN-013 and asserted by `tests/hmi/tst_home_screen.qml`.
 
 ## 11. Deployment
 
