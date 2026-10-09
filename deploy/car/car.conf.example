@@ -1,0 +1,35 @@
+# Lexus Head Unit car mode: the settings of this one Pi (LHU-044).
+# The install script copies this file to ~/.config/lexus-head-unit/car.conf once and never
+# overwrites it. That copy holds the adapter address, so it stays on the Pi and is never
+# committed (privacy rule). Lines are "key = value"; "#" starts a comment.
+
+[mode]
+# car: the adapter in the car. demo: moving demonstration values, no car needed.
+# replay: a recorded session, replay_file = last (the newest car session) or a path.
+# emulator: the ELM327 emulator on the Pi itself. Switch with: lexus-mode <mode>
+kind = car
+replay_file = last
+replay_timing = original
+
+[adapter]
+# Written by lexus-pair-adapter. Empty until the adapter is paired in the car.
+address =
+# RFCOMM channel of the serial port service of the adapter (assumption A2).
+channel = 1
+# PIN for legacy pairing; the vLinker default is assumed to be 1234 (assumption A20).
+pin = 1234
+# Part of the Bluetooth name; the classic side ends in -Android.
+name_fragment = vLinker
+
+[session]
+# One numbered folder per service start under <data_dir>/sessions/.
+data_dir = ~/lexus-data
+# Written into the thermal log of every session.
+power_source = power bank A1383
+thermal_interval_seconds = 5
+# off stops the thermal logger.
+thermal_log = on
+
+[network]
+# The NetworkManager connection of the phone hotspot (docs/release/CAR_DAY_GUIDE.md).
+hotspot_connection = hotspot

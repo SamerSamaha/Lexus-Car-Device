@@ -1,0 +1,20 @@
+# User unit for car mode (LHU-044): the vehicle-data service, started by lexus-car-session, which
+# opens a numbered session folder (session log, recording, thermal log, the configuration used)
+# and then runs the service for the mode in ~/.config/lexus-head-unit/car.conf.
+# Installed by deploy/car/install_car_mode.sh in place of deploy/systemd's desk unit.
+[Unit]
+Description=Lexus Head Unit vehicle-data service (car mode)
+After=dbus.socket
+
+[Service]
+Type=dbus
+BusName=io.github.samersamaha.LexusHeadUnit
+ExecStart=/usr/local/bin/lexus-car-session
+Restart=always
+RestartSec=2
+# The thermal logger runs beside the service in the same unit; both stop together.
+KillMode=control-group
+TimeoutStopSec=20
+
+[Install]
+WantedBy=default.target

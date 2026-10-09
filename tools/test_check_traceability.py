@@ -140,6 +140,16 @@ class CheckTraceabilityTest(unittest.TestCase):
         self.assertIn("tests/scenarios/drop_test.py", output)
         self.assertIn("tests/hmi/tile_test.qml", output)
 
+    def test_tags_in_tooling_tests_count_but_other_tool_files_do_not(self):
+        self.repository.write_requirements([("REQ-001", "Approved"), ("REQ-002", "Approved")])
+        self.repository.write_matrix([("REQ-001", "x", "Tagged"), ("REQ-002", "x", "Tagged")])
+        self.repository.write_file("tools/test_car_tools.py", "# Verifies: REQ-001\n")
+        self.repository.write_file("tools/car/helper.py", "# Verifies: REQ-002\n")
+        exit_code, output, _ = run_main(self.repository.root)
+        self.assertEqual(exit_code, check_traceability.EXIT_CODE_FINDING, output)
+        self.assertIn("tools/test_car_tools.py", output)
+        self.assertNotIn("tools/car/helper.py", output)
+
     def test_missing_requirements_file_cannot_run(self):
         self.repository.write_matrix([("REQ-001", "x", "Tagged")])
         exit_code, _, error = run_main(self.repository.root)

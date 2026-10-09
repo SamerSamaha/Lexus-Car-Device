@@ -2,8 +2,9 @@
 """Fail if an Approved or Provisional requirement has no tagged test and no measurement file.
 
 Reads the requirement table in docs/requirements/REQUIREMENTS.md and the matrix in
-docs/traceability/TRACEABILITY.md, collects every "Verifies: REQ-nnn" tag under tests/, and
-checks each requirement:
+docs/traceability/TRACEABILITY.md, collects every "Verifies: REQ-nnn" tag under tests/ and in
+the tooling tests tools/test_*.py (the car-mode tools of LHU-044 are tested there), and checks
+each requirement:
 
   * a matrix row whose Status starts with "Planned" is pending and does not fail the check;
   * every other row needs a tag in at least one test file, or a measurement or procedure file
@@ -130,6 +131,29 @@ def collect_tags(tests_root: Path) -> Dict[str, List[str]]:
     return tagged_files
 
 
+def collect_tool_test_tags(tools_root: Path) -> Dict[str, List[str]]:
+    """The same for the tooling tests directly in tools/ (test_*.py)."""
+    tagged_files: Dict[str, List[str]] = {}
+    if not tools_root.is_dir():
+        return tagged_files
+    for test_file in sorted(tools_root.glob("test_*.py")):
+        try:
+            text = test_file.read_text(encoding="utf-8", errors="replace")
+        except OSError as read_error:
+            raise CheckCouldNotRunError(f"cannot read {test_file}: {read_error}") from read_error
+        relative_label = test_file.relative_to(tools_root.parent).as_posix()
+        # Only comment lines: the tests of this checker carry tags as string data.
+        comment_lines = "\n".join(
+            line for line in text.splitlines() if line.lstrip().startswith("#")
+        )
+        for tag_match in TAG_LINE_PATTERN.finditer(comment_lines):
+            for requirement_id in REQUIREMENT_ID_PATTERN.findall(tag_match.group(1)):
+                files = tagged_files.setdefault(requirement_id, [])
+                if relative_label not in files:
+                    files.append(relative_label)
+    return tagged_files
+
+
 def existing_evidence_files(repository_root: Path, test_column: str) -> List[str]:
     """Return the measurement or procedure paths named in a matrix cell that exist in the tree."""
     existing: List[str] = []
@@ -209,6 +233,8 @@ def main(argument_list: Optional[Sequence[str]] = None) -> int:
         requirements = read_requirements(repository_root / REQUIREMENTS_RELATIVE_PATH)
         matrix = read_matrix(repository_root / TRACEABILITY_RELATIVE_PATH)
         tagged_files = collect_tags(repository_root / TESTS_RELATIVE_PATH)
+        for requirement_id, files in collect_tool_test_tags(repository_root / "tools").items():
+            tagged_files.setdefault(requirement_id, []).extend(files)
     except CheckCouldNotRunError as check_error:
         print(f"check_traceability: error: {check_error}", file=sys.stderr)
         return EXIT_CODE_CHECK_COULD_NOT_RUN
