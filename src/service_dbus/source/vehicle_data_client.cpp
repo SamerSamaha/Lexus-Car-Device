@@ -121,6 +121,7 @@ void VehicleDataClient::onDiagnosticsReply(QDBusPendingCallWatcher* watcher) {
 void VehicleDataClient::fetchState() {
     m_samplesFetched = false;
     m_connectionFetched = false;
+    m_linkDetailFetched = false;
     auto* samplesWatcher = new QDBusPendingCallWatcher(
         m_connection.asyncCall(methodCall(QStringLiteral("GetSamples"))), this);
     connect(samplesWatcher,
@@ -148,6 +149,14 @@ void VehicleDataClient::onLinkDetailReply(QDBusPendingCallWatcher* watcher) {
         return;
     }
     onLinkDetailChanged(reply.value());
+    m_linkDetailFetched = true;
+    noteFetched();
+}
+
+void VehicleDataClient::noteFetched() {
+    if (hasInitialState()) {
+        emit initialStateReceived();
+    }
 }
 
 void VehicleDataClient::onLinkDetailChanged(uint detail) {
@@ -184,9 +193,7 @@ void VehicleDataClient::onSamplesReply(QDBusPendingCallWatcher* watcher) {
         applySample(*sample);
     }
     m_samplesFetched = true;
-    if (m_connectionFetched) {
-        emit initialStateReceived();
-    }
+    noteFetched();
 }
 
 void VehicleDataClient::onConnectionReply(QDBusPendingCallWatcher* watcher) {
@@ -213,9 +220,7 @@ void VehicleDataClient::onConnectionReply(QDBusPendingCallWatcher* watcher) {
     }
     m_state = *state;
     m_connectionFetched = true;
-    if (m_samplesFetched) {
-        emit initialStateReceived();
-    }
+    noteFetched();
 }
 
 void VehicleDataClient::onSampleChanged(
@@ -297,7 +302,7 @@ ConnectionState VehicleDataClient::connectionState() const {
 }
 
 bool VehicleDataClient::hasInitialState() const {
-    return m_samplesFetched && m_connectionFetched;
+    return m_samplesFetched && m_connectionFetched && m_linkDetailFetched;
 }
 
 bool VehicleDataClient::isServiceAvailable() const {

@@ -68,6 +68,8 @@ private:
     void onConnectionReply(QDBusPendingCallWatcher* watcher);
     void onLinkDetailReply(QDBusPendingCallWatcher* watcher);
     void applyLinkDetail(LinkDetail detail);
+    // Emits initialStateReceived once the samples, the connection and the link detail are in.
+    void noteFetched();
     void onServiceRegistered();
     void onServiceUnregistered();
     void setServiceAvailable(bool available);
@@ -81,6 +83,7 @@ private:
     LinkDetail m_linkDetail = LinkDetail::Idle;
     bool m_samplesFetched = false;
     bool m_connectionFetched = false;
+    bool m_linkDetailFetched = false;
     bool m_serviceAvailable = false;
     quint64 m_samplesReceived = 0;
     quint64 m_malformedMessages = 0;
