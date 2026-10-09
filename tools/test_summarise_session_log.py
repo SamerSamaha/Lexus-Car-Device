@@ -60,6 +60,24 @@ class SummariseSessionLogTest(unittest.TestCase):
         self.assertIn("request rate without audio: unknown", summary)
         self.assertNotIn("change:", summary)
 
+    def test_whole_log_without_an_audio_window(self):
+        counters, transitions = summariser.read_log(self.log_with_rates(20, 20, 20, lost_at=150))
+        summary = summariser.summarise_whole_log(counters, transitions)
+        self.assertIn("request rate: 20.00/s", summary)
+        self.assertIn("transitions out of Connected: 1", summary)
+        self.assertIn("150.0 s LinkLost -> Error", summary)
+        self.assertNotIn("audio", summary)
+
+    def test_command_line_without_a_window_and_with_half_a_window(self):
+        path = self.log_with_rates(20, 20, 20)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(summariser.main([str(path)]), summariser.EXIT_CODE_OK)
+        self.assertIn("request rate: 20.00/s", output.getvalue())
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                summariser.main([str(path), "--audio-start-seconds", "60"])
+
     def test_command_line(self):
         path = self.log_with_rates(20, 20, 20)
         output = io.StringIO()

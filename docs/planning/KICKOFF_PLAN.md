@@ -422,7 +422,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-031 | Trip analytics as derived signals. **Done 2026-10-09** (DN-031), 3.5 h actual (estimated); the comparison on the car is checklist step 3.11 | 7 | 1.75 full | 8.75 | 022 |
 | LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass. **Instruments done 2026-10-09** (latency probe, first-frame marker, three scripts); the runs, the target re-set and the optimisation pass need the Pi; 2.0 h actual (estimated) | 6 | exempt | 6 | 009, 013, 014 |
 | LHU-033 | arm64 release build in CI. **Done 2026-10-09**: the job "arm64 release build" uploads `lexus-head-unit-arm64`; 1.0 h actual (estimated) | 2 | exempt | 2 | — |
-| LHU-034 | Manual on-car test procedure and first drives; mounting decided (OQ-14) | 3 | exempt | 3 | — |
+| LHU-034 | Manual on-car test procedure and first drives; mounting decided (OQ-14). **Procedure written 2026-10-09** (parked run, drive run, results template); the runs and the mounting decision need the car and the owner; 0.5 h actual (estimated) | 3 | exempt | 3 | — |
 | LHU-035 | Release v1.0.0: documentation, demo video, license (OQ-25) | 4 | exempt | 4 | — |
 | **Total** | | | | **48.75** | |
 
