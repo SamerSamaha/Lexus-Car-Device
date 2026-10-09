@@ -1,0 +1,38 @@
+VERSION ""
+
+
+NS_ :
+
+BS_:
+
+BU_: ENGINE BODY GATEWAY HEAD_UNIT
+
+
+BO_ 256 EngineStatus: 8 ENGINE
+ SG_ EngineSpeed : 0|16@1+ (0.25,0) [0|16383.75] "rpm" HEAD_UNIT
+ SG_ CoolantTemperature : 16|8@1+ (1,-40) [-40|215] "degC" HEAD_UNIT
+ SG_ EngineLoad : 24|8@1+ (0.392156862745098,0) [0|100] "%" HEAD_UNIT
+ SG_ ThrottlePosition : 32|10@1+ (0.1,0) [0|102.3] "%" HEAD_UNIT
+ SG_ IntakeAirTemperature : 42|8@1- (1,0) [-128|127] "degC" HEAD_UNIT
+ SG_ EngineRunning : 63|1@1+ (1,0) [0|1] "" HEAD_UNIT
+
+BO_ 512 VehicleMotion: 8 BODY
+ SG_ VehicleSpeed : 7|16@0+ (0.01,0) [0|655.35] "km/h" HEAD_UNIT
+ SG_ LongitudinalAcceleration : 23|12@0- (0.01,0) [-20.48|20.47] "m/s2" HEAD_UNIT
+ SG_ YawRate : 32|16@1- (0.01,0) [-327.68|327.67] "deg/s" HEAD_UNIT
+ SG_ SteeringAngle : 53|14@0- (0.1,-5) [-824.2|814.3] "deg" HEAD_UNIT
+
+BO_ 768 PowerStatus: 4 GATEWAY
+ SG_ ControlModuleVoltage : 0|16@1+ (0.001,0) [0|65.535] "V" HEAD_UNIT
+ SG_ FuelLevel : 16|8@1+ (0.392156862745098,0) [0|100] "%" HEAD_UNIT
+ SG_ IgnitionOn : 24|1@1+ (1,0) [0|1] "" HEAD_UNIT
+ SG_ HeadlampState : 30|3@0+ (1,0) [0|7] "" HEAD_UNIT
+
+BO_ 2566844672 TripComputer: 8 GATEWAY
+ SG_ Odometer : 0|32@1+ (0.1,0) [0|429496729.5] "km" HEAD_UNIT
+ SG_ TripFuelUsed : 39|24@0+ (0.001,0) [0|16777.215] "l" HEAD_UNIT
+ SG_ AmbientPressure : 56|8@1+ (0.5,50) [50|177.5] "kPa" HEAD_UNIT
+
+
+CM_ "Simulated vehicle for the Lexus Head Unit project. This vehicle is INVENTED: no message, identifier or signal here describes the 2013 Lexus GS350 or any real car. It exists to exercise the DBC decoder (REQ-005): little and big endian, signed and unsigned, 1 to 32 bits, byte-boundary crossings, scale and offset, a 4-byte message and a 29-bit identifier.";
+CM_ BO_ 2566844672 "29-bit (extended) identifier 0x18FEF100; bit 31 of the DBC identifier marks it as extended.";

@@ -16,11 +16,12 @@ Rules:
 | Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | Not yet done |
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
-| Return to the hub from a fullscreen app | LHU-020, LHU-021 | Not yet done |
-| Web apps, protected audio, browser memory | LHU-023 | Not yet done |
-| Bluetooth audio to the car stereo | LHU-024 | Not yet done |
-| Power flags on screen, clean shutdown cycles | LHU-025 | Not yet done |
-| vcan tests | LHU-028 | Not yet done |
+| Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
+| Vehicle-data service and hub as systemd user units, the app reading the service over D-Bus | LHU-022 | Built and tested at the desk on a private bus (LHU-022); step 3.6 not yet done |
+| Web apps, protected audio, browser memory | LHU-023 | Procedure, browser flags and memory sampler ready (LHU-023); `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` not yet run |
+| Bluetooth audio to the car stereo | LHU-024 | Output script, session log and summariser ready (LHU-024); the audio section of `docs/test/MANUAL_ON_CAR_PROCEDURE.md` not yet run |
+| Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
+| vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Not yet done |
 | On-car procedure and drives | LHU-034 | Not yet done |
 
@@ -39,6 +40,11 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A7 | The adapter's reply to one request arrives within 1 s (`reply_timeout_ms`), so that link loss is declared within 2 s only when the link is really gone | DN-012 | Step 3.2, item 5 (worst reply time over 100 requests) | Not yet verified |
 | A8 | A primary value drawn with a font pixel size of `mm(5.7)` has a cap height of about 4 mm on the panel (the font's cap height is assumed to be 0.7 of the em size) | DN-013 | Step 3.4 | Not yet verified |
 | A9 | The 1280 x 720 window fills the rotated panel under labwc and touch lands where the button is drawn | D-045, DN-013 | Step 3.4 | Not yet verified |
+| A10 | Chromium started with its own `--user-data-dir` stays as the process the hub launched, rather than handing the URL to a running instance and exiting, so the hub can track a URL app | DN-021 | Step 3.5, item 5 | Not yet verified |
+| A11 | The Raspberry Pi OS panel stays visible above a maximised app window under labwc, and a launcher on it runs `lexus-hub --send return` from a tap | DN-021 | Step 3.5, items 3 and 4 | Not yet verified |
+| A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
+| A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
+| A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
 
 ## 3. Steps
 
@@ -78,6 +84,8 @@ ls -l /dev/rfcomm0
 
 Results: not yet measured.
 
+Record the first parked session too (LHU-029): add `--record local_recordings/<date>_first_parked.rec` to the command of step 7; afterwards, on the Pi, `--source replay` with `replay.file` pointing at it must show the same values. The recording stays in `local_recordings/`; only a copy scrubbed with `python3 tools/scrub_recording.py <file> --output <copy>` may leave it.
+
 ### 3.4 Home screen on the panel (LHU-013)
 
 After a build on the Pi (3.3) and with the emulator or the adapter:
@@ -90,6 +98,70 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 ```
 
 Record in `docs/test/results/<date>_home_screen_on_pi.md`: whether the window fills the panel in landscape (A9); the measured height in millimetres of the digit "8" in the speed tile, with a ruler against the glass (A8; target at least 4 mm); whether a tap on "Vehicle data" opens the 4 x 2 grid and "Home" returns (A9); the status strip going Connected; a value greying out with the `STALE` badge after `printf 'stale 0D\n'` on the control socket; the measured width and height in millimetres of one grid tile (expected about 25 x 23 mm).
+
+Results: not yet measured.
+
+### 3.5 Hub and the way back (LHU-020, LHU-021)
+
+After a build on the Pi (3.3), with the thermal log running:
+
+1. Put both executables on the path, then start the hub:
+
+```sh
+sudo ln -sf ~/build/lexus-car-device/release/src/hub/app/lexus-hub /usr/local/bin/lexus-hub
+sudo ln -sf ~/build/lexus-car-device/release/src/app/lexus-head-unit /usr/local/bin/lexus-head-unit
+cd ~/Lexus-Car-Device && lexus-hub --registry deploy/hub.conf --fullscreen &
+lexus-hub --send status    # expected: state idle app - hub_pid <n> app_pid - window visible ...
+```
+
+2. Tap "Vehicle data". Expected: the vehicle-data app covers the hub; `lexus-hub --send status` says `state running app vehicle_data`.
+3. Copy `deploy/lexus-hub-return.desktop` to `~/.local/share/applications/` and add it to the panel as a launcher (right-click the panel, add or remove launchers). Record whether the panel stays visible over the app (A11). Fallback if it does not: a labwc key binding in `~/.config/labwc/rc.xml` running `lexus-hub --send return`, then `labwc --reconfigure`.
+4. Tap the Hub launcher. Record whether the hub is in front within 1 s, timed by video or stopwatch, 10 times (A11, A12).
+5. Run `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` (the three URL apps in `deploy/hub.conf`): it records whether `lexus-hub --send status` stays `running` while the browser is open (A10) and the browser's memory with `tools/measure/sample_process_memory.py` (the LHU-020 memory question).
+6. Close the vehicle-data app from inside (if it has no close control, `kill <app_pid>`): the hub must be in front within 1 s.
+
+Record everything in `docs/test/results/<date>_hub_on_pi.md`.
+
+Results: not yet measured.
+
+### 3.6 Service and hub as user units (LHU-022)
+
+After 3.5, with the executables linked into `/usr/local/bin` (also `lexus-vehicle-data-service` from `src/service_dbus/`):
+
+```sh
+install -D -m 644 deploy/systemd/*.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now lexus-vehicle-data-service
+busctl --user call io.github.samersamaha.LexusHeadUnit /io/github/samersamaha/LexusHeadUnit/VehicleData io.github.samersamaha.LexusHeadUnit.VehicleData1 GetConnection
+systemctl --user enable lexus-hub && systemctl --user is-active graphical-session.target
+```
+
+Record: the `GetConnection` reply; whether `graphical-session.target` is active and `systemctl --user show-environment` lists `WAYLAND_DISPLAY` (A13); after a reboot, whether the hub appears by itself. Fallback if not: remove the hub unit and add `lexus-hub --registry /home/<user>/Lexus-Car-Device/deploy/hub.conf --fullscreen &` to `~/.config/labwc/autostart`. Then tap "Vehicle data" and confirm the values move (the app now reads the service), `systemctl --user restart lexus-vehicle-data-service` turns them Stale and back within a few seconds, and the D-Bus hop (part of LHU-032) is measured with the adapter connected.
+
+Results: not yet measured.
+
+### 3.7 CAN source on vcan0 (LHU-028)
+
+After a build on the Pi (3.3):
+
+```sh
+sudo deploy/setup_vcan.sh                       # expected: vcan0 listed, state UNKNOWN or UP
+ctest --preset release -L vcan --output-on-failure   # expected: 2 tests passed, none skipped
+python3 tools/can_traffic_generator.py --interface vcan0 --rate-hz 50 --duration-seconds 120 &
+~/build/lexus-car-device/release/src/app/lexus-head-unit --source can --config deploy/head_unit.conf --fullscreen
+```
+
+Record in `docs/test/results/<date>_vcan_on_pi.md`: the ctest summary; whether the vehicle-data screen shows the generator's moving values and Connected; whether stopping the generator turns the strip to Error within about 2 s and restarting it reconnects (backoff 1, 2, 4, 8, 10 s); `ip -s link show vcan0` packet counts before and after.
+
+Results: not yet measured.
+
+### 3.8 Power flags and clean shutdown (LHU-025)
+
+With the hub running (3.5 or 3.6):
+
+1. Run `vcgencmd get_throttled` in a terminal and compare with the strip: "Power OK" for `throttled=0x0`; any other value names the current flags in red, and an amber dot means a flag was set since boot.
+2. On the power bank under load (or during the clean build of 3.3), record any flag that appears and the time between `vcgencmd` showing it and the strip showing it (REQ-020: 5 s or less).
+3. Ten shutdown cycles: tap the power button twice; wait for the Pi to power off; power on; after boot run `journalctl -b -1 -p err --no-pager | grep -iE "ext4|fsck|mmc"` and `dmesg | grep -iE "ext4-fs error|fsck"`. Record each cycle (date, time to power-off, the two outputs) in `docs/test/results/<date>_shutdown_cycles.md`. Pass: 0 file-system errors over the 10 cycles. `systemctl poweroff` from the desktop user needs no password on the desktop image (polkit allows the active session); if it asks, record that and set `hub.shutdown_command` accordingly.
 
 Results: not yet measured.
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(LexusHeadUnit
-    VERSION 0.1.0
+    VERSION 0.2.0
     DESCRIPTION "Read-only infotainment head unit for a 2013 Lexus GS350"
     LANGUAGES CXX
 )
@@ -64,25 +64,33 @@ if(LEXUS_HEAD_UNIT_ENABLE_SANITIZERS)
 endif()
 
 if(LEXUS_HEAD_UNIT_BUILD_HMI)
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickTest Test)
+    find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Network Qml Quick QuickTest Test)
     qt_standard_project_setup()
 endif()
 
 add_subdirectory(src/service)
 add_subdirectory(src/hardware)
+add_subdirectory(src/hub)
 if(LEXUS_HEAD_UNIT_BUILD_HMI)
+    add_subdirectory(src/qt_value_types)
+    add_subdirectory(src/process_support)
     add_subdirectory(src/hmi)
     add_subdirectory(src/app)
+    add_subdirectory(src/service_dbus)
 endif()
 
 if(BUILD_TESTING)
     enable_testing()
     find_package(GTest REQUIRED)
+    add_subdirectory(tests/fixtures)
     add_subdirectory(tests/unit)
     add_subdirectory(tests/integration)
     add_subdirectory(tests/scenarios)
+    add_subdirectory(tests/vcan)
     if(LEXUS_HEAD_UNIT_BUILD_HMI)
         add_subdirectory(tests/unit/hmi)
+        add_subdirectory(tests/unit/service_dbus)
         add_subdirectory(tests/hmi)
+        add_subdirectory(tests/hmi_hub)
     endif()
 endif()

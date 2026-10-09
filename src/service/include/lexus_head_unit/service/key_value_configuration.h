@@ -13,6 +13,8 @@ class KeyValueConfiguration {
 public:
     bool loadFromFile(const std::string& path);
     void loadFromText(std::string_view text);
+    // Sets or replaces one "section.key" value, for command-line options that override the file.
+    void setValue(const std::string& key, const std::string& value);
 
     [[nodiscard]] bool contains(const std::string& key) const;
     [[nodiscard]] std::string stringValue(const std::string& key,

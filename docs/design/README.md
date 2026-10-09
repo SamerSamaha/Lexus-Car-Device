@@ -65,3 +65,9 @@ In this order:
 | [DN-013](DN-013-qml-home-screen.md) QML home screen, view models and the application | LHU-013 | Implemented |
 | [DN-039](DN-039-vehicle-data-screen.md) Vehicle-data screen, 4 x 2 signal grid | LHU-039 | Implemented |
 | [DN-015](DN-015-thermal-logger.md) Thermal and power logger | LHU-015 | Implemented |
+| [DN-021](DN-021-app-hub.md) App hub launcher | LHU-021 | Implemented |
+| [DN-022](DN-022-vehicle-data-service.md) Vehicle-data service over D-Bus | LHU-022 | Implemented |
+| [DN-027](DN-027-dbc-decoder.md) DBC decoder with an independent oracle | LHU-027 | Implemented |
+| [DN-028](DN-028-socketcan-source.md) SocketCAN source (light) | LHU-028 | Implemented |
+| [DN-029](DN-029-record-and-replay.md) Record and replay with vehicle-identification scrub | LHU-029 | Implemented |
+| [DN-025](DN-025-power-status-and-shutdown.md) Power status and clean shutdown (light) | LHU-025 | Implemented |

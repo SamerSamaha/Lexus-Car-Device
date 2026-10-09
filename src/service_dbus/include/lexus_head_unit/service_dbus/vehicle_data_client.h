@@ -1,0 +1,74 @@
+#pragma once
+
+#include "lexus_head_unit/qt/value_types.h"
+#include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/signal_id.h"
+#include "lexus_head_unit/service/signal_sample.h"
+
+#include <QDBusConnection>
+#include <QDBusServiceWatcher>
+#include <QObject>
+#include <QString>
+#include <QtGlobal>
+
+#include <array>
+
+class QDBusPendingCallWatcher;
+
+namespace lexus_head_unit {
+
+// Client side of DN-022: subscribes to the service's signals, then fetches the current state,
+// and applies every message in arrival order (D-Bus keeps one sender's messages in order, so
+// the reply overrides earlier signals and later signals override the reply). Emits each
+// applied sample and transition as a Qt signal for the view models.
+class VehicleDataClient : public QObject {
+    Q_OBJECT
+
+public:
+    explicit VehicleDataClient(QDBusConnection connection, QObject* parent = nullptr);
+
+    void start();
+
+    [[nodiscard]] SignalSample latest(SignalId signalId) const;
+    [[nodiscard]] ConnectionState connectionState() const;
+    [[nodiscard]] bool hasInitialState() const;
+    [[nodiscard]] bool isServiceAvailable() const;
+    [[nodiscard]] quint64 samplesReceived() const;
+    [[nodiscard]] quint64 malformedMessages() const;
+
+signals:
+    void sampleArrived(lexus_head_unit::SignalSample sample);
+    void connectionChanged(lexus_head_unit::ConnectionTransition transition);
+    void initialStateReceived();
+    void serviceAvailabilityChanged(bool available);
+
+private slots:
+    void onSampleChanged(
+        uint signalId, double value, uint unit, qlonglong timestampMilliseconds, uint status);
+    void onConnectionChanged(uint fromState,
+                             uint trigger,
+                             uint toState,
+                             qlonglong timestampMilliseconds);
+
+private:
+    void fetchState();
+    void onSamplesReply(QDBusPendingCallWatcher* watcher);
+    void onConnectionReply(QDBusPendingCallWatcher* watcher);
+    void onServiceRegistered();
+    void onServiceUnregistered();
+    void setServiceAvailable(bool available);
+    void applySample(const SignalSample& sample);
+    void applyTransition(const ConnectionTransition& transition);
+
+    QDBusConnection m_connection;
+    QDBusServiceWatcher m_watcher;
+    std::array<SignalSample, signalCount> m_samples{};
+    ConnectionState m_state = ConnectionState::Disconnected;
+    bool m_samplesFetched = false;
+    bool m_connectionFetched = false;
+    bool m_serviceAvailable = false;
+    quint64 m_samplesReceived = 0;
+    quint64 m_malformedMessages = 0;
+};
+
+} // namespace lexus_head_unit

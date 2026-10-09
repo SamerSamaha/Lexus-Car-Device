@@ -37,7 +37,7 @@ The vehicle-data path is the core of the project and is built first (milestone v
 
 Rules of the process view:
 - The vehicle-data service is the only process that talks to the vehicle. Every other process reads signals through `VehicleDataClient` over D-Bus (REQ-017). The read-only guarantee (REQ-001) therefore lives in one process.
-- The hub starts, tracks and stops app processes and is visible again when one exits (REQ-016). It never exits while the system runs. How the user returns to the hub from a fullscreen browser is settled by the LHU-020 spike (OQ-29).
+- The hub starts, tracks and stops app processes and is visible again when one exits (REQ-016). It never exits while the system runs. The user returns to the hub by stopping the app in front: a panel launcher runs `lexus-hub --send return`, and the hub, which never moved, is what the compositor shows once the app's process group has ended (DN-021; verified on the Pi by checklist step 3.5).
 - Web apps are URL entries in the hub's registry, opened in the system browser full screen (REQ-018). They are content, not product code; the hub, the service and the measurements are the product.
 - Memory is budgeted per process (REQ-014). The browser dominates and is measured separately.
 
@@ -88,9 +88,9 @@ In milestone v0.1.0 the view models and the service layer live in one process an
 | `decodePid`, `SupportedPidSet` (`src/hardware/obd/`) | `decodePid` turns a PID and its data bytes into a signal, value and unit by the SAE J1979 formula; `SupportedPidSet` decodes the PID 0x00, 0x20, 0x40 bitmaps and `pollablePids` lists the supported ones of the 8 | The 8 PIDs of REQ-004. Pure functions of bytes to value; no I/O; wrong byte count or unknown PID gives no value (REQ-010). LHU-009, DN-009 |
 | `Elm327ObdSource` (`src/hardware/elm327/`) | Owns the `Elm327Protocol`, the `ConnectionStateMachine`, a `ReconnectBackoff` and the `SupportedPidSet`; `start` runs the setup commands and the bitmap discovery; each `runOnce` polls the next supported PID and emits a sample, or detects link loss (end-of-file at once; two silent requests at 2 s) and schedules the next attempt 1, 2, 4, 8, 10, 10 ... s later; named error replies are counted and leave the link up | REQ-004, REQ-008, REQ-010. LHU-012, DN-012. Configured by `Elm327SourceConfiguration` from the `[elm327]` section of the configuration file |
 | `CanFrameReader` | Interface. Delivers raw CAN frames (id, length, 8 data bytes, timestamp) | Implementations: a SocketCAN socket on `vcan0` or a real interface; a fake for tests. **Has no send method** (REQ-001) |
-| `DbcDecoder` | Decodes a raw frame into signal values using a DBC file | Both byte orders, signed and unsigned, scale and offset (REQ-005). Wrong frame length is a counted error, not a sample (REQ-010) |
-| `SocketCanDbcSource` | Owns a `CanFrameReader` and a `DbcDecoder`; converts decoded values into `SignalSample` | LHU-028, v1.0.0 |
-| `ReplaySource` | Reads a recorded session file and re-emits its bytes or samples with the original timing | REQ-015, LHU-029, v1.0.0 |
+| `DbcDatabase`, `DbcDecoder` (`src/hardware/can/`, LHU-027, DN-027) | Parses the `BO_` and `SG_` lines of a DBC file (multiplexed and float signals are reported as errors); decodes a raw frame into signal values | Both byte orders, signed and unsigned, scale and offset, checked against `cantools` on 10,000 frames (REQ-005). Wrong frame length, unknown identifier and invalid length are counted errors, not samples (REQ-010) |
+| `SocketCanDbcSource` (library `lexus_head_unit_can_source`, LHU-028, DN-028) | Owns a `CanFrameReader` and a `DbcDecoder`; maps the eight project signals by DBC name, checks their units at connect, publishes `SignalSample`s; a reader error or 2 s of silence is link loss, with the 1, 2, 4, 8, 10 s backoff (`ReconnectBackoff`, now in the service library and shared with the ELM327 source) | Chosen with `source.kind = can` (`can.interface`, `can.dbc`). `SocketCanFrameReader` is a raw `PF_CAN` socket with no write path; `FakeCanFrameReader` drives the tests |
+| `RecordingByteTransport`, `ReplayByteTransport`, `ReplayClock`, `ReplaySource` (`src/hardware/replay/`, LHU-029, DN-029) | The recorder wraps the ELM327 transport and writes every open, write and read with its time to a text file (`--record`); playback runs the unchanged `Elm327ObdSource` on a replay transport and a clock that the recording drives, so the source's timing decisions repeat; `original` timing paces it like the drive, `fast` runs it at once | REQ-015. A write that differs from the recording is a counted divergence. `tools/scrub_recording.py` removes the VIN in plain and Mode 09 hexadecimal form before a recording leaves `local_recordings/` |
 | `FakeSource` | Scriptable source (`src/hardware/fake/`): samples, malformed inputs, link loss, reconnect, handshake failure, one step per `runOnce()` | Lets the service layer be tested without any hardware code; also the "fake" choice of the source configuration |
 | `DtcDecoder`, `VehicleInfoDecoder` | Turn a Mode 03 reply into trouble codes with their standard text, and a Mode 09 reply into vehicle information | REQ-021, LHU-030. Pure functions of bytes to values. There is still no Mode 04 and no Mode 02 (freeze frame); the allowlist of D-009 is unchanged |
 | `GpsSource` | Roadmap: delivers latitude, longitude, speed and heading as signals from a position stream sent by the phone over the hotspot | LHU-036; proves the interface a third time, with a non-vehicle source |
@@ -116,9 +116,11 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| `VehicleDataService` | Hosts the service layer and the active source in its own process; publishes every signal change and connection state change over D-Bus; answers a current-state query so a late-joining client starts complete | REQ-017, LHU-022. Qt D-Bus adapter only; the service layer underneath is unchanged |
-| `VehicleDataClient` | Client-side mirror: subscribes, holds the latest sample per signal, exposes them to view models | The only path from a view model to vehicle data (REQ-011 from v0.2.0). Used by the vehicle-data app and the hub's status strip |
-| D-Bus interface definition | Introspection XML in `src/service_dbus/` naming the signals and the state query | Versioned; the test of REQ-017 runs two clients against it |
+| `VehicleDataService` | The object exported by the `lexus-vehicle-data-service` process, which hosts the service layer and the active source; publishes every sample and transition as a D-Bus signal (`SampleChanged`, `ConnectionChanged`), and answers `GetSamples` and `GetConnection` from a mirror kept on its own thread, so a late-joining client starts complete | REQ-017, LHU-022, DN-022. Qt D-Bus adapter only; the service layer underneath is unchanged. The worker thread hands samples over with a queued call |
+| `VehicleDataClient` | Client-side mirror: subscribes first, then fetches the state, and applies every message in arrival order (one sender's messages arrive in order, so no timestamps are compared); marks values Stale and the connection Error when the service goes away, and fetches again when it returns | The only path from a view model to vehicle data (REQ-011 from v0.2.0). Used by the vehicle-data app with `--source dbus`; the hub's status strip uses it from LHU-025 |
+| D-Bus interface definition | `src/service_dbus/interface/io.github.samersamaha.LexusHeadUnit.VehicleData1.xml`: bus name `io.github.samersamaha.LexusHeadUnit`, object `/io/github/samersamaha/LexusHeadUnit/VehicleData` | Versioned by the trailing 1; a test compares the live introspection with the file |
+| `lexus_head_unit_qt_value_types`, `lexus_head_unit_source_wiring`, `lexus_head_unit_process_support` | The Qt meta-type declarations shared by the view models and the client; `buildSource` and the staleness configuration shared by the app and the service; the SIGTERM handling shared by the hub and the service | Shared so that the service process links no HMI code |
+| `deploy/systemd/` | User units: the service (`Type=dbus`, restart on failure) and the hub (after the service, restart always), with absolute paths | Whether labwc starts the graphical session target is assumption A13 |
 
 ### 4.3 HMI, `src/hmi/`
 
@@ -132,8 +134,10 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| `AppRegistry` | Reads the app configuration file: name, icon, kind (native command or URL), command line | REQ-016, REQ-018, LHU-021. Web apps are URL entries; the browser command and its flags live in `deploy/` |
-| `ProcessManager` | Starts an app as a child process, tracks it, stops it, reports its exit; restart policy per entry | REQ-016. Plain C++17 over POSIX process calls, unit-tested with a fake process |
+| `AppRegistry` | Reads the app configuration file (`deploy/hub.conf`): order, name, icon, kind (native command or URL), command line split without a shell, restart policy | REQ-016, REQ-018, LHU-021. Web apps are URL entries; the browser command and its flags live in `deploy/` |
+| `AppProcessManager`, `ProcessLauncher`, `PosixProcessLauncher` (`src/hub/core/`) | Starts one foreground app in its own process group with `posix_spawnp`, polls its exit with `waitpid(WNOHANG)`, stops it with SIGTERM then SIGKILL to the group, reports the cause, restarts on failure (3 in 60 s) | REQ-016. Plain C++17, no Qt; unit-tested over a fake launcher, integration-tested with real processes |
+| `PowerStatusReader`, `PowerStatusModel`, `ShutdownController` (`src/hub/viewmodels/`, LHU-025, DN-025) | The firmware flags (`vcgencmd get_throttled`, read asynchronously every 2 s and decoded by `decodeGetThrottled` in the service library) and the two-tap shutdown (`systemctl poweroff`) on the hub's status strip, beside the connection state read from `VehicleDataClient` | REQ-020. The reader lives in the hub, which shows the flags and owns shutdown; the D-Bus interface stays about the vehicle |
+| `HubViewModel`, `AppListModel`, `HubControlServer` (`src/hub/viewmodels/`) | What the QML binds to; a 100 ms timer drives the manager; a local socket takes `launch <id>`, `return` and `status` | REQ-016. Qt; the include and link-graph checks cover these targets too |
 | `AppHub` and QML (`src/hub/qml/`) | Full-screen icon grid sized in millimetres (D-024); status strip with connection state and power flags from `VehicleDataClient` and `PowerStatusProvider`; shutdown control (REQ-020) | Return-to-hub mechanism decided by the LHU-020 spike (OQ-29) |
 
 ## 5. The signal model
@@ -238,8 +242,6 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 
 | Item | Decided by |
 |---|---|
-| D-Bus interface names, signal payload layout, current-state query | DN-022 |
-| App registry file format; how the user returns to the hub from a fullscreen browser (OQ-29) | LHU-020 spike, then DN-021 |
 | Whether the system browser plays protected audio on this unit (OQ-27) | LHU-023, recorded as a fact either way |
 | Audio and OBD links sharing one Bluetooth radio (OQ-28) | LHU-024, measured |
 | Per-process memory budgets replacing the single 150 MB figure of REQ-014 | LHU-032 baseline (OQ-8) |

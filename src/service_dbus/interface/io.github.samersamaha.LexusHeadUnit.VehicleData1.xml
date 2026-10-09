@@ -1,0 +1,37 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!-- The vehicle-data service interface (DN-022), exported at
+     /io/github/samersamaha/LexusHeadUnit/VehicleData by the bus name
+     io.github.samersamaha.LexusHeadUnit. Enumerations travel as their numbers:
+     signalId 0..7 (vehicle speed, engine speed, coolant temperature, engine load, throttle
+     position, intake air temperature, control module voltage, fuel level); unit 0..4 (km/h,
+     rpm, degC, %, V); status 0..2 (NeverReceived, Valid, Stale); state 0..3 (Disconnected,
+     Connecting, Connected, Error); trigger 0..5 (StartRequested, HandshakeSucceeded,
+     HandshakeFailed, LinkLost, BackoffElapsed, StopRequested). The service never accepts a
+     request that reaches the vehicle: every method only reads its own mirror. -->
+<node>
+  <interface name="io.github.samersamaha.LexusHeadUnit.VehicleData1">
+    <method name="GetSamples">
+      <arg type="a(uduxu)" direction="out"/>
+    </method>
+    <method name="GetConnection">
+      <arg type="(ubuuux)" direction="out"/>
+    </method>
+    <method name="GetInterfaceVersion">
+      <arg type="u" direction="out"/>
+    </method>
+    <signal name="SampleChanged">
+      <arg name="signalId" type="u" direction="out"/>
+      <arg name="value" type="d" direction="out"/>
+      <arg name="unit" type="u" direction="out"/>
+      <arg name="timestampMilliseconds" type="x" direction="out"/>
+      <arg name="status" type="u" direction="out"/>
+    </signal>
+    <signal name="ConnectionChanged">
+      <arg name="from" type="u" direction="out"/>
+      <arg name="trigger" type="u" direction="out"/>
+      <arg name="to" type="u" direction="out"/>
+      <arg name="timestampMilliseconds" type="x" direction="out"/>
+    </signal>
+  </interface>
+</node>

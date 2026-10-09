@@ -1,13 +1,22 @@
 #include "source_factory.h"
 
+#include "lexus_head_unit/hardware/byte_transport.h"
+#include "lexus_head_unit/hardware/dbc_database.h"
 #include "lexus_head_unit/hardware/elm327_obd_source.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/hardware/file_descriptor_byte_transport.h"
+#include "lexus_head_unit/hardware/recording.h"
+#include "lexus_head_unit/hardware/replay_source.h"
+#include "lexus_head_unit/hardware/socket_can_dbc_source.h"
+#include "lexus_head_unit/hardware/socket_can_frame_reader.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
+#include "lexus_head_unit/service/signal_store.h"
 
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <memory>
@@ -15,6 +24,21 @@
 #include <utility>
 
 namespace lexus_head_unit::app {
+
+void applyStalenessConfiguration(const KeyValueConfiguration& configuration, SignalStore& store) {
+    const std::int64_t defaultTimeout =
+        configuration.integerValue("staleness.default_ms", defaultStalenessTimeoutMilliseconds);
+    for (const SignalId signalId : allSignalIds) {
+        std::string key = "staleness.";
+        for (const char character : definitionOf(signalId).name) {
+            const auto lowered =
+                static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+            key.push_back(character == ' ' ? '_' : lowered);
+        }
+        key += "_ms";
+        store.setStalenessTimeout(signalId, configuration.integerValue(key, defaultTimeout));
+    }
+}
 
 namespace {
 
@@ -58,8 +82,33 @@ BuiltSource buildSource(const KeyValueConfiguration& configuration,
             Elm327SourceConfiguration::fromConfiguration(configuration);
         auto transport =
             std::make_unique<FileDescriptorByteTransport>(elm327Configuration.devicePath);
-        built.source = std::make_unique<Elm327ObdSource>(*transport, clock, elm327Configuration);
+        ByteTransport* used = transport.get();
+        const std::string recordPath = configuration.stringValue("record.file", "");
+        if (!recordPath.empty()) {
+            built.recorder =
+                std::make_unique<RecordingByteTransport>(*transport, clock, recordPath);
+            used = built.recorder.get();
+        }
+        built.source = std::make_unique<Elm327ObdSource>(*used, clock, elm327Configuration);
         built.transport = std::move(transport);
+        return built;
+    }
+    if (built.kind == "replay") {
+        const ReplayConfiguration replayConfiguration =
+            ReplayConfiguration::fromConfiguration(configuration);
+        built.source = std::make_unique<ReplaySource>(
+            readRecording(replayConfiguration.filePath),
+            Elm327SourceConfiguration::fromConfiguration(configuration),
+            replayConfiguration.timing);
+        return built;
+    }
+    if (built.kind == "can") {
+        const CanSourceConfiguration canConfiguration =
+            CanSourceConfiguration::fromConfiguration(configuration);
+        auto reader = std::make_unique<SocketCanFrameReader>(canConfiguration.interfaceName);
+        built.source = std::make_unique<SocketCanDbcSource>(
+            *reader, DbcDatabase::loadFromFile(canConfiguration.dbcPath), clock, canConfiguration);
+        built.canReader = std::move(reader);
         return built;
     }
     built.kind = "fake";

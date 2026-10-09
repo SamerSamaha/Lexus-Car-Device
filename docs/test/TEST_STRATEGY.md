@@ -80,6 +80,21 @@ The same line, with the comment marker of the language, is used in Python and QM
 | Raspberry Pi 5 | Everything plus T3 and the measurements | T6 |
 | Car | T6 and the thermal and power log | — |
 
+### Test-only Python environment
+
+Some tests need Python packages that are not part of the product. They are installed only into a virtual environment, never system-wide and never on the Pi. `tools/requirements/test.txt` pins them; `tools/setup_test_venv.sh` creates the environment (default `~/.venvs/lexus-car-device`) and installs them; CMake finds its interpreter as `LEXUS_HEAD_UNIT_TEST_PYTHON`, and CI runs the same script before configuring. Debian 13's `python3` has no `ensurepip`, so the script makes the environment without pip and installs pip into it from PyPA's `get-pip.py`; no Debian package is added. A missing environment makes the test that needs it fail, never skip.
+
+| Package | Version | Used by | Approved |
+|---|---|---|---|
+| `cantools` (with its dependencies `bitstruct`, `python-can`, `textparser`, `argparse_addons`, `crccheck`) | 44.2.1 | `tools/dbc_oracle.py`, the independent oracle of the DBC decoder (REQ-005, LHU-027) | 2026-10-08, by the repository owner |
+
+### Manual procedures on the Pi
+
+| Procedure | Requirement | Results |
+|---|---|---|
+| `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` | REQ-018 | `docs/test/results/<date>_web_apps.md`, `docs/measurements/memory/` |
+| `docs/test/MANUAL_ON_CAR_PROCEDURE.md` (audio section) | REQ-019 | `docs/test/results/<date>_audio_session.md` with the summarised session log |
+
 ## 7. Deliberately not tested, and why
 
 - **Real CAN frames from the GS350.** The DBC describes an invented vehicle and is labelled so. Decoding the real car's broadcast frames is not planned before v1.0.0.
@@ -93,4 +108,4 @@ The same line, with the comment marker of the language, is used in Python and QM
 - File names end in `_test.cpp`; the test suite name is the class under test; the test name says the behaviour, in words (`MarksSignalStaleAfterTimeout`), not the method name.
 - Time is injected through the `Clock` interface; no test sleeps to wait for a timeout.
 - `tests/.clang-tidy` relaxes exactly two checks for test code (magic numbers, non-private members in fixtures). Everything else applies.
-- A test that needs the Pi carries the ctest label `vcan` or `pi` and is excluded in CI by label.
+- A test that needs the Pi carries the ctest label `vcan` or `pi`. Where its hardware is missing (WSL, CI) it skips with the ticket in the reason, for example "LHU-028: vcan0 is not present", so the skip is visible in every run and never silent.

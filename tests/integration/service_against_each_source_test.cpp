@@ -1,5 +1,6 @@
 // Verifies: REQ-002
 
+#include "can_source_harness.h"
 #include "elm327_source_harness.h"
 #include "fake_source_harness.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
@@ -29,6 +30,7 @@ using lexus_head_unit::SignalStoreFeeder;
 using lexus_head_unit::StalenessMonitor;
 using lexus_head_unit::Unit;
 using lexus_head_unit::VehicleDataSource;
+using lexus_head_unit::testing::CanSourceHarness;
 using lexus_head_unit::testing::Elm327SourceHarness;
 using lexus_head_unit::testing::FakeSourceHarness;
 using lexus_head_unit::testing::SourceHarness;
@@ -131,6 +133,9 @@ INSTANTIATE_TEST_SUITE_P(EverySource,
                          ServiceAgainstEachSourceTest,
                          ::testing::Values(HarnessFactory([]() {
                                                return std::make_unique<FakeSourceHarness>();
+                                           }),
+                                           HarnessFactory([]() {
+                                               return std::make_unique<CanSourceHarness>();
                                            }),
                                            HarnessFactory([]() {
                                                return std::make_unique<Elm327SourceHarness>();

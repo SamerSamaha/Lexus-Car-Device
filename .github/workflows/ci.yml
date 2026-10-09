@@ -31,7 +31,7 @@ jobs:
         run: |
           apt-get update
           apt-get install --yes --no-install-recommends \
-            build-essential ca-certificates cmake git ninja-build \
+            build-essential ca-certificates cmake dbus-daemon git ninja-build \
             libgmock-dev libgtest-dev python3 \
             qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
             qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
@@ -40,6 +40,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - name: Test-only Python environment (cantools oracle, REQ-005)
+        run: sh tools/setup_test_venv.sh
 
       - name: Print tool versions
         run: |
@@ -55,6 +58,9 @@ jobs:
 
       - name: The HMI reaches past the view models nowhere (REQ-011)
         run: python3 tools/check_hmi_includes.py
+
+      - name: The CAN code has no transmit call (REQ-001)
+        run: python3 tools/check_can_read_only.py
 
       - name: Build (debug with sanitizers)
         run: cmake --build --preset sanitizers

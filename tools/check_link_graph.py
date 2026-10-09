@@ -3,9 +3,11 @@
 
 Input: the graphviz file CMake writes with `cmake --preset <name> --graphviz=<file>`. Nodes are
 targets; edges are link dependencies. A concrete source is any target whose name ends in
-"_source". The guarded targets are the service library and every target whose name starts with
-"lexus_head_unit_hmi"; the application, the test executables and the service process are free to
-link sources, because they are the wiring (REQ-002).
+"_source". The guarded targets are the service library, the D-Bus service and client library,
+and every target whose name starts with "lexus_head_unit_hmi" or "lexus_head_unit_hub" (the hub
+never talks to the vehicle). The applications, the vehicle-data service executable, the source
+wiring library and the test executables are free to link sources, because they are the wiring
+(REQ-002).
 
 Exit 0 clean, 1 finding, 2 could not run.
 """
@@ -22,8 +24,8 @@ EXIT_CODE_NO_FINDING = 0
 EXIT_CODE_FINDING = 1
 EXIT_CODE_CHECK_COULD_NOT_RUN = 2
 
-GUARDED_EXACT_TARGETS = ("lexus_head_unit_service",)
-GUARDED_PREFIXES = ("lexus_head_unit_hmi",)
+GUARDED_EXACT_TARGETS = ("lexus_head_unit_service", "lexus_head_unit_service_dbus")
+GUARDED_PREFIXES = ("lexus_head_unit_hmi", "lexus_head_unit_hub")
 CONCRETE_SOURCE_SUFFIX = "_source"
 
 NODE_PATTERN = re.compile(r'^\s*"(?P<node>[^"]+)"\s*\[\s*label\s*=\s*"(?P<label>[^"]+)"')

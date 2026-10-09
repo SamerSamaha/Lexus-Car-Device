@@ -6,7 +6,7 @@ It is a portfolio project: the point is to show, with evidence, how automotive i
 
 ## Status
 
-**v0.1.0 Core** is released (`docs/release/RELEASE_NOTES_v0.1.0.md`): the service layer (signal store, staleness, connection state machine), the ELM327 path (allowlist, protocol, serial transport, source with discovery, loss detection and backoff), an ELM327 emulator with fault injection, the home and vehicle-data screens with their view models, and a thermal and power logger exist and are tested at the desk, including scenario tests that kill and restart the emulator. It is a desk release: the hardware is assembled and running, but the car has not been connected yet and no measurement is claimed. Work now continues toward **v0.2.0 Platform**. Milestones: v0.1.0 Core (vehicle-data path end to end), v0.2.0 Platform (hub, D-Bus service, web apps, audio, power status), v1.0.0 Head unit (CAN path, record and replay, diagnostics, analytics, measurements). Progress is on the [GitHub project board](https://github.com/users/SamerSamaha/projects/1); the plan is `docs/planning/KICKOFF_PLAN.md`.
+**v0.2.0 Platform** is released (`docs/release/RELEASE_NOTES_v0.2.0.md`): the app hub launching apps as processes, the vehicle-data service publishing over D-Bus to any app, power flags and a clean shutdown control, web apps in the system browser, and the tooling for audio to the car stereo; with the DBC decoder, the SocketCAN source and record and replay merged ahead of v1.0.0. Before it, **v0.1.0 Core** (`docs/release/RELEASE_NOTES_v0.1.0.md`): the service layer (signal store, staleness, connection state machine), the ELM327 path (allowlist, protocol, serial transport, source with discovery, loss detection and backoff), an ELM327 emulator with fault injection, the home and vehicle-data screens with their view models, and a thermal and power logger exist and are tested at the desk, including scenario tests that kill and restart the emulator. It is a desk release: the hardware is assembled and running, but the car has not been connected yet and no measurement is claimed. Both are desk releases; the steps that need the Pi or the car are in `docs/release/PI_BRINGUP_CHECKLIST.md`. Work continues toward **v1.0.0 Head unit**. Milestones: v0.1.0 Core (vehicle-data path end to end), v0.2.0 Platform (hub, D-Bus service, web apps, audio, power status), v1.0.0 Head unit (CAN path, record and replay, diagnostics, analytics, measurements). Progress is on the [GitHub project board](https://github.com/users/SamerSamaha/projects/1); the plan is `docs/planning/KICKOFF_PLAN.md`.
 
 ## Architecture
 
@@ -59,10 +59,20 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 # set elm327.device = /tmp/obd in deploy/head_unit.conf, then:
 ~/build/lexus-car-device/debug/src/app/lexus-head-unit --config deploy/head_unit.conf
 # or without the emulator, with moving demo values:
-~/build/lexus-head-unit/debug/src/app/lexus-head-unit --source fake
+~/build/lexus-car-device/debug/src/app/lexus-head-unit --source fake
+# or the CAN path on a Pi with vcan0 (sudo deploy/setup_vcan.sh; python3 tools/can_traffic_generator.py):
+~/build/lexus-car-device/debug/src/app/lexus-head-unit --source can
 ```
 
-Other presets: `sanitizers` (AddressSanitizer and UndefinedBehaviorSanitizer; what CI runs), `release`, and `static-analysis` (clang++ with clang-tidy, any warning fails the build). Formatting is `clang-format --dry-run --Werror`. Packages on Debian 13: `build-essential cmake ninja-build clang clang-tidy clang-format libgtest-dev libgmock-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-window qml6-module-qttest`.
+Run the platform as on the Pi: the vehicle-data service owns the source and publishes on the session bus, the hub launches the vehicle-data app, which reads the service (no hardware needed):
+
+```sh
+~/build/lexus-car-device/debug/src/service_dbus/lexus-vehicle-data-service --source fake &
+PATH=~/build/lexus-car-device/debug/src/app:$PATH ~/build/lexus-car-device/debug/src/hub/app/lexus-hub --registry deploy/hub.conf &
+~/build/lexus-car-device/debug/src/hub/app/lexus-hub --send status    # or: --send "launch vehicle_data", --send return
+```
+
+Other presets: `sanitizers` (AddressSanitizer and UndefinedBehaviorSanitizer; what CI runs), `release`, and `static-analysis` (clang++ with clang-tidy, any warning fails the build). Formatting is `clang-format --dry-run --Werror`. The DBC decoder's oracle test needs `cantools` in a test-only virtual environment: run `tools/setup_test_venv.sh` once (nothing is installed system-wide). Packages on Debian 13: `build-essential cmake ninja-build clang clang-tidy clang-format libgtest-dev libgmock-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-window qml6-module-qttest`.
 
 CI runs three required checks on every pull request: **Build and unit tests**, **Static analysis** and **Privacy check** (no vehicle identification number or Bluetooth address in the tree). Nothing merges without them.
 
@@ -86,7 +96,7 @@ Work is tracked as `LHU-nnn` tickets on the project board, grouped by milestone.
 
 ## Privacy
 
-The repository is public. The vehicle identification number, Bluetooth addresses and raw on-car recordings are never committed; CI enforces the first two, and raw recordings stay in the ignored `local_recordings/` folder until scrubbed.
+The repository is public. The vehicle identification number, Bluetooth addresses and raw on-car recordings are never committed; CI enforces the first two, and raw recordings stay in the ignored `local_recordings/` folder until scrubbed. A drive is recorded with `--record local_recordings/<name>.rec`, replayed with `--source replay`, and scrubbed with `tools/scrub_recording.py`, which removes the VIN in plain text and in the hexadecimal form of the Mode 09 reply and writes nothing if any remains.
 
 ## License
 
