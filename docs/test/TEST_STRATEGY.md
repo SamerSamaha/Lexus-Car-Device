@@ -17,7 +17,7 @@ How each kind of claim in this project is verified, where each test runs, and wh
 | T1 Unit | Every non-UI class in isolation: service layer, decoders, protocol, allowlist, state machine. Built with `-Wall -Wextra -Werror` and, in CI, with AddressSanitizer and UndefinedBehaviorSanitizer | GoogleTest and GoogleMock | WSL, CI | LHU-005 (one smoke test) |
 | T2 Integration | Service layer plus real source code against a fake transport, a fake CAN frame reader, and the ELM327 emulator over a pseudo-terminal. One suite, `service_against_each_source_test.cpp`, parameterised by a per-source harness | GoogleTest; emulator in Python | WSL, CI | LHU-008 (fake harness); LHU-012 (ELM327 harness) |
 | T3 vcan | A Python traffic generator writes frames to `vcan0`; the application decodes them live. ctest label `vcan` | GoogleTest plus Python | Pi only; CI if later proven | LHU-028 (v1.0.0) |
-| T4 Scenarios | Scripted fault injection through the emulator: see section 3 | Python driving the emulator, GoogleTest asserting | WSL, CI; some Pi only | LHU-011, LHU-012 (v0.1.0) |
+| T4 Scenarios | Scripted fault injection through the emulator (`tools/elm327_emulator/`, control socket): see section 3 | GoogleTest drives the emulator through its control socket and asserts | WSL, CI; some Pi only | LHU-011 (emulator), LHU-012 (scenarios) |
 | T5 HMI | View models and QML screens with a fake view model on the offscreen platform | Qt Quick Test | WSL, CI | LHU-013 |
 | T6 On-car manual | A written procedure, parked first, results recorded per run | `docs/test/MANUAL_ON_CAR_PROCEDURE.md`, results in `docs/test/results/` | Car | LHU-017 (first parked session), LHU-034 (procedure) |
 
@@ -39,11 +39,11 @@ Each scenario is a script that drives the emulator and a test that asserts what 
 
 | Scenario | How it is injected | Expected behaviour | Requirement |
 |---|---|---|---|
-| Adapter unplugged | Emulator closes the pseudo-terminal | Error state within 2 s; reconnect attempts with backoff; all signals Stale after their timeout | REQ-006, REQ-007, REQ-008 |
-| Bluetooth drop mid-drive | Emulator stops answering, then returns end-of-file | Same as above; no crash; recovery when the emulator returns | REQ-008, REQ-010 |
-| Stale data | Link up; one PID stops being answered | Only that signal goes Stale; the others stay Valid | REQ-006 |
-| Corrupt frames and text | Emulator garbles bytes; wrong CAN frame length | No Valid sample from the bad input; error counter increments; no crash | REQ-010 |
-| Ignition off and on | Emulator answers `UNABLE TO CONNECT` then `NO DATA`, then recovers | Error or Stale as appropriate, then Valid again without restart | REQ-007, REQ-008, REQ-010 |
+| Adapter unplugged | Emulator exits (`exit` on the control socket, or the process is killed): the device reads end-of-file | Error state within 2 s; reconnect attempts with backoff; all signals Stale after their timeout | REQ-006, REQ-007, REQ-008 |
+| Bluetooth drop mid-drive | Emulator stops answering (`silence`), then exits | Same as above; no crash; recovery when the emulator returns | REQ-008, REQ-010 |
+| Stale data | Link up; one PID stops being answered (`stale PID`) | Only that signal goes Stale; the others stay Valid | REQ-006 |
+| Corrupt frames and text | Emulator garbles bytes (`corrupt N`); wrong CAN frame length | No Valid sample from the bad input; error counter increments; no crash | REQ-010 |
+| Ignition off and on | Emulator answers `UNABLE TO CONNECT` (`ignition off`), then recovers (`ignition on`) | Error or Stale as appropriate, then Valid again without restart | REQ-007, REQ-008, REQ-010 |
 | Cold boot | Pi powered on from off, 10 or more times | Time to first home-screen frame recorded for every boot | REQ-013 |
 | Low power | Pi: `get_throttled` flags surfaced; desk: fake provider sets the flags | Flags shown on the hub status strip and the diagnostics screen within 5 s; logged | REQ-020 |
 
