@@ -5,7 +5,7 @@
 | Ticket | LHU-039 |
 | Requirements | REQ-012, REQ-006 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Form | Light (one page: problem, public interface, failure cases, test plan) |
 | Draft written | 2026-10-08, about 10 minutes |
 | Design review | after merge, by the repository owner (D-049) |
@@ -51,4 +51,4 @@ Sizes on the 110.4 x 62.1 mm panel: the status strip grows to 10 mm so that it c
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #56 (b115849). No deviations. The `SignalTile` bottom row was changed from a `Row` with anchored children to plain anchors (DN-013 review finding) in the same PR. Review finding carried: the integer tile sizes leave up to 3 px unused at the grid's edge. Status: Implemented.

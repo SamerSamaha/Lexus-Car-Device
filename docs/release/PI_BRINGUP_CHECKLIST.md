@@ -12,7 +12,7 @@ Rules:
 
 | Area | Ticket | State |
 |---|---|---|
-| Thermal and power log in every Pi session | LHU-015, LHU-016 | Script not yet written; two raw CSVs from 2026-10-05 exist on the Pi under `~/measurements/` |
+| Thermal and power log in every Pi session | LHU-015, LHU-016 | Script written and unit-tested (LHU-015); no session logged with it yet; two raw CSVs from 2026-10-05 exist on the Pi under `~/measurements/` |
 | Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | Not yet done |
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
@@ -44,7 +44,19 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 
 ### 3.1 Thermal and power log (every session)
 
-Added by LHU-015. Until the script exists, the two raw CSVs of 2026-10-05 are the only data (idle 51 °C, 59.3 °C peak during the package upgrade, `get_throttled` 0x0, input 5.245 V; measured, from `~/measurements/` on the Pi).
+From a fresh boot, before the workload, in a second terminal:
+
+```sh
+cd ~/Lexus-Car-Device
+python3 tools/measure/log_thermal_power.py --label <session> --power-source "5V3A charger" \
+    --ambient-celsius <room C> --duration-seconds 1800
+# expected first line after the run: session <session>: 360 samples, 0 command errors
+# then temperature min/median/max, flags seen: none, input volts min, verdict: pass
+```
+
+Labels: `desk_idle_30min`, `desk_clean_build` (with 3.3), `desk_app_30min` (with 3.4), `car_parked_30min` (with 3.2, power source `power bank A1383`), one per drive (LHU-034). Copy the CSV and its `.summary.txt` into `docs/measurements/thermal_power/` unchanged and add the row to that folder's README (LHU-016). A `warn` or `fail` verdict becomes a bug issue with the file attached (D-013).
+
+The two raw CSVs of 2026-10-05 (earlier ad-hoc logger: idle 51 °C, 59.3 °C peak during the package upgrade, `get_throttled` 0x0, input 5.245 V; measured, on the Pi under `~/measurements/`) are copied into the folder with the first LHU-016 session.
 
 ### 3.2 Adapter pairing and first parked session (LHU-017)
 

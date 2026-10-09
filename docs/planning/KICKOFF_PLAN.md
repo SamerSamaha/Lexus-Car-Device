@@ -314,7 +314,7 @@ Measurements: one script per metric in `tools/measure/`, raw CSV committed, samp
 
 ## Thermal and power logging (LHU-015, LHU-016, D-013, thresholds approved by D-025)
 
-**Script:** `tools/measure/log_thermal_power.py`, Python standard library only, runs on the Pi.
+**Script:** `tools/measure/log_thermal_power.py` (LHU-015, DN-015), Python standard library only, runs on the Pi; parsing, summary and verdict are unit-tested at the desk.
 
 **Each row:** wall-clock timestamp; seconds since boot; `vcgencmd measure_temp` in °C; `vcgencmd get_throttled` raw hex; eight decoded columns for bits 0, 1, 2, 3, 16, 17, 18, 19; Arm clock from `vcgencmd measure_clock arm`; input voltage from `vcgencmd pmic_read_adc EXT5V_V` (verified to work on this unit). Session label, power source and ambient temperature are given on the command line.
 
@@ -382,8 +382,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #53) | fixture |
 | LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | 3.5 (estimated) | **Done 2026-10-08** (PR #54) | 002, 004, 008 |
 | LHU-013 | View models, worker loop, application, QML home screen sized in millimetres, HMI tests, REQ-011 CI check | 3 | 1.75 full | 4.75 | 3.0 (estimated) | **Done 2026-10-08** (PR #55) | 006, 007, 011, 012 |
-| LHU-039 | Vehicle-data screen: 4 x 2 signal grid, navigation between the screens | 4 | 0.75 light | 4.75 | | **Done** (DN-039, this PR) | 006, 012 |
-| LHU-015 | Thermal and power logger script, with a unit test of the flag decoding | 0.75 | 0.75 light | 1.5 | | Backlog | — |
+| LHU-039 | Vehicle-data screen: 4 x 2 signal grid, navigation between the screens | 4 | 0.75 light | 4.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #56) | 006, 012 |
+| LHU-015 | Thermal and power logger script, with unit tests of parsing, summary and verdict | 0.75 | 0.75 light | 1.5 | | **Done** (DN-015, this PR) | — |
 | LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Backlog | — |
 | LHU-017 | vLinker MC+ pairing and first parked car session; PID support and request rate recorded | 2 | exempt | 2 | | Backlog | feeds 004 |
 | LHU-018 | Build-strategy measurement on the 2GB Pi | 1 | exempt | 1 | | Backlog | — |
