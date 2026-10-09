@@ -6,6 +6,7 @@
 #include "lexus_head_unit/hub/hub_view_model.h"
 #include "lexus_head_unit/hub/posix_process_launcher.h"
 #include "lexus_head_unit/hub/power_status_model.h"
+#include "lexus_head_unit/process_support/first_frame_marker.h"
 #include "lexus_head_unit/process_support/quit_on_signals.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
@@ -19,6 +20,7 @@
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickWindow>
 #include <QString>
 #include <QStringList>
 #include <QWindow>
@@ -118,7 +120,12 @@ int runHub(int argumentCount, char** argumentValues) {
                                               QStringLiteral("show the window full screen"));
     parser.addOption(registryOption);
     parser.addOption(socket);
+    const QCommandLineOption firstFrameOption(
+        QStringLiteral("first-frame-mark"),
+        QStringLiteral("write the time since boot of the first frame to this file (REQ-013)"),
+        QStringLiteral("path"));
     parser.addOption(fullscreenOption);
+    parser.addOption(firstFrameOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -172,6 +179,9 @@ int runHub(int argumentCount, char** argumentValues) {
         commandFrom(configuration, "hub.shutdown_command", "systemctl poweroff"),
         lexus_head_unit::ShutdownController::detachedProcessExecutor());
 
+    // Declared before the engine so that it outlives the window whose render thread uses it.
+    lexus_head_unit::FirstFrameMarker firstFrame(parser.value(firstFrameOption).toStdString());
+
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("hubContext"), &hub);
     engine.rootContext()->setContextProperty(QStringLiteral("connectionContext"), &connection);
@@ -195,6 +205,19 @@ int runHub(int argumentCount, char** argumentValues) {
     controlServer.setWindowVisibilityProvider([window]() {
         return window != nullptr && window->isVisible();
     });
+    // REQ-013: the first frame is marked from the render thread, the only thread that touches
+    // the marker.
+    auto* quickWindow = qobject_cast<QQuickWindow*>(window);
+    if (parser.isSet(firstFrameOption) && quickWindow != nullptr) {
+        QObject::connect(
+            quickWindow,
+            &QQuickWindow::frameSwapped,
+            quickWindow,
+            [&firstFrame]() {
+                firstFrame.markFramePresented();
+            },
+            Qt::DirectConnection);
+    }
 
     hub.startPolling(pollIntervalMilliseconds);
     power.startPolling(static_cast<int>(

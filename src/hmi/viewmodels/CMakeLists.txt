@@ -1,10 +1,12 @@
 add_library(lexus_head_unit_hmi_viewmodels STATIC
     include/lexus_head_unit/hmi/connection_status_model.h
+    include/lexus_head_unit/hmi/latency_probe.h
     include/lexus_head_unit/hmi/signal_tile_model.h
     include/lexus_head_unit/hmi/value_types.h
     include/lexus_head_unit/hmi/vehicle_data_view_model.h
     include/lexus_head_unit/hmi/worker_bridge.h
     source/connection_status_model.cpp
+    source/latency_probe.cpp
     source/signal_tile_model.cpp
     source/vehicle_data_view_model.cpp
     source/worker_bridge.cpp
