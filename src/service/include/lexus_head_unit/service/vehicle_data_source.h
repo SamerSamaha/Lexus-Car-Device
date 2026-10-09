@@ -43,6 +43,8 @@ public:
     virtual void stop() = 0;
     [[nodiscard]] virtual ConnectionState connectionState() const = 0;
     [[nodiscard]] virtual SourceCounters counters() const = 0;
+    // Milliseconds until the next runOnce() can do useful work; 0 means call again at once.
+    [[nodiscard]] virtual std::int64_t idleHintMilliseconds() const;
 };
 
 } // namespace lexus_head_unit

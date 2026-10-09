@@ -379,8 +379,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-008 | `VehicleDataSource` interface, `SignalStoreFeeder`, FakeSource, integration suite, link-graph CI check | 2 | 1.75 full | 3.75 | 2.0 (estimated) | **Done 2026-10-08** (PR #50) | 002 |
 | LHU-009 | OBD PID decoder and supported-PID bitmaps | 3 | 0.75 light | 3.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #51) | 004, 010 |
 | LHU-010 | ELM327 response parser, command allowlist, byte transport interface and fake | 5 | 1.75 full | 6.75 | 2.5 (estimated) | **Done 2026-10-08** (PR #52) | 001, 010 |
-| LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | | **Done** (DN-011, this PR) | fixture |
-| LHU-012 | `Elm327ObdSource`: transport, polling loop, reconnect with backoff, integration tests against the emulator | 4 | 1.75 full | 5.75 | | Backlog | 002, 004, 008 |
+| LHU-011 | ELM327 emulator with fault injection (Python) | 1 | 0.75 light | 1.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #53) | fixture |
+| LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | | **Done** (DN-012, this PR) | 002, 004, 008 |
 | LHU-013 | QML home screen bound to a view model, live from the emulator, sized in millimetres | 3 | 1.75 full | 4.75 | | Backlog | 006, 007, 011, 012 |
 | LHU-039 | Vehicle-data screen: 4 x 2 signal grid | 4 | 0.75 light | 4.75 | | Backlog (new in revision 6) | 006, 012 |
 | LHU-015 | Thermal and power logger script, with a unit test of the flag decoding | 0.75 | 0.75 light | 1.5 | | Backlog | — |

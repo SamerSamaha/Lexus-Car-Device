@@ -20,6 +20,11 @@ void FakeByteTransport::scriptReply(const std::string& command, const std::strin
     m_repliesByCommand[command].push_back(replyText);
 }
 
+void FakeByteTransport::replaceReply(const std::string& command, const std::string& replyText) {
+    m_repliesByCommand[command].clear();
+    m_repliesByCommand[command].push_back(replyText);
+}
+
 void FakeByteTransport::queueBytes(const std::string& text) {
     for (const char character : text) {
         m_pendingBytes.push_back(static_cast<std::uint8_t>(character));

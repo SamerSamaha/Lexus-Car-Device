@@ -15,6 +15,8 @@ class FakeByteTransport final : public ByteTransport {
 public:
     // The reply text is delivered as is; the adapter's "\r\r>" framing is not added.
     void scriptReply(const std::string& command, const std::string& replyText);
+    // Drops every reply scripted for the command and scripts this one instead.
+    void replaceReply(const std::string& command, const std::string& replyText);
     void queueBytes(const std::string& text);
     void setChunkSize(std::size_t chunkSize);
     void setOpenable(bool openable);
