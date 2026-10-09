@@ -5,7 +5,7 @@
 | Ticket | LHU-015 |
 | Requirements | none (measurement tool, D-013; thresholds D-025) |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Form | Light (one page: problem, public interface, failure cases, test plan) |
 | Draft written | 2026-10-08, about 10 minutes |
 | Design review | after merge, by the repository owner (D-049) |
@@ -54,4 +54,4 @@ Real sessions are LHU-016 (checklist step 3.1).
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #57 (a1385a9). No deviations. The script has not yet run on the Pi; its first real session is LHU-016 (checklist step 3.1), and the Pi's clock must be checked with `timedatectl` before a session because the timestamps come from it. Status: Implemented.
