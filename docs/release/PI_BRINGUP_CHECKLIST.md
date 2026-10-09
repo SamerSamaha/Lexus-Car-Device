@@ -20,7 +20,7 @@ Rules:
 | Vehicle-data service and hub as systemd user units, the app reading the service over D-Bus | LHU-022 | Built and tested at the desk on a private bus (LHU-022); step 3.6 not yet done |
 | Web apps, protected audio, browser memory | LHU-023 | Not yet done |
 | Bluetooth audio to the car stereo | LHU-024 | Not yet done |
-| Power flags on screen, clean shutdown cycles | LHU-025 | Not yet done |
+| Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
 | vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Not yet done |
 | On-car procedure and drives | LHU-034 | Not yet done |
@@ -151,6 +151,16 @@ python3 tools/can_traffic_generator.py --interface vcan0 --rate-hz 50 --duration
 ```
 
 Record in `docs/test/results/<date>_vcan_on_pi.md`: the ctest summary; whether the vehicle-data screen shows the generator's moving values and Connected; whether stopping the generator turns the strip to Error within about 2 s and restarting it reconnects (backoff 1, 2, 4, 8, 10 s); `ip -s link show vcan0` packet counts before and after.
+
+Results: not yet measured.
+
+### 3.8 Power flags and clean shutdown (LHU-025)
+
+With the hub running (3.5 or 3.6):
+
+1. Run `vcgencmd get_throttled` in a terminal and compare with the strip: "Power OK" for `throttled=0x0`; any other value names the current flags in red, and an amber dot means a flag was set since boot.
+2. On the power bank under load (or during the clean build of 3.3), record any flag that appears and the time between `vcgencmd` showing it and the strip showing it (REQ-020: 5 s or less).
+3. Ten shutdown cycles: tap the power button twice; wait for the Pi to power off; power on; after boot run `journalctl -b -1 -p err --no-pager | grep -iE "ext4|fsck|mmc"` and `dmesg | grep -iE "ext4-fs error|fsck"`. Record each cycle (date, time to power-off, the two outputs) in `docs/test/results/<date>_shutdown_cycles.md`. Pass: 0 file-system errors over the 10 cycles. `systemctl poweroff` from the desktop user needs no password on the desktop image (polkit allows the active session); if it asks, record that and set `hub.shutdown_command` accordingly.
 
 Results: not yet measured.
 

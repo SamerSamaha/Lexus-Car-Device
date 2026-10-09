@@ -70,3 +70,4 @@ In this order:
 | [DN-027](DN-027-dbc-decoder.md) DBC decoder with an independent oracle | LHU-027 | Implemented |
 | [DN-028](DN-028-socketcan-source.md) SocketCAN source (light) | LHU-028 | Implemented |
 | [DN-029](DN-029-record-and-replay.md) Record and replay with vehicle-identification scrub | LHU-029 | Implemented |
+| [DN-025](DN-025-power-status-and-shutdown.md) Power status and clean shutdown (light) | LHU-025 | Implemented |
