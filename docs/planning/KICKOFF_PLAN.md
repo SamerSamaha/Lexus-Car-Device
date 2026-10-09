@@ -418,7 +418,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-029 | Record and replay with vehicle-identification scrub. **Done 2026-10-09** (DN-029), 3.0 h actual (estimated) | 4 | 1.75 full | 5.75 | 015 |
 | LHU-030 | Diagnostics screen: trouble codes and vehicle information | 5 | 1.75 full | 6.75 | 021 |
 | LHU-031 | Trip analytics as derived signals | 7 | 1.75 full | 8.75 | 022 |
-| LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass | 6 | exempt | 6 | 009, 013, 014 |
+| LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass. **Instruments done 2026-10-09** (latency probe, first-frame marker, three scripts); the runs, the target re-set and the optimisation pass need the Pi; 2.0 h actual (estimated) | 6 | exempt | 6 | 009, 013, 014 |
 | LHU-033 | arm64 release build in CI | 2 | exempt | 2 | — |
 | LHU-034 | Manual on-car test procedure and first drives; mounting decided (OQ-14) | 3 | exempt | 3 | — |
 | LHU-035 | Release v1.0.0: documentation, demo video, license (OQ-25) | 4 | exempt | 4 | — |

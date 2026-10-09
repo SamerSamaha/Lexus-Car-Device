@@ -1,3 +1,4 @@
+#include "lexus_head_unit/hmi/latency_probe.h"
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 #include "lexus_head_unit/hmi/worker_bridge.h"
 #include "lexus_head_unit/service/clock.h"
@@ -18,6 +19,7 @@
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickWindow>
 #include <QString>
 #include <QWindow>
 
@@ -93,6 +95,10 @@ public:
         m_loop.start();
     }
 
+    [[nodiscard]] WorkerBridge& bridge() {
+        return m_bridge;
+    }
+
 private:
     SteadyClock m_clock;
     SignalStore m_store;
@@ -156,7 +162,12 @@ int main(int argumentCount, char** argumentValues) {
     parser.addOption(sourceOption);
     parser.addOption(recordOption);
     parser.addOption(busAddressOption);
+    const QCommandLineOption latencyLogOption(
+        QStringLiteral("latency-log"),
+        QStringLiteral("write sample-to-screen latency rows to this CSV (REQ-009, LHU-032)"),
+        QStringLiteral("path"));
     parser.addOption(fullscreenOption);
+    parser.addOption(latencyLogOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -179,6 +190,11 @@ int main(int argumentCount, char** argumentValues) {
         pipeline = std::make_unique<InProcessPipeline>(configuration, sourceKind, viewModel);
     }
 
+    // Declared before the engine so that they outlive its window: the render thread may swap a
+    // last frame while the engine is being destroyed.
+    const SteadyClock latencyClock;
+    std::unique_ptr<lexus_head_unit::LatencyProbe> latencyProbe;
+
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("vehicleDataContext"), &viewModel);
     QObject::connect(
@@ -195,6 +211,40 @@ int main(int argumentCount, char** argumentValues) {
         if (window != nullptr) {
             window->setVisibility(QWindow::FullScreen);
         }
+    }
+
+    // REQ-009 instrumentation: each sample's arrival on the UI thread, then the first frame
+    // swapped after it, timed on the render thread.
+    auto* window = engine.rootObjects().isEmpty()
+                       ? nullptr
+                       : qobject_cast<QQuickWindow*>(engine.rootObjects().first());
+    if (parser.isSet(latencyLogOption) && window != nullptr) {
+        latencyProbe = std::make_unique<lexus_head_unit::LatencyProbe>(
+            [&latencyClock]() {
+                return latencyClock.nowMilliseconds();
+            },
+            parser.value(latencyLogOption).toStdString());
+        if (client) {
+            QObject::connect(client.get(),
+                             &VehicleDataClient::sampleArrived,
+                             latencyProbe.get(),
+                             &lexus_head_unit::LatencyProbe::onSample);
+        } else {
+            QObject::connect(&pipeline->bridge(),
+                             &WorkerBridge::sampleArrived,
+                             latencyProbe.get(),
+                             &lexus_head_unit::LatencyProbe::onSample,
+                             Qt::QueuedConnection);
+        }
+        lexus_head_unit::LatencyProbe* probe = latencyProbe.get();
+        QObject::connect(
+            window,
+            &QQuickWindow::frameSwapped,
+            probe,
+            [probe]() {
+                probe->markFramePresented();
+            },
+            Qt::DirectConnection);
     }
 
     if (pipeline) {

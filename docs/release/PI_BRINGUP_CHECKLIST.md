@@ -22,7 +22,7 @@ Rules:
 | Bluetooth audio to the car stereo | LHU-024 | Output script, session log and summariser ready (LHU-024); the audio section of `docs/test/MANUAL_ON_CAR_PROCEDURE.md` not yet run |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
 | vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
-| Boot time, latency, memory per process | LHU-032 | Not yet done |
+| Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
 | On-car procedure and drives | LHU-034 | Not yet done |
 
 ## 2. Assumptions to verify on hardware
@@ -162,6 +162,17 @@ With the hub running (3.5 or 3.6):
 1. Run `vcgencmd get_throttled` in a terminal and compare with the strip: "Power OK" for `throttled=0x0`; any other value names the current flags in red, and an amber dot means a flag was set since boot.
 2. On the power bank under load (or during the clean build of 3.3), record any flag that appears and the time between `vcgencmd` showing it and the strip showing it (REQ-020: 5 s or less).
 3. Ten shutdown cycles: tap the power button twice; wait for the Pi to power off; power on; after boot run `journalctl -b -1 -p err --no-pager | grep -iE "ext4|fsck|mmc"` and `dmesg | grep -iE "ext4-fs error|fsck"`. Record each cycle (date, time to power-off, the two outputs) in `docs/test/results/<date>_shutdown_cycles.md`. Pass: 0 file-system errors over the 10 cycles. `systemctl poweroff` from the desktop user needs no password on the desktop image (polkit allows the active session); if it asks, record that and set `hub.shutdown_command` accordingly.
+
+Results: not yet measured.
+
+### 3.9 Whole-system measurements (LHU-032)
+
+With the service and the hub as user units (3.6) and the thermal log running (3.1):
+
+1. **Boot (REQ-013).** Add `--first-frame-mark /run/user/1000/lexus-first-frame.txt` to the hub unit's `ExecStart`. Then 10 cold boots (power removed for 10 s each time); after each, `python3 tools/measure/measure_boot_time.py record --mark /run/user/1000/lexus-first-frame.txt`. Separately, time power-on to the first kernel message once with a video of the screen and the power switch: the mark starts at the kernel, so firmware and bootloader time is reported beside it. Finally `measure_boot_time.py summarise`.
+2. **Latency (REQ-009).** Start the vehicle-data app from a terminal with `--source dbus --latency-log docs/measurements/latency/<date>_pi.csv` (the service on the adapter or the emulator, recorded which), run until 1,000 or more rows, then `python3 tools/measure/measure_latency.py <file>`. The adapter's round trip is reported apart from the step 3.2 request-rate measurement.
+3. **Memory (REQ-014).** With the hub, the vehicle-data app and a browser app running: `python3 tools/measure/measure_memory.py --process service=lexus-vehicle-da --process hub=lexus-hub --process app=lexus-head-unit --process browser=chromium --label system_30min`. The kernel cuts command names to 15 characters, hence `lexus-vehicle-da`.
+4. From the three baselines, re-set the provisional targets of REQ-013 and REQ-014 per process (OQ-8), then make one optimisation pass from a fixed list (for example: the QML cache compiler, fewer QML imports at start, the browser's `--renderer-process-limit`), and measure again; both runs stay in the data.
 
 Results: not yet measured.
 

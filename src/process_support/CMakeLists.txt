@@ -1,5 +1,7 @@
 add_library(lexus_head_unit_process_support STATIC
+    include/lexus_head_unit/process_support/first_frame_marker.h
     include/lexus_head_unit/process_support/quit_on_signals.h
+    source/first_frame_marker.cpp
     source/quit_on_signals.cpp
 )
 

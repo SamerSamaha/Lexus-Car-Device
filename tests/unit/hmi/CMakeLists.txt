@@ -69,3 +69,23 @@ gtest_discover_tests(lexus_head_unit_power_status_model_tests
     DISCOVERY_TIMEOUT 30
     PROPERTIES LABELS hmi ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
 )
+
+add_executable(lexus_head_unit_measurement_probe_tests
+    latency_probe_test.cpp
+)
+
+set_target_properties(lexus_head_unit_measurement_probe_tests PROPERTIES AUTOMOC ON)
+
+target_link_libraries(lexus_head_unit_measurement_probe_tests
+    PRIVATE
+        lexus_head_unit_hmi_viewmodels
+        lexus_head_unit_process_support
+        lexus_head_unit_build_settings
+        Qt6::Core
+        GTest::gtest
+)
+
+gtest_discover_tests(lexus_head_unit_measurement_probe_tests
+    DISCOVERY_TIMEOUT 30
+    PROPERTIES LABELS hmi ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
+)
