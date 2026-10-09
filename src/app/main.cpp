@@ -1,6 +1,8 @@
+#include "lexus_head_unit/hmi/diagnostics_view_model.h"
 #include "lexus_head_unit/hmi/latency_probe.h"
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 #include "lexus_head_unit/hmi/worker_bridge.h"
+#include "lexus_head_unit/hub/power_status_model.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
@@ -31,6 +33,9 @@
 // NOLINTBEGIN(misc-include-cleaner)
 namespace {
 
+// How often the diagnostics screen's power line asks vcgencmd (REQ-020 allows 5 s).
+constexpr int powerPollIntervalMilliseconds = 2000;
+
 using lexus_head_unit::ConnectionTransition;
 using lexus_head_unit::KeyValueConfiguration;
 using lexus_head_unit::SignalSample;
@@ -51,7 +56,8 @@ class InProcessPipeline {
 public:
     InProcessPipeline(const KeyValueConfiguration& configuration,
                       const std::string& sourceKind,
-                      VehicleDataViewModel& viewModel)
+                      VehicleDataViewModel& viewModel,
+                      lexus_head_unit::DiagnosticsViewModel& diagnostics)
         : m_monitor(m_store, m_clock),
           m_feeder(m_store),
           m_built(lexus_head_unit::app::buildSource(configuration, sourceKind, m_clock)),
@@ -72,6 +78,19 @@ public:
         });
         m_feeder.setTransitionHook([this](const ConnectionTransition& transition) {
             m_bridge.publishConnectionChange(transition);
+        });
+        // Diagnostics (DN-030): the report hops to the UI thread like samples do; the request
+        // only sets the source's flag, which is safe from the UI thread.
+        QObject::connect(&m_bridge,
+                         &WorkerBridge::diagnosticsArrived,
+                         &diagnostics,
+                         &lexus_head_unit::DiagnosticsViewModel::onDiagnostics,
+                         Qt::QueuedConnection);
+        m_feeder.setDiagnosticsHook([this](const lexus_head_unit::DiagnosticsReport& report) {
+            m_bridge.publishDiagnostics(report);
+        });
+        diagnostics.setRequester([this]() {
+            m_built.source->requestDiagnostics();
         });
         if (m_built.fakeSource != nullptr) {
             m_demo = std::make_unique<lexus_head_unit::app::FakeVehicleDemo>(*m_built.fakeSource);
@@ -112,7 +131,8 @@ private:
 
 // The v0.2.0 shape (DN-022): the vehicle-data service owns the vehicle; this app is a client.
 std::unique_ptr<VehicleDataClient> startClient(const QString& busAddress,
-                                               VehicleDataViewModel& viewModel) {
+                                               VehicleDataViewModel& viewModel,
+                                               lexus_head_unit::DiagnosticsViewModel& diagnostics) {
     const QDBusConnection connection =
         busAddress.isEmpty()
             ? QDBusConnection::sessionBus()
@@ -126,6 +146,14 @@ std::unique_ptr<VehicleDataClient> startClient(const QString& busAddress,
                      &VehicleDataClient::connectionChanged,
                      &viewModel,
                      &VehicleDataViewModel::onConnectionChanged);
+    QObject::connect(client.get(),
+                     &VehicleDataClient::diagnosticsArrived,
+                     &diagnostics,
+                     &lexus_head_unit::DiagnosticsViewModel::onDiagnostics);
+    VehicleDataClient* requester = client.get();
+    diagnostics.setRequester([requester]() {
+        requester->requestDiagnostics();
+    });
     client->start();
     std::cerr << "lexus-head-unit: source dbus (vehicle-data service)\n";
     return client;
@@ -181,13 +209,19 @@ int main(int argumentCount, char** argumentValues) {
     }
 
     VehicleDataViewModel viewModel;
+    lexus_head_unit::DiagnosticsViewModel diagnostics;
+    // The firmware flags for the diagnostics screen (DN-025, DN-030); unavailable off the Pi.
+    lexus_head_unit::ProcessPowerStatusReader powerReader(QStringLiteral("vcgencmd"),
+                                                          {QStringLiteral("get_throttled")});
+    lexus_head_unit::PowerStatusModel power(powerReader);
     const std::string sourceKind = parser.value(sourceOption).toStdString();
     std::unique_ptr<VehicleDataClient> client;
     std::unique_ptr<InProcessPipeline> pipeline;
     if (sourceKind == dbusSourceKind) {
-        client = startClient(parser.value(busAddressOption), viewModel);
+        client = startClient(parser.value(busAddressOption), viewModel, diagnostics);
     } else {
-        pipeline = std::make_unique<InProcessPipeline>(configuration, sourceKind, viewModel);
+        pipeline =
+            std::make_unique<InProcessPipeline>(configuration, sourceKind, viewModel, diagnostics);
     }
 
     // Declared before the engine so that they outlive its window: the render thread may swap a
@@ -197,6 +231,8 @@ int main(int argumentCount, char** argumentValues) {
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("vehicleDataContext"), &viewModel);
+    engine.rootContext()->setContextProperty(QStringLiteral("diagnosticsContext"), &diagnostics);
+    engine.rootContext()->setContextProperty(QStringLiteral("powerContext"), &power);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
@@ -247,6 +283,7 @@ int main(int argumentCount, char** argumentValues) {
             Qt::DirectConnection);
     }
 
+    power.startPolling(powerPollIntervalMilliseconds);
     if (pipeline) {
         pipeline->start();
     }

@@ -71,3 +71,4 @@ In this order:
 | [DN-028](DN-028-socketcan-source.md) SocketCAN source (light) | LHU-028 | Implemented |
 | [DN-029](DN-029-record-and-replay.md) Record and replay with vehicle-identification scrub | LHU-029 | Implemented |
 | [DN-025](DN-025-power-status-and-shutdown.md) Power status and clean shutdown (light) | LHU-025 | Implemented |
+| [DN-030](DN-030-diagnostics-screen.md) Diagnostics screen: trouble codes and vehicle information | LHU-030 | Implemented |

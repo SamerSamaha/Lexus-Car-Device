@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
 #include <QMetaType>
@@ -11,3 +12,4 @@
 // that neither has to link the other.
 Q_DECLARE_METATYPE(lexus_head_unit::SignalSample)
 Q_DECLARE_METATYPE(lexus_head_unit::ConnectionTransition)
+Q_DECLARE_METATYPE(lexus_head_unit::DiagnosticsReport)

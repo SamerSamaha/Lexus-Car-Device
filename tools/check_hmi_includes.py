@@ -35,6 +35,8 @@ ALLOWED_SERVICE_HEADERS = (
     "lexus_head_unit/service/connection_state_machine.h",
     # PowerFlags and its pure decoder (DN-025): a value type, no hardware and no service state.
     "lexus_head_unit/service/power_status.h",
+    # The diagnostics report (DN-030): codes, texts and the identification, already decoded.
+    "lexus_head_unit/service/diagnostics_report.h",
 )
 ALLOWED_QML_IMPORT_PREFIXES = ("QtQuick", "QtQml", "LexusHeadUnit", "LexusHub", "QtTest")
 

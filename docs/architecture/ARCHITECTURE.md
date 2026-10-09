@@ -52,7 +52,7 @@ This is the shape of an automotive platform in Linux terms: a launcher, apps, an
 |   QML binds only to view-model properties           <- REQ-011          |
 +--------------------------------------------------------------------------+
 | View models (QObject, Q_PROPERTY, signals)                   UI thread   |
-|   SignalTileModel, ConnectionStatusModel, DiagnosticsModel              |
+|   SignalTileModel, ConnectionStatusModel, DiagnosticsViewModel          |
 +------------------------------- queued signals ---------------------------+
 | Service layer (plain C++17, no Qt)                        worker thread  |
 |   SignalStore  StalenessMonitor  ConnectionStateMachine                 |
@@ -127,7 +127,7 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 | Component | Responsibility | Notes |
 |---|---|---|
 | View models (`src/hmi/viewmodels/`) | `SignalTileModel` (name, value text, unit text, status flags), `ConnectionStatusModel` (state text, flags, last cause), `VehicleDataViewModel` (the eight tiles and the status model, the `vehicleData` context property); `WorkerBridge` carries `SignalSample` and `ConnectionTransition` by value from the worker thread through queued connections | The only classes QML may bind to (REQ-011). LHU-013, DN-013 |
-| QML screens (`src/hmi/qml/`) | `Sizes` singleton (11.6 px/mm), `SignalTile`, `StatusStrip` (with the navigation button), `HomeScreen` (2 primary values and a status strip, LHU-013), `VehicleDataScreen` (4 x 2 grid of signal tiles, LHU-039), `Screens` (the switch between them), diagnostics (scrolling list, LHU-030) | Bindings only; no logic beyond formatting. Imports only Qt modules and `LexusHeadUnit` (checked in CI) |
+| QML screens (`src/hmi/qml/`) | `Sizes` singleton (11.6 px/mm), `SignalTile`, `StatusStrip` (with the navigation button), `HomeScreen` (2 primary values and a status strip, LHU-013), `VehicleDataScreen` (4 x 2 grid of signal tiles, LHU-039), `Screens` (the switch between them), `DiagnosticsScreen` (stored codes with their texts, the vehicle identification on screen only, power flags, a Read codes button; opened from Home, LHU-030) | Bindings only; no logic beyond formatting. Imports only Qt modules and `LexusHeadUnit` (checked in CI) |
 | `app` (`src/app/`, executable `lexus-head-unit`) | `main()` of the vehicle-data app: reads `deploy/head_unit.conf`, builds the configured source (`buildSource`: `elm327` or `fake` with a demo script), the service layer, the bridge, the view model, the QML engine and the `WorkerLoop`. From v0.2.0 the source and the service layer move to the service process and `app` constructs a `VehicleDataClient` | The one place that knows every concrete type; the link-graph check does not guard it |
 
 ### 4.4 Hub, `src/hub/`

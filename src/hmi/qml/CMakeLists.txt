@@ -2,6 +2,7 @@
 # The module is compiled into each executable that calls this, from the same files.
 function(lexus_head_unit_add_qml_module target)
     set(qml_files
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/DiagnosticsScreen.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/HomeScreen.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Main.qml
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Screens.qml

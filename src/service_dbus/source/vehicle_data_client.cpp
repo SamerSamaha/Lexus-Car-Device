@@ -68,7 +68,47 @@ void VehicleDataClient::start() {
                          QStringLiteral("ConnectionChanged"),
                          this,
                          SLOT(onConnectionChanged(uint, uint, uint, qlonglong)));
+    m_connection.connect(dbus_names::serviceName(),
+                         dbus_names::objectPath(),
+                         dbus_names::interfaceName(),
+                         QStringLiteral("DiagnosticsChanged"),
+                         this,
+                         SLOT(onDiagnosticsChanged()));
     fetchState();
+    fetchDiagnostics();
+}
+
+void VehicleDataClient::requestDiagnostics() {
+    m_connection.asyncCall(methodCall(QStringLiteral("RequestDiagnostics")));
+}
+
+DiagnosticsReport VehicleDataClient::latestDiagnostics() const {
+    return m_diagnostics;
+}
+
+void VehicleDataClient::onDiagnosticsChanged() {
+    fetchDiagnostics();
+}
+
+void VehicleDataClient::fetchDiagnostics() {
+    auto* watcher = new QDBusPendingCallWatcher(
+        m_connection.asyncCall(methodCall(QStringLiteral("GetDiagnostics"))), this);
+    connect(
+        watcher, &QDBusPendingCallWatcher::finished, this, &VehicleDataClient::onDiagnosticsReply);
+}
+
+void VehicleDataClient::onDiagnosticsReply(QDBusPendingCallWatcher* watcher) {
+    const QDBusPendingReply<DBusDiagnostics> reply = *watcher;
+    watcher->deleteLater();
+    if (reply.isError()) {
+        return;
+    }
+    const DiagnosticsReport report = fromDBus(reply.value());
+    if (!report.codesRead && !report.identificationRead) {
+        return;
+    }
+    m_diagnostics = report;
+    emit diagnosticsArrived(report);
 }
 
 void VehicleDataClient::fetchState() {

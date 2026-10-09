@@ -13,6 +13,9 @@
 #include <QObject>
 #include <QString>
 
+#include <functional>
+#include <utility>
+
 // Qt declares its macros and types in internal headers; the public ones are included.
 // NOLINTBEGIN(misc-include-cleaner)
 namespace lexus_head_unit {
@@ -21,6 +24,7 @@ VehicleDataService::VehicleDataService(QObject* parent) : QObject(parent) {
     registerDBusTypes();
     qRegisterMetaType<SignalSample>("lexus_head_unit::SignalSample");
     qRegisterMetaType<ConnectionTransition>("lexus_head_unit::ConnectionTransition");
+    qRegisterMetaType<DiagnosticsReport>("lexus_head_unit::DiagnosticsReport");
     const SignalStore emptyStore;
     m_samples = emptyStore.snapshot();
     connect(&m_inbox,
@@ -32,6 +36,11 @@ VehicleDataService::VehicleDataService(QObject* parent) : QObject(parent) {
             &VehicleDataServiceInbox::transitionQueued,
             this,
             &VehicleDataService::applyTransition,
+            Qt::QueuedConnection);
+    connect(&m_inbox,
+            &VehicleDataServiceInbox::diagnosticsQueued,
+            this,
+            &VehicleDataService::applyDiagnostics,
             Qt::QueuedConnection);
 }
 
@@ -93,6 +102,29 @@ QList<DBusSample> VehicleDataService::GetSamples() const {
         samples.append(toDBus(sample));
     }
     return samples;
+}
+
+void VehicleDataService::publishDiagnostics(const DiagnosticsReport& report) {
+    emit m_inbox.diagnosticsQueued(report);
+}
+
+void VehicleDataService::setDiagnosticsRequester(std::function<void()> requester) {
+    m_diagnosticsRequester = std::move(requester);
+}
+
+void VehicleDataService::applyDiagnostics(const DiagnosticsReport& report) {
+    m_diagnostics = report;
+    emit DiagnosticsChanged();
+}
+
+void VehicleDataService::RequestDiagnostics() {
+    if (m_diagnosticsRequester) {
+        m_diagnosticsRequester();
+    }
+}
+
+DBusDiagnostics VehicleDataService::GetDiagnostics() const {
+    return toDBus(m_diagnostics);
 }
 
 DBusConnectionState VehicleDataService::GetConnection() const {

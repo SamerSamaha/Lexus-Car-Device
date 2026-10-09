@@ -18,10 +18,15 @@ void WorkerBridge::registerTypes() {
     qRegisterMetaType<lexus_head_unit::SignalSample>("lexus_head_unit::SignalSample");
     qRegisterMetaType<lexus_head_unit::ConnectionTransition>(
         "lexus_head_unit::ConnectionTransition");
+    qRegisterMetaType<lexus_head_unit::DiagnosticsReport>("lexus_head_unit::DiagnosticsReport");
 }
 
 void WorkerBridge::publishSample(const SignalSample& sample) {
     emit sampleArrived(sample);
+}
+
+void WorkerBridge::publishDiagnostics(const DiagnosticsReport& report) {
+    emit diagnosticsArrived(report);
 }
 
 void WorkerBridge::publishConnectionChange(const ConnectionTransition& transition) {

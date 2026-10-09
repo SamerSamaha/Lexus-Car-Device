@@ -66,7 +66,7 @@ Each milestone is a tagged release from `dev` to `main` after `docs/release/RELE
 | **v1.0.0 Head unit** | DBC decoder, SocketCAN source, record and replay, diagnostics screen, trip analytics, whole-system measurements and one optimisation pass, arm64 CI build, on-car procedure and drives, docs, demo video, license, release | LHU-027 to 035 | 48.75 |
 | **Roadmap** | GPS from phone position and map tiles, offline statistics, call and notification status (optional) | LHU-036 to 038 | 32.75, not scheduled |
 
-Total planned to v1.0.0 after revision 9: 30.5 hours of v1.0.0 tickets not yet started (LHU-030 6.75, 031 8.75, 032 6, 033 2, 034 3, 035 4; LHU-027, 028 and 029 are done), plus the Pi and car steps of the six carried tickets (LHU-016, 017, 018, 020, 023, 024). At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
+Total planned to v1.0.0 after revision 9: 23.75 hours of v1.0.0 tickets not yet started (LHU-031 8.75, 032 6, 033 2, 034 3, 035 4; LHU-027, 028, 029 and 030 are done), plus the Pi and car steps of the six carried tickets (LHU-016, 017, 018, 020, 023, 024). At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
 
 ## Hardware as arrived (D-011, D-012, D-026, D-044)
 
@@ -416,7 +416,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-027 | DBC decoder with an independent oracle; `simulated_vehicle.dbc`. **Done 2026-10-09** (DN-027), 2.0 h actual (estimated) | 5 | 1.75 full | 6.75 | 005, 010 |
 | LHU-028 | SocketCAN source and vcan tests on the Pi. **Done 2026-10-09** at the desk (DN-028); the vcan run is checklist step 3.7; 2.5 h actual (estimated) | 5 | 0.75 light | 5.75 | 001, 002 |
 | LHU-029 | Record and replay with vehicle-identification scrub. **Done 2026-10-09** (DN-029), 3.0 h actual (estimated) | 4 | 1.75 full | 5.75 | 015 |
-| LHU-030 | Diagnostics screen: trouble codes and vehicle information | 5 | 1.75 full | 6.75 | 021 |
+| LHU-030 | Diagnostics screen: trouble codes and vehicle information. **Done 2026-10-09** (DN-030), 3.0 h actual (estimated); the read on the car is checklist step 3.10 | 5 | 1.75 full | 6.75 | 021 |
 | LHU-031 | Trip analytics as derived signals | 7 | 1.75 full | 8.75 | 022 |
 | LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass. **Instruments done 2026-10-09** (latency probe, first-frame marker, three scripts); the runs, the target re-set and the optimisation pass need the Pi; 2.0 h actual (estimated) | 6 | exempt | 6 | 009, 013, 014 |
 | LHU-033 | arm64 release build in CI | 2 | exempt | 2 | — |

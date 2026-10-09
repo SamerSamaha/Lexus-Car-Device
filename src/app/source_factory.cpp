@@ -6,11 +6,13 @@
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/hardware/file_descriptor_byte_transport.h"
+#include "lexus_head_unit/hardware/obd_diagnostics.h"
 #include "lexus_head_unit/hardware/recording.h"
 #include "lexus_head_unit/hardware/replay_source.h"
 #include "lexus_head_unit/hardware/socket_can_dbc_source.h"
 #include "lexus_head_unit/hardware/socket_can_frame_reader.h"
 #include "lexus_head_unit/service/clock.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
@@ -119,7 +121,17 @@ BuiltSource buildSource(const KeyValueConfiguration& configuration,
     return built;
 }
 
-FakeVehicleDemo::FakeVehicleDemo(FakeSource& source) : m_source(&source) {}
+FakeVehicleDemo::FakeVehicleDemo(FakeSource& source) : m_source(&source) {
+    // A demonstration report for the diagnostics screen; the identification is plainly not a VIN.
+    DiagnosticsReport report;
+    report.codesRead = true;
+    for (const char* code : {"P0133", "P0420"}) {
+        report.troubleCodes.push_back(TroubleCode{code, troubleCodeDescription(code)});
+    }
+    report.identificationRead = true;
+    report.vehicleIdentification = "DEMO-NOT-A-VIN";
+    m_source->scriptDiagnostics(report);
+}
 
 void FakeVehicleDemo::scriptNextCycle(std::int64_t nowMilliseconds) {
     if (m_startMilliseconds < 0) {

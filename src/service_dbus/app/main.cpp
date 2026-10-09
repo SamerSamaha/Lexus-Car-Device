@@ -150,6 +150,14 @@ int main(int argumentCount, char** argumentValues) {
         demo = std::make_unique<lexus_head_unit::app::FakeVehicleDemo>(*built.fakeSource);
     }
     lexus_head_unit::VehicleDataSource& source = *built.source;
+    // Diagnostics (DN-030): a request from a client sets the source's flag (safe from this
+    // thread); the report comes back through the feeder on the worker thread.
+    service.setDiagnosticsRequester([&source]() {
+        source.requestDiagnostics();
+    });
+    feeder.setDiagnosticsHook([&service](const lexus_head_unit::DiagnosticsReport& report) {
+        service.publishDiagnostics(report);
+    });
     loop.setPerCycleCallback([&demo, &clock, &sessionLog, &source]() {
         if (demo) {
             demo->scriptNextCycle(clock.nowMilliseconds());

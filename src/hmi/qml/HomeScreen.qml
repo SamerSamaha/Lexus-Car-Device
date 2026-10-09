@@ -5,7 +5,9 @@ Item {
     id: home
 
     required property var vehicleData
+    property bool diagnosticsAvailable: false
     signal vehicleDataRequested()
+    signal diagnosticsRequested()
 
     StatusStrip {
         id: strip
@@ -47,7 +49,7 @@ Item {
         objectName: "vehicleDataButton"
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.right: home.diagnosticsAvailable ? parent.horizontalCenter : parent.right
         anchors.margins: Sizes.gutter
         height: Sizes.touchTarget
         radius: Sizes.tileRadius
@@ -67,6 +69,35 @@ Item {
             id: buttonArea
             anchors.fill: parent
             onClicked: home.vehicleDataRequested()
+        }
+    }
+
+    Rectangle {
+        id: diagnosticsButton
+        objectName: "diagnosticsButton"
+        visible: home.diagnosticsAvailable
+        anchors.bottom: parent.bottom
+        anchors.left: parent.horizontalCenter
+        anchors.right: parent.right
+        anchors.margins: Sizes.gutter
+        height: Sizes.touchTarget
+        radius: Sizes.tileRadius
+        color: diagnosticsArea.pressed ? Sizes.tileBorder : Sizes.tileBackground
+        border.color: Sizes.tileBorder
+        border.width: 1
+
+        Text {
+            anchors.centerIn: parent
+            text: "Diagnostics"
+            color: Sizes.liveValue
+            font.pixelSize: Sizes.unitPixelSize
+            font.bold: true
+        }
+
+        MouseArea {
+            id: diagnosticsArea
+            anchors.fill: parent
+            onClicked: home.diagnosticsRequested()
         }
     }
 }

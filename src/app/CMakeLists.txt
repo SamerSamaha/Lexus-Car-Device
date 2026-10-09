@@ -26,11 +26,13 @@ qt_add_executable(lexus_head_unit_vehicle_data_app
     main.cpp
 )
 
+
 lexus_head_unit_add_qml_module(lexus_head_unit_vehicle_data_app)
 
 target_link_libraries(lexus_head_unit_vehicle_data_app
     PRIVATE
         lexus_head_unit_hmi_viewmodels
+        lexus_head_unit_hub_viewmodels
         lexus_head_unit_service_dbus
         lexus_head_unit_source_wiring
         lexus_head_unit_elm327_source

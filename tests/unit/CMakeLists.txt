@@ -11,6 +11,7 @@ add_executable(lexus_head_unit_unit_tests
     obd/command_allowlist_test.cpp
     obd/elm327_protocol_malformed_input_test.cpp
     obd/elm327_protocol_test.cpp
+    obd/obd_diagnostics_test.cpp
     obd/obd_pid_decoder_test.cpp
     obd/supported_pid_set_test.cpp
     replay/recording_test.cpp

@@ -73,6 +73,22 @@ bool isEvenLengthHex(const std::string& line) {
     return isHexText(line) && line.size() % 2 == 0;
 }
 
+// ISO 15765 multi-frame as the adapter prints it with headers off: a 1 to 3 digit length line,
+// then "0:", "1:" ... frame lines of even-length hexadecimal.
+bool isMultiFrameReply(const std::vector<std::string>& lines) {
+    constexpr std::size_t maximumLengthDigits = 3;
+    if (lines.size() < 2 || lines.front().empty() || lines.front().size() > maximumLengthDigits ||
+        !isHexText(lines.front())) {
+        return false;
+    }
+    return std::all_of(lines.begin() + 1, lines.end(), [](const std::string& line) {
+        const std::size_t colon = line.find(':');
+        return colon != std::string::npos && colon > 0 && colon <= 2 &&
+               isHexText(std::string_view(line).substr(0, colon)) &&
+               isEvenLengthHex(line.substr(colon + 1));
+    });
+}
+
 } // namespace
 
 std::vector<std::string> cleanReplyLines(std::string_view rawText, std::string_view command) {
@@ -120,7 +136,7 @@ Elm327ReplyKind classifyReplyLines(const std::vector<std::string>& lines, bool i
     if (first.rfind(negativeResponsePrefix, 0) == 0 && isHexText(first)) {
         return Elm327ReplyKind::NegativeResponse;
     }
-    if (std::all_of(lines.begin(), lines.end(), isEvenLengthHex)) {
+    if (std::all_of(lines.begin(), lines.end(), isEvenLengthHex) || isMultiFrameReply(lines)) {
         return Elm327ReplyKind::Data;
     }
     if (isObdRequest) {

@@ -2,10 +2,13 @@
 
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
+#include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <deque>
 #include <string_view>
 
@@ -20,12 +23,16 @@ public:
     void scriptLinkLoss();
     void scriptReconnect();
     void scriptHandshakeFailure();
+    // The report given on each diagnostics request while connected (DN-030).
+    void scriptDiagnostics(const DiagnosticsReport& report);
+    [[nodiscard]] std::uint64_t diagnosticsRequests() const;
     [[nodiscard]] std::size_t pendingSteps() const;
 
     [[nodiscard]] std::string_view name() const override;
     void start(VehicleDataSourceListener& listener) override;
     void runOnce() override;
     void stop() override;
+    void requestDiagnostics() override;
     [[nodiscard]] ConnectionState connectionState() const override;
     [[nodiscard]] SourceCounters counters() const override;
 
@@ -50,6 +57,9 @@ private:
     ConnectionStateMachine m_machine;
     std::deque<ScriptStep> m_script;
     VehicleDataSourceListener* m_listener = nullptr;
+    DiagnosticsReport m_scriptedDiagnostics;
+    std::atomic<bool> m_diagnosticsRequested{false};
+    std::uint64_t m_diagnosticsRequests = 0;
     SourceCounters m_counters;
     bool m_failNextHandshake = false;
 };

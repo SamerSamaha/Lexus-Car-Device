@@ -20,6 +20,13 @@
     <method name="GetInterfaceVersion">
       <arg type="u" direction="out"/>
     </method>
+    <!-- DN-030: asks the source for one read of Mode 03 and Mode 09 PID 02; the result comes
+         with DiagnosticsChanged and GetDiagnostics: codes read, identification read,
+         (code, text) pairs, the identification (the VIN, shown on screen only), time. -->
+    <method name="RequestDiagnostics"/>
+    <method name="GetDiagnostics">
+      <arg type="(bba(ss)sx)" direction="out"/>
+    </method>
     <signal name="SampleChanged">
       <arg name="signalId" type="u" direction="out"/>
       <arg name="value" type="d" direction="out"/>
@@ -33,5 +40,6 @@
       <arg name="to" type="u" direction="out"/>
       <arg name="timestampMilliseconds" type="x" direction="out"/>
     </signal>
+    <signal name="DiagnosticsChanged"/>
   </interface>
 </node>

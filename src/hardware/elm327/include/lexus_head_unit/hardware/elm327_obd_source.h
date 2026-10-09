@@ -10,8 +10,10 @@
 #include "lexus_head_unit/service/reconnect_backoff.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -31,6 +33,7 @@ public:
     [[nodiscard]] ConnectionState connectionState() const override;
     [[nodiscard]] SourceCounters counters() const override;
     [[nodiscard]] std::int64_t idleHintMilliseconds() const override;
+    void requestDiagnostics() override;
 
     [[nodiscard]] const SupportedPidSet& supportedPids() const;
     [[nodiscard]] const std::vector<ObdPid>& pollList() const;
@@ -47,6 +50,10 @@ private:
     bool runSetupCommands();
     bool discoverSupportedPids();
     void pollNextPid();
+    void readDiagnostics();
+    // Executes one diagnostics request; empty when the link failed and was declared lost.
+    std::optional<Elm327Reply> diagnosticsRequest(std::uint8_t mode,
+                                                  std::optional<std::uint8_t> pid);
     void handleDataReply(const Elm327Reply& reply, ObdPid pid);
     void noteAdapterReply();
     void linkLost();
@@ -71,6 +78,7 @@ private:
     VehicleDataSourceListener* m_listener = nullptr;
     SourceCounters m_counters;
     std::uint64_t m_connectionAttempts = 0;
+    std::atomic<bool> m_diagnosticsRequested{false};
 };
 
 } // namespace lexus_head_unit
