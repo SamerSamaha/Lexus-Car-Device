@@ -37,7 +37,7 @@ The vehicle-data path is the core of the project and is built first (milestone v
 
 Rules of the process view:
 - The vehicle-data service is the only process that talks to the vehicle. Every other process reads signals through `VehicleDataClient` over D-Bus (REQ-017). The read-only guarantee (REQ-001) therefore lives in one process.
-- The hub starts, tracks and stops app processes and is visible again when one exits (REQ-016). It never exits while the system runs. How the user returns to the hub from a fullscreen browser is settled by the LHU-020 spike (OQ-29).
+- The hub starts, tracks and stops app processes and is visible again when one exits (REQ-016). It never exits while the system runs. The user returns to the hub by stopping the app in front: a panel launcher runs `lexus-hub --send return`, and the hub, which never moved, is what the compositor shows once the app's process group has ended (DN-021; verified on the Pi by checklist step 3.5).
 - Web apps are URL entries in the hub's registry, opened in the system browser full screen (REQ-018). They are content, not product code; the hub, the service and the measurements are the product.
 - Memory is budgeted per process (REQ-014). The browser dominates and is measured separately.
 
@@ -132,8 +132,9 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| `AppRegistry` | Reads the app configuration file: name, icon, kind (native command or URL), command line | REQ-016, REQ-018, LHU-021. Web apps are URL entries; the browser command and its flags live in `deploy/` |
-| `ProcessManager` | Starts an app as a child process, tracks it, stops it, reports its exit; restart policy per entry | REQ-016. Plain C++17 over POSIX process calls, unit-tested with a fake process |
+| `AppRegistry` | Reads the app configuration file (`deploy/hub.conf`): order, name, icon, kind (native command or URL), command line split without a shell, restart policy | REQ-016, REQ-018, LHU-021. Web apps are URL entries; the browser command and its flags live in `deploy/` |
+| `AppProcessManager`, `ProcessLauncher`, `PosixProcessLauncher` (`src/hub/core/`) | Starts one foreground app in its own process group with `posix_spawnp`, polls its exit with `waitpid(WNOHANG)`, stops it with SIGTERM then SIGKILL to the group, reports the cause, restarts on failure (3 in 60 s) | REQ-016. Plain C++17, no Qt; unit-tested over a fake launcher, integration-tested with real processes |
+| `HubViewModel`, `AppListModel`, `HubControlServer` (`src/hub/viewmodels/`) | What the QML binds to; a 100 ms timer drives the manager; a local socket takes `launch <id>`, `return` and `status` | REQ-016. Qt; the include and link-graph checks cover these targets too |
 | `AppHub` and QML (`src/hub/qml/`) | Full-screen icon grid sized in millimetres (D-024); status strip with connection state and power flags from `VehicleDataClient` and `PowerStatusProvider`; shutdown control (REQ-020) | Return-to-hub mechanism decided by the LHU-020 spike (OQ-29) |
 
 ## 5. The signal model
@@ -239,7 +240,6 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 | Item | Decided by |
 |---|---|
 | D-Bus interface names, signal payload layout, current-state query | DN-022 |
-| App registry file format; how the user returns to the hub from a fullscreen browser (OQ-29) | LHU-020 spike, then DN-021 |
 | Whether the system browser plays protected audio on this unit (OQ-27) | LHU-023, recorded as a fact either way |
 | Audio and OBD links sharing one Bluetooth radio (OQ-28) | LHU-024, measured |
 | Per-process memory budgets replacing the single 150 MB figure of REQ-014 | LHU-032 baseline (OQ-8) |

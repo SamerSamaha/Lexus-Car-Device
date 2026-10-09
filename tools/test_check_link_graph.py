@@ -73,6 +73,21 @@ class CheckLinkGraphTest(unittest.TestCase):
         self.assertEqual(exit_code, check_link_graph.EXIT_CODE_FINDING)
         self.assertIn("lexus_head_unit_service links to the concrete source", output)
 
+    def test_hub_target_linking_a_source_fails(self):
+        graph = (
+            "digraph CMake {\n"
+            '    "node0" [ label = "lexus_head_unit_hub_core", shape = octagon ];\n'
+            '    "node1" [ label = "lexus_head_unit_elm327_source", shape = octagon ];\n'
+            '    "node0" -> "node1"\n'
+            "}\n"
+        )
+        exit_code, output, _ = run_main(graph)
+        self.assertEqual(exit_code, check_link_graph.EXIT_CODE_FINDING)
+        self.assertIn(
+            "lexus_head_unit_hub_core links to the concrete source lexus_head_unit_elm327_source",
+            output,
+        )
+
     def test_empty_graph_cannot_run(self):
         exit_code, _, error = run_main("digraph x {}\n")
         self.assertEqual(exit_code, check_link_graph.EXIT_CODE_CHECK_COULD_NOT_RUN)

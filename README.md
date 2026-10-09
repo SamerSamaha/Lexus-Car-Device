@@ -59,7 +59,14 @@ python3 tools/elm327_emulator/elm327_emulator.py --link /tmp/obd --control /tmp/
 # set elm327.device = /tmp/obd in deploy/head_unit.conf, then:
 ~/build/lexus-car-device/debug/src/app/lexus-head-unit --config deploy/head_unit.conf
 # or without the emulator, with moving demo values:
-~/build/lexus-head-unit/debug/src/app/lexus-head-unit --source fake
+~/build/lexus-car-device/debug/src/app/lexus-head-unit --source fake
+```
+
+Run the hub, which launches the vehicle-data app as a separate process (no hardware needed):
+
+```sh
+PATH=~/build/lexus-car-device/debug/src/app:$PATH ~/build/lexus-car-device/debug/src/hub/app/lexus-hub --registry deploy/hub.conf &
+~/build/lexus-car-device/debug/src/hub/app/lexus-hub --send status    # or: --send "launch vehicle_data", --send return
 ```
 
 Other presets: `sanitizers` (AddressSanitizer and UndefinedBehaviorSanitizer; what CI runs), `release`, and `static-analysis` (clang++ with clang-tidy, any warning fails the build). Formatting is `clang-format --dry-run --Werror`. Packages on Debian 13: `build-essential cmake ninja-build clang clang-tidy clang-format libgtest-dev libgmock-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-window qml6-module-qttest`.

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Hub
+Comment=Close the app in front and show the Lexus Head Unit hub
+Exec=lexus-hub --send return
+Icon=go-home
+Terminal=false
+Categories=Utility;
