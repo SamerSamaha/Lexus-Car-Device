@@ -15,10 +15,12 @@ QtObject {
     // A primary value's font: cap height about 4 mm if the font's cap height is 0.7 of the em
     // size (assumption A8, checked by eye on the panel).
     readonly property int primaryValuePixelSize: mm(5.7)
+    readonly property int gridValuePixelSize: mm(5.7)
     readonly property int primaryValueMinimumPixelSize: mm(4)
     readonly property int labelPixelSize: mm(2.5)
     readonly property int unitPixelSize: mm(3)
-    readonly property int statusStripHeight: mm(8)
+    // 10 mm so that the strip can carry a navigation touch target.
+    readonly property int statusStripHeight: mm(10)
     readonly property int gutter: mm(2)
     readonly property int tileRadius: mm(1)
 
