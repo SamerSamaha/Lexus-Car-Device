@@ -3,12 +3,14 @@ add_library(lexus_head_unit_hub_core STATIC
     include/lexus_head_unit/hub/app_process_manager.h
     include/lexus_head_unit/hub/app_registry.h
     include/lexus_head_unit/hub/command_line.h
+    include/lexus_head_unit/hub/ignition_off_shutdown_policy.h
     include/lexus_head_unit/hub/posix_process_launcher.h
     include/lexus_head_unit/hub/process_launcher.h
     source/app_entry.cpp
     source/app_process_manager.cpp
     source/app_registry.cpp
     source/command_line.cpp
+    source/ignition_off_shutdown_policy.cpp
     source/posix_process_launcher.cpp
 )
 

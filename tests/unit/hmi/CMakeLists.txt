@@ -47,6 +47,7 @@ gtest_discover_tests(lexus_head_unit_hub_view_model_tests
 
 add_executable(lexus_head_unit_power_status_model_tests
     power_status_model_test.cpp
+    car_status_models_test.cpp
     ${CMAKE_SOURCE_DIR}/tests/hmi_hub/fake_power_status_reader.h
 )
 

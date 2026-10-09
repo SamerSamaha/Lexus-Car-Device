@@ -11,6 +11,8 @@ Item {
     property bool vehicleDataShown: false
     property bool tripShown: false
     property bool diagnosticsShown: false
+    property bool hubButtonShown: false
+    signal hubRequested()
 
     HomeScreen {
         id: homeScreen
@@ -19,6 +21,8 @@ Item {
         visible: !screens.vehicleDataShown && !screens.tripShown && !screens.diagnosticsShown
         vehicleData: screens.vehicleData
         diagnosticsAvailable: screens.diagnostics !== null
+        hubButtonShown: screens.hubButtonShown
+        onHubRequested: screens.hubRequested()
         onVehicleDataRequested: screens.vehicleDataShown = true
         onTripRequested: screens.tripShown = true
         onDiagnosticsRequested: {

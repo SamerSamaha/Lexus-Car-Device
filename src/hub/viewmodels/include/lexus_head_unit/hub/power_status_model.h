@@ -104,6 +104,9 @@ public:
     [[nodiscard]] QString lastResultText() const;
     [[nodiscard]] int executions() const;
     Q_INVOKABLE void press();
+    // Runs the shutdown command now, as the second tap does; the reason is shown on the strip
+    // (DN-043: the ignition-off policy).
+    void shutdownNow(const QString& reason);
 
     // The executor used in the product: QProcess::startDetached.
     static Executor detachedProcessExecutor();

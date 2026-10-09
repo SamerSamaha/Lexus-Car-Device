@@ -1,4 +1,4 @@
-// Verifies: REQ-012, REQ-006, REQ-007, REQ-023
+// Verifies: REQ-012, REQ-006, REQ-007, REQ-023, REQ-024
 
 import QtQuick
 import QtTest
@@ -129,6 +129,22 @@ TestCase {
         vehicleData.simulateLinkDetail("AdapterWithoutVehicle")
         var causeText = findChild(strip, "causeText")
         verify(causeText.x + causeText.width <= strip.width, "strip content fits")
+    }
+
+    function test_the_hub_button_appears_only_when_asked_and_requests_the_exit() {
+        var home = createHome()
+        compare(tileOf(home, "hubButton").visible, false)
+        home.hubButtonShown = true
+        var button = tileOf(home, "hubButton")
+        compare(button.visible, true)
+        verify(button.width >= Sizes.mm(10) && button.height >= Sizes.mm(10), "10 mm target")
+        var requested = 0
+        home.hubRequested.connect(function() { requested += 1 })
+        mouseClick(button)
+        compare(requested, 1)
+        var last = tileOf(home, "diagnosticsButton").visible ? tileOf(home, "diagnosticsButton")
+                                                             : tileOf(home, "tripButton")
+        verify(button.x >= last.x + last.width, "the Hub button is the last one")
     }
 
     function test_sizes_follow_the_millimetre_rules() {

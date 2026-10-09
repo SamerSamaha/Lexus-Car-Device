@@ -7,6 +7,7 @@ add_executable(lexus_head_unit_unit_tests
     hardware/fake_source_test.cpp
     hub/app_process_manager_test.cpp
     hub/command_line_and_registry_test.cpp
+    hub/ignition_off_shutdown_policy_test.cpp
     hub/fake_process_launcher.h
     obd/command_allowlist_test.cpp
     obd/elm327_protocol_malformed_input_test.cpp

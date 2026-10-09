@@ -6,7 +6,10 @@ Item {
 
     required property var vehicleData
     property bool diagnosticsAvailable: false
+    // Car mode (DN-043): a last button that leaves the app for the hub.
+    property bool hubButtonShown: false
     signal vehicleDataRequested()
+    signal hubRequested()
     signal tripRequested()
     signal diagnosticsRequested()
 
@@ -56,7 +59,8 @@ Item {
         anchors.margins: Sizes.gutter
         height: Sizes.touchTarget
 
-        readonly property int buttonCount: home.diagnosticsAvailable ? 3 : 2
+        readonly property int buttonCount: 2 + (home.diagnosticsAvailable ? 1 : 0)
+                                           + (home.hubButtonShown ? 1 : 0)
         readonly property real buttonWidth:
             (width - (buttonCount - 1) * Sizes.gutter) / buttonCount
         readonly property real step: buttonWidth + Sizes.gutter
@@ -87,6 +91,16 @@ Item {
             width: buttonRow.buttonWidth
             label: "Diagnostics"
             onActivated: home.diagnosticsRequested()
+        }
+
+        HomeButton {
+            id: hubButton
+            objectName: "hubButton"
+            visible: home.hubButtonShown
+            x: (buttonRow.buttonCount - 1) * buttonRow.step
+            width: buttonRow.buttonWidth
+            label: "Hub"
+            onActivated: home.hubRequested()
         }
     }
 }

@@ -1,4 +1,5 @@
 qt_add_executable(lexus_head_unit_hub_hmi_tests
+    car_test_driver.h
     fake_power_status_reader.h
     hub_hmi_test_main.cpp
 )

@@ -1,7 +1,9 @@
 add_library(lexus_head_unit_hub_viewmodels STATIC
+    include/lexus_head_unit/hub/car_status_models.h
     include/lexus_head_unit/hub/hub_control_server.h
     include/lexus_head_unit/hub/hub_view_model.h
     include/lexus_head_unit/hub/power_status_model.h
+    source/car_status_models.cpp
     source/hub_control_server.cpp
     source/hub_view_model.cpp
     source/power_status_model.cpp
