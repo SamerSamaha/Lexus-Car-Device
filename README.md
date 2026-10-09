@@ -8,6 +8,22 @@ It is a portfolio project: the point is to show, with evidence, how automotive i
 
 **v0.2.0 Platform** is released (`docs/release/RELEASE_NOTES_v0.2.0.md`): the app hub launching apps as processes, the vehicle-data service publishing over D-Bus to any app, power flags and a clean shutdown control, web apps in the system browser, and the tooling for audio to the car stereo; with the DBC decoder, the SocketCAN source and record and replay merged ahead of v1.0.0. Before it, **v0.1.0 Core** (`docs/release/RELEASE_NOTES_v0.1.0.md`): the service layer (signal store, staleness, connection state machine), the ELM327 path (allowlist, protocol, serial transport, source with discovery, loss detection and backoff), an ELM327 emulator with fault injection, the home and vehicle-data screens with their view models, and a thermal and power logger exist and are tested at the desk, including scenario tests that kill and restart the emulator. It is a desk release: the hardware is assembled and running, but the car has not been connected yet and no measurement is claimed. Both are desk releases; the steps that need the Pi or the car are in `docs/release/PI_BRINGUP_CHECKLIST.md`. Work continues toward **v1.0.0 Head unit**. Milestones: v0.1.0 Core (vehicle-data path end to end), v0.2.0 Platform (hub, D-Bus service, web apps, audio, power status), v1.0.0 Head unit (CAN path, record and replay, diagnostics, analytics, measurements). Progress is on the [GitHub project board](https://github.com/users/SamerSamaha/projects/1); the plan is `docs/planning/KICKOFF_PLAN.md`.
 
+## Demo
+
+**Pending: no video or screenshot exists yet.** The media below will be recorded on the car day following `docs/release/CAR_DAY_GUIDE.md` (part C) and added here; until then each entry says pending. Nothing on this page is a mock-up.
+
+| Clip or picture | Shows | State |
+|---|---|---|
+| Cold start to live data | Power bank plugged in, boot, the hub, "Searching for adapter", then "Live" | Pending |
+| The four link states | Adapter unplugged and replugged, ignition off and on, as the status strip reports them | Pending |
+| Vehicle data grid | The 4 x 2 grid following the engine at idle and a throttle blip, parked | Pending |
+| Trip screen | Distance, fuel economy, warm-up time and time in RPM bands after a short drive | Pending |
+| Diagnostics | Stored trouble codes with their texts (identification line hidden) | Pending |
+| Short drive | The screen filmed by a passenger, nobody touching it | Pending |
+| Demo mode | The full UI on the Pi from the demonstration source, no car | Pending |
+
+To run it in the car without a laptop: `deploy/car/install_car_mode.sh` on the Pi, then the guide.
+
 ## Architecture
 
 ```

@@ -29,6 +29,7 @@ Rules:
 | The four link situations read from the driver's seat | LHU-042 | Detail, D-Bus members and strip headline built and tested at the desk against the emulator (LHU-042); step 3.13 not yet done |
 | Shutdown after the ignition goes off, address line, Hub button | LHU-043 | Policy, countdown, address and button built and tested at the desk (LHU-043); step 3.14 not yet done |
 | Car mode: install, boot to the hub without input, pairing, session folders, export, demo modes | LHU-044 | Install script, tools, units and self-check built and tested at the desk, the install as a dry run (LHU-044); step 3.15 not yet done |
+| Car day guide for the owner, README demo section | LHU-045 | Written (`docs/release/CAR_DAY_GUIDE.md`); the README lists every demo clip as pending until real media exists |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
@@ -58,6 +59,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A20 | The vLinker MC+ pairs on its classic side with the PIN 1234, or without a PIN (secure simple pairing); `lexus-pair-adapter` answers either | LHU-044 | Step 3.15, item 4 | Not yet verified |
 | A21 | Under the Raspberry Pi OS desktop, labwc runs `~/.config/labwc/autostart` at login, so `lexus-hub-session` starts the hub; whether the system autostart (panel, desktop) also runs does not matter, because the hub is full screen and kanshi is started either way | LHU-044 | Step 3.15, item 3 | Not yet verified |
 | A22 | `raspi-config nonint do_boot_behaviour B4` sets automatic login to the desktop on this image (LightDM, `autologin-user` in `/etc/lightdm/lightdm.conf`) | LHU-044 | Step 3.15, items 2 and 3 | Not yet verified |
+| A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
 ## 3. Steps
