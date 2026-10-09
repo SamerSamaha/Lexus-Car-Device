@@ -1,12 +1,13 @@
 import QtQuick
 
-// Home: the status strip, two primary values and the button to the vehicle-data screen.
+// Home: the status strip, two primary values and the buttons to the other screens.
 Item {
     id: home
 
     required property var vehicleData
     property bool diagnosticsAvailable: false
     signal vehicleDataRequested()
+    signal tripRequested()
     signal diagnosticsRequested()
 
     StatusStrip {
@@ -21,7 +22,7 @@ Item {
     Row {
         id: primaryValues
         anchors.top: strip.bottom
-        anchors.bottom: vehicleDataButton.top
+        anchors.bottom: buttonRow.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: Sizes.gutter
@@ -44,60 +45,48 @@ Item {
         }
     }
 
-    Rectangle {
-        id: vehicleDataButton
-        objectName: "vehicleDataButton"
+    // Positions are bindings, not a Row: a Row places its children only on the next polish, so a
+    // tap in the first frame could land on a button still stacked at x = 0.
+    Item {
+        id: buttonRow
+        objectName: "buttonRow"
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.right: home.diagnosticsAvailable ? parent.horizontalCenter : parent.right
-        anchors.margins: Sizes.gutter
-        height: Sizes.touchTarget
-        radius: Sizes.tileRadius
-        color: buttonArea.pressed ? Sizes.tileBorder : Sizes.tileBackground
-        border.color: Sizes.tileBorder
-        border.width: 1
-
-        Text {
-            anchors.centerIn: parent
-            text: "Vehicle data"
-            color: Sizes.liveValue
-            font.pixelSize: Sizes.unitPixelSize
-            font.bold: true
-        }
-
-        MouseArea {
-            id: buttonArea
-            anchors.fill: parent
-            onClicked: home.vehicleDataRequested()
-        }
-    }
-
-    Rectangle {
-        id: diagnosticsButton
-        objectName: "diagnosticsButton"
-        visible: home.diagnosticsAvailable
-        anchors.bottom: parent.bottom
-        anchors.left: parent.horizontalCenter
         anchors.right: parent.right
         anchors.margins: Sizes.gutter
         height: Sizes.touchTarget
-        radius: Sizes.tileRadius
-        color: diagnosticsArea.pressed ? Sizes.tileBorder : Sizes.tileBackground
-        border.color: Sizes.tileBorder
-        border.width: 1
 
-        Text {
-            anchors.centerIn: parent
-            text: "Diagnostics"
-            color: Sizes.liveValue
-            font.pixelSize: Sizes.unitPixelSize
-            font.bold: true
+        readonly property int buttonCount: home.diagnosticsAvailable ? 3 : 2
+        readonly property real buttonWidth:
+            (width - (buttonCount - 1) * Sizes.gutter) / buttonCount
+        readonly property real step: buttonWidth + Sizes.gutter
+
+        HomeButton {
+            id: vehicleDataButton
+            objectName: "vehicleDataButton"
+            x: 0
+            width: buttonRow.buttonWidth
+            label: "Vehicle data"
+            onActivated: home.vehicleDataRequested()
         }
 
-        MouseArea {
-            id: diagnosticsArea
-            anchors.fill: parent
-            onClicked: home.diagnosticsRequested()
+        HomeButton {
+            id: tripButton
+            objectName: "tripButton"
+            x: buttonRow.step
+            width: buttonRow.buttonWidth
+            label: "Trip"
+            onActivated: home.tripRequested()
+        }
+
+        HomeButton {
+            id: diagnosticsButton
+            objectName: "diagnosticsButton"
+            visible: home.diagnosticsAvailable
+            x: 2 * buttonRow.step
+            width: buttonRow.buttonWidth
+            label: "Diagnostics"
+            onActivated: home.diagnosticsRequested()
         }
     }
 }

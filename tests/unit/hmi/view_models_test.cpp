@@ -23,7 +23,6 @@
 // NOLINTBEGIN(misc-include-cleaner)
 namespace {
 
-using lexus_head_unit::allSignalIds;
 using lexus_head_unit::ConnectionState;
 using lexus_head_unit::ConnectionStatusModel;
 using lexus_head_unit::ConnectionTransition;
@@ -132,20 +131,33 @@ bool tileIsInPlace(const VehicleDataViewModel& viewModel, SignalId signalId) {
         return false;
     }
     const QList<QObject*> tiles = viewModel.tiles();
-    return tiles.at(static_cast<int>(lexus_head_unit::indexOf(signalId))) == tile;
+    const int position = static_cast<int>(lexus_head_unit::indexOf(signalId));
+    return position < tiles.size() && tiles.at(position) == tile;
 }
 
 TEST(VehicleDataViewModelTest, HasOneTilePerSignalInEnumerationOrder) {
     const VehicleDataViewModel viewModel;
     ASSERT_EQ(viewModel.tiles().size(), 8);
     std::size_t inPlace = 0;
-    for (const SignalId signalId : allSignalIds) {
+    for (const SignalId signalId : lexus_head_unit::gridSignalIds) {
         inPlace += tileIsInPlace(viewModel, signalId) ? 1U : 0U;
     }
     EXPECT_EQ(inPlace, 8U);
     EXPECT_EQ(viewModel.vehicleSpeed()->name(), QStringLiteral("Vehicle speed"));
     EXPECT_EQ(viewModel.engineRpm()->unitText(), QStringLiteral("rpm"));
     EXPECT_NE(viewModel.connection(), nullptr);
+}
+
+TEST(VehicleDataViewModelTest, TripTilesAreTheEightDerivedSignalsInOrder) {
+    const VehicleDataViewModel viewModel;
+    const QList<QObject*> tripTiles = viewModel.tripTiles();
+    ASSERT_EQ(tripTiles.size(), 8);
+    std::size_t inOrder = 0;
+    for (std::size_t index = 0; index < lexus_head_unit::derivedSignalCount; ++index) {
+        const SignalId signalId = lexus_head_unit::derivedSignalIds.at(index);
+        inOrder += tripTiles.at(static_cast<int>(index)) == viewModel.tile(signalId) ? 1U : 0U;
+    }
+    EXPECT_EQ(inOrder, 8U);
 }
 
 TEST(VehicleDataViewModelTest, SamplesAndTransitionsFromAnotherThreadArriveThroughTheBridge) {

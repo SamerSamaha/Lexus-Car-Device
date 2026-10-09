@@ -25,8 +25,16 @@ VehicleDataViewModel::VehicleDataViewModel(QObject* parent)
 
 QList<QObject*> VehicleDataViewModel::tiles() const {
     QList<QObject*> list;
-    for (SignalTileModel* tile : m_tiles) {
-        list.append(tile);
+    for (const SignalId signalId : gridSignalIds) {
+        list.append(tile(signalId));
+    }
+    return list;
+}
+
+QList<QObject*> VehicleDataViewModel::tripTiles() const {
+    QList<QObject*> list;
+    for (const SignalId signalId : derivedSignalIds) {
+        list.append(tile(signalId));
     }
     return list;
 }

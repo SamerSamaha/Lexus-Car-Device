@@ -15,7 +15,6 @@
 
 namespace {
 
-using lexus_head_unit::allSignalIds;
 using lexus_head_unit::DecodedPid;
 using lexus_head_unit::decodePid;
 using lexus_head_unit::expectedDataByteCount;
@@ -123,16 +122,43 @@ TEST(ObdPidDecoderTest, FortyHandComputedVectorsMatchTheSaeFormulas) {
     EXPECT_EQ(matched, 40U);
 }
 
-TEST(ObdPidDecoderTest, PidAndSignalMappingsAreInverseOnTheEightSignals) {
-    for (const SignalId signalId : allSignalIds) {
-        const ObdPid pid = pidForSignal(signalId);
-        const std::optional<SignalId> back = signalForPid(pidByte(pid));
-        EXPECT_EQ(back.value_or(SignalId::VehicleSpeed), signalId);
-        EXPECT_TRUE(back.has_value());
+// True when the signal has a PID and that PID maps back to the same signal.
+bool mapsBackToItself(SignalId signalId) {
+    const std::optional<ObdPid> pid = pidForSignal(signalId);
+    if (!pid.has_value()) {
+        return false;
     }
+    return signalForPid(pidByte(*pid)) == signalId;
+}
+
+TEST(ObdPidDecoderTest, PidAndSignalMappingsAreInverseOnTheMeasuredSignals) {
+    std::size_t inverse = 0;
+    for (const SignalId signalId : lexus_head_unit::measuredSignalIds) {
+        inverse += mapsBackToItself(signalId) ? 1U : 0U;
+    }
+    EXPECT_EQ(inverse, lexus_head_unit::measuredSignalCount);
+}
+
+TEST(ObdPidDecoderTest, DerivedSignalsHaveNoPidAndUnknownPidsHaveNoSignal) {
+    std::size_t withPid = 0;
+    for (const SignalId signalId : lexus_head_unit::derivedSignalIds) {
+        withPid += pidForSignal(signalId).has_value() ? 1U : 0U;
+    }
+    EXPECT_EQ(withPid, 0U);
     EXPECT_FALSE(signalForPid(0x00).has_value());
-    EXPECT_FALSE(signalForPid(0x10).has_value());
+    EXPECT_EQ(signalForPid(0x10), SignalId::MassAirFlow);
+    EXPECT_FALSE(signalForPid(0x5E).has_value());
     EXPECT_FALSE(signalForPid(0xFF).has_value());
+}
+
+TEST(ObdPidDecoderTest, MassAirFlowIsTwoBytesInHundredthsOfAGramPerSecond) {
+    // 0x03E8 = 1000, so 10.00 g/s; 0xFFFF is the top of the range, 655.35 g/s.
+    const DecodedPid decoded = decodePid(0x10, {0x03, 0xE8}).value_or(DecodedPid{});
+    EXPECT_EQ(decoded.signalId, SignalId::MassAirFlow);
+    EXPECT_DOUBLE_EQ(decoded.value, 10.0);
+    EXPECT_EQ(decoded.unit, Unit::GramsPerSecond);
+    EXPECT_DOUBLE_EQ(decodePid(0x10, {0xFF, 0xFF}).value_or(DecodedPid{}).value, 655.35);
+    EXPECT_FALSE(decodePid(0x10, {0x03}).has_value());
 }
 
 TEST(ObdPidDecoderTest, ExpectedByteCountsAreKnownForTheEightPidsAndTheBitmaps) {
@@ -142,7 +168,8 @@ TEST(ObdPidDecoderTest, ExpectedByteCountsAreKnownForTheEightPidsAndTheBitmaps) 
     EXPECT_EQ(expectedDataByteCount(0x00).value_or(0), 4U);
     EXPECT_EQ(expectedDataByteCount(0x20).value_or(0), 4U);
     EXPECT_EQ(expectedDataByteCount(0x40).value_or(0), 4U);
-    EXPECT_FALSE(expectedDataByteCount(0x10).has_value());
+    EXPECT_EQ(expectedDataByteCount(0x10).value_or(0), 2U);
+    EXPECT_FALSE(expectedDataByteCount(0x5E).has_value());
     EXPECT_FALSE(expectedDataByteCount(0xA6).has_value());
 }
 
@@ -152,7 +179,7 @@ TEST(ObdPidDecoderTest, WrongByteCountOrUnknownPidGivesNoValue) {
     EXPECT_FALSE(decodePid(0x0C, {0x10}).has_value());
     EXPECT_FALSE(decodePid(0x0C, {0x10, 0x20, 0x30}).has_value());
     EXPECT_FALSE(decodePid(0x00, {0xBE, 0x3F, 0xA8, 0x13}).has_value());
-    EXPECT_FALSE(decodePid(0x10, {0x01, 0x02}).has_value());
+    EXPECT_FALSE(decodePid(0x5E, {0x01, 0x02}).has_value());
     EXPECT_FALSE(decodePid(0xFF, {0x01}).has_value());
 }
 

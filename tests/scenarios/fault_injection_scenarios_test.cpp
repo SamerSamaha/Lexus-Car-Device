@@ -113,15 +113,18 @@ TEST_F(FaultInjectionScenariosTest, CorruptRepliesAreCountedAndNeverBecomeValidS
     pollCycle(1);
     const std::uint64_t samplesBefore = m_source->counters().samplesEmitted;
     const std::uint64_t malformedBefore = m_source->counters().malformedInputs;
-    ASSERT_EQ(m_emulator.control("corrupt 8"), "OK");
+    // One full cycle of corrupt replies: one per polled PID (nine with mass air flow).
+    const std::uint64_t pollListSize = m_source->pollList().size();
+    ASSERT_EQ(pollListSize, 9U);
+    ASSERT_EQ(m_emulator.control("corrupt 9"), "OK");
 
     pollCycle(1);
 
-    EXPECT_EQ(m_source->counters().malformedInputs, malformedBefore + 8);
+    EXPECT_EQ(m_source->counters().malformedInputs, malformedBefore + pollListSize);
     EXPECT_EQ(m_source->counters().samplesEmitted, samplesBefore);
     EXPECT_EQ(m_source->connectionState(), ConnectionState::Connected);
     pollCycle(1);
-    EXPECT_EQ(m_source->counters().samplesEmitted, samplesBefore + 8);
+    EXPECT_EQ(m_source->counters().samplesEmitted, samplesBefore + pollListSize);
 }
 
 TEST_F(FaultInjectionScenariosTest,

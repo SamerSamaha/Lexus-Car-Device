@@ -317,10 +317,11 @@ TEST_F(VehicleDataDBusTest, ServiceGoneMeansStaleAndErrorAndServiceBackMeansComp
     QString error;
     ASSERT_TRUE(m_service->registerOn(m_bus.connect(QStringLiteral("service2")), error))
         << error.toStdString();
-    m_service->publishSample(numberedSample(8));
+    m_service->publishSample(numberedSample(static_cast<int>(lexus_head_unit::signalCount)));
     ASSERT_TRUE(waitFor([&watcher]() {
         return watcher->client.isServiceAvailable() &&
-               watcher->client.latest(SignalId::VehicleSpeed).timestampMilliseconds == 1008;
+               watcher->client.latest(SignalId::VehicleSpeed).timestampMilliseconds ==
+                   1000 + static_cast<std::int64_t>(lexus_head_unit::signalCount);
     }));
     EXPECT_EQ(watcher->client.latest(SignalId::VehicleSpeed).status, SignalStatus::Valid);
 }
@@ -478,11 +479,18 @@ TEST(VehicleDataServiceProcessTest, ServiceExecutablePublishesEverySignalAndRefu
     service.start(QStringLiteral(LEXUS_HEAD_UNIT_SERVICE_PATH), arguments);
     ASSERT_TRUE(service.waitForStarted());
     RecordingClient watcher(bus.connect(QStringLiteral("watcher")));
+    // Every measured signal from the demo source, and the derived signals that need no more
+    // than a few seconds of demo driving (the trip average needs 0.1 km, the warm-up 30 s).
     const auto everySignalValid = [&watcher]() {
+        const auto valid = [&watcher](SignalId signalId) {
+            return watcher.client.latest(signalId).status == SignalStatus::Valid;
+        };
         return watcher.client.connectionState() == ConnectionState::Connected &&
-               std::all_of(allSignalIds.begin(), allSignalIds.end(), [&](SignalId signalId) {
-                   return watcher.client.latest(signalId).status == SignalStatus::Valid;
-               });
+               std::all_of(lexus_head_unit::measuredSignalIds.begin(),
+                           lexus_head_unit::measuredSignalIds.end(),
+                           valid) &&
+               valid(SignalId::InstantFuelEconomy) && valid(SignalId::TripDistance) &&
+               valid(SignalId::TimeBelow1000Rpm);
     };
     EXPECT_TRUE(waitFor(everySignalValid, 5000));
     EXPECT_EQ(exitCodeOfSecondService(arguments), 2);

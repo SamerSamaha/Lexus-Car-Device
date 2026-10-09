@@ -16,6 +16,7 @@ enum class ObdPid : std::uint8_t {
     EngineRpm = 0x0C,
     VehicleSpeed = 0x0D,
     IntakeAirTemperature = 0x0F,
+    MassAirFlow = 0x10,
     ThrottlePosition = 0x11,
     SupportedPids20 = 0x20,
     FuelLevel = 0x2F,
@@ -33,7 +34,8 @@ struct DecodedPid {
     Unit unit = Unit::KilometresPerHour;
 };
 
-ObdPid pidForSignal(SignalId signalId);
+// Nothing for a derived signal: it has no PID.
+std::optional<ObdPid> pidForSignal(SignalId signalId);
 std::optional<SignalId> signalForPid(std::uint8_t pid);
 std::optional<std::size_t> expectedDataByteCount(std::uint8_t pid);
 std::optional<DecodedPid> decodePid(std::uint8_t pid, const std::vector<std::uint8_t>& dataBytes);

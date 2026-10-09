@@ -69,7 +69,7 @@ TEST(SupportedPidSetTest, DecodesATypicalBitmapIntoTheDocumentedPids) {
     EXPECT_FALSE(supported.contains(0x2F));
 }
 
-TEST(SupportedPidSetTest, PollablePidsAreTheSupportedOnesOfTheEightInFixedOrder) {
+TEST(SupportedPidSetTest, PollablePidsAreTheSupportedOnesOfTheNineInFixedOrder) {
     SupportedPidSet supported;
     ASSERT_TRUE(supported.addBitmap(0x00, {0xBE, 0x3F, 0xA8, 0x13}));
     ASSERT_TRUE(supported.addBitmap(0x20, {0x80, 0x07, 0xA0, 0x01}));
@@ -84,14 +84,15 @@ TEST(SupportedPidSetTest, PollablePidsAreTheSupportedOnesOfTheEightInFixedOrder)
         ObdPid::IntakeAirTemperature,
         ObdPid::ControlModuleVoltage,
         ObdPid::FuelLevel,
+        ObdPid::MassAirFlow,
     };
     EXPECT_EQ(pollablePids(supported), expected);
 
     SupportedPidSet withoutFuel;
     ASSERT_TRUE(withoutFuel.addBitmap(0x00, {0xBE, 0x3F, 0xA8, 0x13}));
     const std::vector<ObdPid> pollable = pollablePids(withoutFuel);
-    EXPECT_EQ(pollable.size(), 6U);
-    EXPECT_EQ(pollable.back(), ObdPid::IntakeAirTemperature);
+    EXPECT_EQ(pollable.size(), 7U);
+    EXPECT_EQ(pollable.back(), ObdPid::MassAirFlow);
 }
 
 TEST(SupportedPidSetTest, WrongBitmapLengthOrBaseIsRefused) {

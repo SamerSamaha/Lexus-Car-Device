@@ -18,6 +18,7 @@ namespace lexus_head_unit {
 class VehicleDataViewModel : public QObject {
     Q_OBJECT
     Q_PROPERTY(QList<QObject*> tiles READ tiles CONSTANT)
+    Q_PROPERTY(QList<QObject*> tripTiles READ tripTiles CONSTANT)
     Q_PROPERTY(lexus_head_unit::SignalTileModel* vehicleSpeed READ vehicleSpeed CONSTANT)
     Q_PROPERTY(lexus_head_unit::SignalTileModel* engineRpm READ engineRpm CONSTANT)
     Q_PROPERTY(lexus_head_unit::ConnectionStatusModel* connection READ connection CONSTANT)
@@ -25,7 +26,10 @@ class VehicleDataViewModel : public QObject {
 public:
     explicit VehicleDataViewModel(QObject* parent = nullptr);
 
+    // The eight grid signals of REQ-004.
     [[nodiscard]] QList<QObject*> tiles() const;
+    // The eight derived signals of REQ-022, for the trip screen.
+    [[nodiscard]] QList<QObject*> tripTiles() const;
     [[nodiscard]] SignalTileModel* tile(SignalId signalId) const;
     [[nodiscard]] SignalTileModel* vehicleSpeed() const;
     [[nodiscard]] SignalTileModel* engineRpm() const;

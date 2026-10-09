@@ -105,6 +105,7 @@ void scriptHealthyAdapter(FakeByteTransport& transport) {
     transport.scriptReply("010F", "410F41\r\r>");
     transport.scriptReply("0142", "41423714\r\r>");
     transport.scriptReply("012F", "412FA0\r\r>");
+    transport.scriptReply("0110", "411003E8\r\r>");
 }
 
 class Elm327ObdSourceTest : public ::testing::Test {
@@ -141,8 +142,9 @@ TEST_F(Elm327ObdSourceTest, StartRunsTheSetupSequenceDiscoversPidsAndConnects) {
                                                        "0120",
                                                        "0140"};
     EXPECT_EQ(m_transport.writtenCommands(), expectedCommands);
-    EXPECT_EQ(source.pollList().size(), 8U);
+    EXPECT_EQ(source.pollList().size(), 9U);
     EXPECT_EQ(source.pollList().front(), ObdPid::VehicleSpeed);
+    EXPECT_EQ(source.pollList().back(), ObdPid::MassAirFlow);
     EXPECT_EQ(source.adapterIdentity(), "ELM327V1.5");
     EXPECT_EQ(source.adapterVoltageText(), "14.1V");
     EXPECT_EQ(source.protocolNumberText(), "A6");
@@ -176,17 +178,19 @@ TEST_F(Elm327ObdSourceTest, EachRunOncePollsTheNextPidAndEmitsADecodedSampleWith
     EXPECT_EQ(source.counters().requestsSent, 14U);
 }
 
-TEST_F(Elm327ObdSourceTest, PollListWrapsAroundAllEightPidsInOrder) {
+TEST_F(Elm327ObdSourceTest, PollListWrapsAroundAllNinePidsInOrder) {
     scriptHealthyAdapter(m_transport);
     Elm327ObdSource source(m_transport, m_clock, configuration());
     source.start(m_listener);
-    for (int cycle = 0; cycle < 9; ++cycle) {
+    for (int cycle = 0; cycle < 10; ++cycle) {
         m_clock.advanceMilliseconds(10);
         source.runOnce();
     }
-    ASSERT_EQ(m_listener.samples.size(), 9U);
+    ASSERT_EQ(m_listener.samples.size(), 10U);
     EXPECT_EQ(m_listener.samples.at(7).signalId, SignalId::FuelLevel);
-    EXPECT_EQ(m_listener.samples.at(8).signalId, SignalId::VehicleSpeed);
+    EXPECT_EQ(m_listener.samples.at(8).signalId, SignalId::MassAirFlow);
+    EXPECT_DOUBLE_EQ(m_listener.samples.at(8).value, 10.0);
+    EXPECT_EQ(m_listener.samples.at(9).signalId, SignalId::VehicleSpeed);
 }
 
 TEST_F(Elm327ObdSourceTest, OnlySupportedPidsArePolled) {
@@ -195,7 +199,7 @@ TEST_F(Elm327ObdSourceTest, OnlySupportedPidsArePolled) {
     m_transport.replaceReply("0120", "41208000A000\r\r>");
     Elm327ObdSource source(m_transport, m_clock, configuration());
     source.start(m_listener);
-    EXPECT_EQ(source.pollList().size(), 6U);
+    EXPECT_EQ(source.pollList().size(), 7U);
     EXPECT_FALSE(source.supportedPids().contains(0x2F));
     EXPECT_FALSE(source.supportedPids().contains(0x42));
     for (int cycle = 0; cycle < 12; ++cycle) {
@@ -318,7 +322,7 @@ TEST_F(Elm327ObdSourceTest, DiscoveryStopsAtTheFirstBitmapWithoutAChainBit) {
     source.start(m_listener);
     EXPECT_EQ(source.connectionState(), ConnectionState::Connected);
     EXPECT_FALSE(commandWasWritten(m_transport, "0120"));
-    EXPECT_EQ(source.pollList().size(), 6U);
+    EXPECT_EQ(source.pollList().size(), 7U);
 }
 
 TEST_F(Elm327ObdSourceTest, StopFromConnectedErrorAndConnectingDisconnectsAndClosesTheTransport) {

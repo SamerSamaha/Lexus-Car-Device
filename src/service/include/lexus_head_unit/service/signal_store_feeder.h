@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/derived_signal_engine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
@@ -29,6 +30,9 @@ public:
     [[nodiscard]] std::uint64_t transitionCount() const;
     [[nodiscard]] std::uint64_t acceptedSampleCount() const;
     [[nodiscard]] std::uint64_t rejectedSampleCount() const;
+    // Derived samples (DN-031) are counted apart, so the measured counts mean what they did.
+    [[nodiscard]] std::uint64_t derivedSampleCount() const;
+    [[nodiscard]] const DerivedSignalEngine& derivedSignalEngine() const;
 
     void setTransitionHook(TransitionHook hook);
     void setDiagnosticsHook(DiagnosticsHook hook);
@@ -39,6 +43,8 @@ private:
     std::uint64_t m_transitionCount = 0;
     std::uint64_t m_acceptedSampleCount = 0;
     std::uint64_t m_rejectedSampleCount = 0;
+    std::uint64_t m_derivedSampleCount = 0;
+    DerivedSignalEngine m_engine;
     TransitionHook m_transitionHook;
     DiagnosticsHook m_diagnosticsHook;
 };

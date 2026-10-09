@@ -1,10 +1,12 @@
 import QtQuick
 
-// Vehicle data: the status strip with a Home button and all eight signals as a 4 x 2 grid.
+// A 4 x 2 grid of signal tiles under the status strip with a Home button: the eight
+// vehicle-data signals by default, or the eight trip signals (DN-031).
 Item {
     id: screen
 
     required property var vehicleData
+    property var tiles: vehicleData.tiles
     signal homeRequested()
 
     readonly property int columns: 4
@@ -38,7 +40,7 @@ Item {
         readonly property int tileHeight: (height - (rows - 1) * rowSpacing) / rows
 
         Repeater {
-            model: screen.vehicleData.tiles
+            model: screen.tiles
 
             SignalTile {
                 required property int index
