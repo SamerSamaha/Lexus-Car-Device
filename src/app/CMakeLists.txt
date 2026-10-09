@@ -15,6 +15,8 @@ target_link_libraries(lexus_head_unit_source_wiring
         lexus_head_unit_can_source
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
+        lexus_head_unit_recording
+        lexus_head_unit_replay_source
         lexus_head_unit_service
     PRIVATE
         lexus_head_unit_build_settings

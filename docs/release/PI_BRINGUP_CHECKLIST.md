@@ -83,6 +83,8 @@ ls -l /dev/rfcomm0
 
 Results: not yet measured.
 
+Record the first parked session too (LHU-029): add `--record local_recordings/<date>_first_parked.rec` to the command of step 7; afterwards, on the Pi, `--source replay` with `replay.file` pointing at it must show the same values. The recording stays in `local_recordings/`; only a copy scrubbed with `python3 tools/scrub_recording.py <file> --output <copy>` may leave it.
+
 ### 3.4 Home screen on the panel (LHU-013)
 
 After a build on the Pi (3.3) and with the emulator or the adapter:

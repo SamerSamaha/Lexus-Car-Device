@@ -1,10 +1,13 @@
 #include "source_factory.h"
 
+#include "lexus_head_unit/hardware/byte_transport.h"
 #include "lexus_head_unit/hardware/dbc_database.h"
 #include "lexus_head_unit/hardware/elm327_obd_source.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/hardware/file_descriptor_byte_transport.h"
+#include "lexus_head_unit/hardware/recording.h"
+#include "lexus_head_unit/hardware/replay_source.h"
 #include "lexus_head_unit/hardware/socket_can_dbc_source.h"
 #include "lexus_head_unit/hardware/socket_can_frame_reader.h"
 #include "lexus_head_unit/service/clock.h"
@@ -79,8 +82,24 @@ BuiltSource buildSource(const KeyValueConfiguration& configuration,
             Elm327SourceConfiguration::fromConfiguration(configuration);
         auto transport =
             std::make_unique<FileDescriptorByteTransport>(elm327Configuration.devicePath);
-        built.source = std::make_unique<Elm327ObdSource>(*transport, clock, elm327Configuration);
+        ByteTransport* used = transport.get();
+        const std::string recordPath = configuration.stringValue("record.file", "");
+        if (!recordPath.empty()) {
+            built.recorder =
+                std::make_unique<RecordingByteTransport>(*transport, clock, recordPath);
+            used = built.recorder.get();
+        }
+        built.source = std::make_unique<Elm327ObdSource>(*used, clock, elm327Configuration);
         built.transport = std::move(transport);
+        return built;
+    }
+    if (built.kind == "replay") {
+        const ReplayConfiguration replayConfiguration =
+            ReplayConfiguration::fromConfiguration(configuration);
+        built.source = std::make_unique<ReplaySource>(
+            readRecording(replayConfiguration.filePath),
+            Elm327SourceConfiguration::fromConfiguration(configuration),
+            replayConfiguration.timing);
         return built;
     }
     if (built.kind == "can") {

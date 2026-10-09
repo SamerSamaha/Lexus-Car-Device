@@ -148,8 +148,13 @@ int main(int argumentCount, char** argumentValues) {
         QStringLiteral("address"));
     const QCommandLineOption fullscreenOption(QStringLiteral("fullscreen"),
                                               QStringLiteral("show the window full screen"));
+    const QCommandLineOption recordOption(
+        QStringLiteral("record"),
+        QStringLiteral("record the ELM327 bytes to this file (keep it in local_recordings/)"),
+        QStringLiteral("path"));
     parser.addOption(configOption);
     parser.addOption(sourceOption);
+    parser.addOption(recordOption);
     parser.addOption(busAddressOption);
     parser.addOption(fullscreenOption);
     parser.process(application);
@@ -159,6 +164,9 @@ int main(int argumentCount, char** argumentValues) {
     if (!configuration.loadFromFile(configurationPath)) {
         std::cerr << "lexus-head-unit: configuration file " << configurationPath
                   << " not found; using defaults\n";
+    }
+    if (parser.isSet(recordOption)) {
+        configuration.setValue("record.file", parser.value(recordOption).toStdString());
     }
 
     VehicleDataViewModel viewModel;
