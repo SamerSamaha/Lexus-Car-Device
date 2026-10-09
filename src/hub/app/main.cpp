@@ -1,6 +1,7 @@
 #include "lexus_head_unit/hmi/connection_status_model.h"
 #include "lexus_head_unit/hub/app_process_manager.h"
 #include "lexus_head_unit/hub/app_registry.h"
+#include "lexus_head_unit/hub/car_status_models.h"
 #include "lexus_head_unit/hub/command_line.h"
 #include "lexus_head_unit/hub/hub_control_server.h"
 #include "lexus_head_unit/hub/hub_view_model.h"
@@ -47,6 +48,8 @@ using lexus_head_unit::SteadyClock;
 
 constexpr int pollIntervalMilliseconds = 100;
 constexpr std::int64_t defaultPowerPollMilliseconds = 2000;
+constexpr int countdownTickMilliseconds = 250;
+constexpr int addressRefreshMilliseconds = 10000;
 constexpr int sendTimeoutMilliseconds = 3000;
 constexpr std::int64_t shutdownWaitMilliseconds = 3000;
 constexpr int exitCodeCommandFailed = 1;
@@ -183,6 +186,27 @@ int runHub(int argumentCount, char** argumentValues) {
         commandFrom(configuration, "hub.shutdown_command", "systemctl poweroff"),
         lexus_head_unit::ShutdownController::detachedProcessExecutor());
 
+    // Car mode (DN-043): a clean shutdown once the car has been switched off, and the address
+    // for SSH from a phone. hub.ignition_off_shutdown_ms = 0 (the desk registry) turns it off.
+    lexus_head_unit::IgnitionOffShutdownSettings ignitionSettings;
+    ignitionSettings.quietMilliseconds = configuration.integerValue(
+        "hub.ignition_off_shutdown_ms", ignitionSettings.quietMilliseconds);
+    ignitionSettings.countdownMilliseconds = configuration.integerValue(
+        "hub.shutdown_countdown_ms", ignitionSettings.countdownMilliseconds);
+    lexus_head_unit::IgnitionOffShutdownModel ignitionShutdown(
+        ignitionSettings,
+        [&clock]() {
+            return clock.nowMilliseconds();
+        },
+        shutdown);
+    QObject::connect(&vehicleData,
+                     &lexus_head_unit::VehicleDataClient::linkDetailChanged,
+                     &ignitionShutdown,
+                     &lexus_head_unit::IgnitionOffShutdownModel::applyLinkDetail);
+    lexus_head_unit::NetworkAddressModel network(
+        qEnvironmentVariable("USER", QStringLiteral("lexus")),
+        lexus_head_unit::NetworkAddressModel::interfaceAddresses());
+
     // Declared before the engine so that it outlives the window whose render thread uses it.
     lexus_head_unit::FirstFrameMarker firstFrame(parser.value(firstFrameOption).toStdString());
 
@@ -191,6 +215,9 @@ int runHub(int argumentCount, char** argumentValues) {
     engine.rootContext()->setContextProperty(QStringLiteral("connectionContext"), &connection);
     engine.rootContext()->setContextProperty(QStringLiteral("powerContext"), &power);
     engine.rootContext()->setContextProperty(QStringLiteral("shutdownContext"), &shutdown);
+    engine.rootContext()->setContextProperty(QStringLiteral("ignitionShutdownContext"),
+                                             &ignitionShutdown);
+    engine.rootContext()->setContextProperty(QStringLiteral("networkContext"), &network);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
@@ -224,6 +251,8 @@ int runHub(int argumentCount, char** argumentValues) {
     }
 
     hub.startPolling(pollIntervalMilliseconds);
+    ignitionShutdown.startTicking(countdownTickMilliseconds);
+    network.startRefreshing(addressRefreshMilliseconds);
     power.startPolling(static_cast<int>(
         configuration.integerValue("hub.power_poll_ms", defaultPowerPollMilliseconds)));
     std::cerr << "lexus-hub: " << registry.entries().size() << " apps, control socket "

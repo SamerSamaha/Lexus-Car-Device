@@ -200,6 +200,10 @@ int main(int argumentCount, char** argumentValues) {
         QStringLiteral("path"));
     parser.addOption(fullscreenOption);
     parser.addOption(latencyLogOption);
+    const QCommandLineOption hubButtonOption(
+        QStringLiteral("hub-button"),
+        QStringLiteral("show a Hub button on Home that quits back to the hub (car mode, DN-043)"));
+    parser.addOption(hubButtonOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -237,6 +241,8 @@ int main(int argumentCount, char** argumentValues) {
     engine.rootContext()->setContextProperty(QStringLiteral("vehicleDataContext"), &viewModel);
     engine.rootContext()->setContextProperty(QStringLiteral("diagnosticsContext"), &diagnostics);
     engine.rootContext()->setContextProperty(QStringLiteral("powerContext"), &power);
+    engine.rootContext()->setContextProperty(QStringLiteral("hubButtonShown"),
+                                             parser.isSet(hubButtonOption));
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

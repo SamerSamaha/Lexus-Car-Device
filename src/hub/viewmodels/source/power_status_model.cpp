@@ -153,6 +153,10 @@ void ShutdownController::press() {
         emit changed();
         return;
     }
+    shutdownNow(QStringLiteral("Shutting down"));
+}
+
+void ShutdownController::shutdownNow(const QString& reason) {
     m_armTimer.stop();
     m_armed = false;
     if (m_command.isEmpty()) {
@@ -160,8 +164,7 @@ void ShutdownController::press() {
     } else {
         ++m_executions;
         const bool started = m_executor(m_command.front(), m_command.mid(1));
-        m_lastResultText = started ? QStringLiteral("Shutting down")
-                                   : QStringLiteral("Shutdown command could not start");
+        m_lastResultText = started ? reason : QStringLiteral("Shutdown command could not start");
     }
     emit changed();
 }

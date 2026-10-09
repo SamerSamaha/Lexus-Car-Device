@@ -74,3 +74,4 @@ In this order:
 | [DN-030](DN-030-diagnostics-screen.md) Diagnostics screen: trouble codes and vehicle information | LHU-030 | Implemented |
 | [DN-031](DN-031-trip-analytics.md) Trip analytics as derived signals | LHU-031 | Implemented |
 | [DN-042](DN-042-link-detail.md) Link detail for the car: searching, no vehicle, live, link lost | LHU-042 | Implemented |
+| [DN-043](DN-043-hub-in-the-car.md) Hub in the car: shutdown after the ignition goes off, address line, way back (light) | LHU-043 | Implemented |

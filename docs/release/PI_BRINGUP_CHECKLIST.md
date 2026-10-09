@@ -27,6 +27,7 @@ Rules:
 | Trouble codes and vehicle identification read from the car | LHU-030 | Decoders, source, D-Bus members and screen built and tested at the desk against the emulator (LHU-030); step 3.10 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
 | The four link situations read from the driver's seat | LHU-042 | Detail, D-Bus members and strip headline built and tested at the desk against the emulator (LHU-042); step 3.13 not yet done |
+| Shutdown after the ignition goes off, address line, Hub button | LHU-043 | Policy, countdown, address and button built and tested at the desk (LHU-043); step 3.14 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
@@ -245,6 +246,21 @@ Parked, the unit running in car mode (the vehicle-data service as a user unit, t
 6. Copy the session log of the run (it has a `detail` row for every change) next to the results.
 
 Record in `docs/test/results/<date>_link_detail_in_car.md`: each step's text, colour, time and readability.
+
+Results: not yet done.
+
+### 3.14 Shutdown after the ignition goes off (LHU-043)
+
+In the car, parked, car mode installed (LHU-044), the hub on the screen and the strip saying "Live".
+
+1. Switch the ignition off and leave the adapter in. Expect "Adapter found, no vehicle" (or "Link lost, retrying" if the adapter sleeps), then after 5 minutes a banner "Vehicle off: shutting down in 60 s" counting down, with Cancel.
+2. Tap Cancel once: the banner goes away and stays away while the car is off. Switch the ignition on until "Live", then off again: the countdown returns after 5 minutes.
+3. This time let it run out. Record the time from the banner reaching 0 to the screen going dark and the green LED of the Pi stopping.
+4. Unplug the power bank, plug it in again (or press the Pi's power button), and after the boot run `journalctl -b -1 -p err --no-pager | grep -iE "ext4|fsck|mmc"` and `dmesg | grep -iE "ext4-fs error|fsck"`: both print nothing.
+5. On the hub, read the address line under the grid with the phone on the hotspot: it shows `SSH lexus@<address>`; `ssh lexus@<address>` from the phone works.
+6. Open Vehicle data, tap Hub on its Home screen: the hub is in front again within 1 s.
+
+Record in `docs/test/results/<date>_ignition_off_shutdown.md`: each step, the times, the two log outputs.
 
 Results: not yet done.
 
