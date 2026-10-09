@@ -60,4 +60,5 @@ In this order:
 | [DN-008](DN-008-vehicle-data-source.md) VehicleDataSource interface and FakeSource | LHU-008 | Implemented |
 | [DN-009](DN-009-obd-pid-decoder.md) OBD PID decoder | LHU-009 | Implemented |
 | [DN-010](DN-010-elm327-protocol.md) ELM327 response parser and command allowlist | LHU-010 | Implemented |
-| [DN-011](DN-011-elm327-emulator.md) ELM327 emulator with fault injection | LHU-011 | Approved |
+| [DN-011](DN-011-elm327-emulator.md) ELM327 emulator with fault injection | LHU-011 | Implemented |
+| [DN-012](DN-012-elm327-obd-source.md) Elm327ObdSource | LHU-012 | Approved |

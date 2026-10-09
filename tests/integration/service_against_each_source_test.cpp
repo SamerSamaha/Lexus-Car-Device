@@ -1,5 +1,6 @@
 // Verifies: REQ-002
 
+#include "elm327_source_harness.h"
 #include "fake_source_harness.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/manual_clock.h"
@@ -28,6 +29,7 @@ using lexus_head_unit::SignalStoreFeeder;
 using lexus_head_unit::StalenessMonitor;
 using lexus_head_unit::Unit;
 using lexus_head_unit::VehicleDataSource;
+using lexus_head_unit::testing::Elm327SourceHarness;
 using lexus_head_unit::testing::FakeSourceHarness;
 using lexus_head_unit::testing::SourceHarness;
 
@@ -69,13 +71,16 @@ TEST_P(ServiceAgainstEachSourceTest, ProducedSampleIsValidInTheStoreWithItsDefin
     m_harness->produceSample(SignalId::VehicleSpeed, 63.0);
     m_harness->drain(*m_source);
 
+    // The fake delivers the scripted value; a real source delivers its own, so the suite
+    // checks status, unit and timestamp, and the fake's exact value is checked in its own test.
     const auto& stored = m_store.latest(SignalId::VehicleSpeed);
     EXPECT_EQ(stored.status, SignalStatus::Valid);
-    EXPECT_DOUBLE_EQ(stored.value, 63.0);
     EXPECT_EQ(stored.unit, Unit::KilometresPerHour);
     EXPECT_GE(stored.timestampMilliseconds, 100000);
-    EXPECT_EQ(m_feeder.acceptedSampleCount(), 1U);
-    EXPECT_EQ(m_source->counters().samplesEmitted, 1U);
+    EXPECT_GE(m_feeder.acceptedSampleCount(), 1U);
+    EXPECT_GE(m_source->counters().samplesEmitted, 1U);
+    EXPECT_EQ(m_source->counters().samplesEmitted,
+              m_feeder.acceptedSampleCount() + m_feeder.rejectedSampleCount());
 }
 
 TEST_P(ServiceAgainstEachSourceTest, LinkLossReachesErrorAndSignalsGoStaleThenRecover) {
@@ -89,7 +94,7 @@ TEST_P(ServiceAgainstEachSourceTest, LinkLossReachesErrorAndSignalsGoStaleThenRe
     EXPECT_EQ(m_feeder.connectionState(), ConnectionState::Error);
 
     m_clock.advanceMilliseconds(1100);
-    EXPECT_EQ(m_monitor.check(), 1U);
+    EXPECT_GE(m_monitor.check(), 1U);
     EXPECT_EQ(m_store.latest(SignalId::EngineRpm).status, SignalStatus::Stale);
 
     m_harness->restoreLink();
@@ -97,7 +102,7 @@ TEST_P(ServiceAgainstEachSourceTest, LinkLossReachesErrorAndSignalsGoStaleThenRe
     m_harness->drain(*m_source);
     EXPECT_EQ(m_feeder.connectionState(), ConnectionState::Connected);
     EXPECT_EQ(m_store.latest(SignalId::EngineRpm).status, SignalStatus::Valid);
-    EXPECT_DOUBLE_EQ(m_store.latest(SignalId::EngineRpm).value, 820.0);
+    EXPECT_GT(m_store.latest(SignalId::EngineRpm).timestampMilliseconds, 100000);
 }
 
 TEST_P(ServiceAgainstEachSourceTest, CountersAgreeBetweenSourceFeederAndStore) {
@@ -125,8 +130,11 @@ std::string harnessName(const ::testing::TestParamInfo<HarnessFactory>& info) {
 INSTANTIATE_TEST_SUITE_P(EverySource,
                          ServiceAgainstEachSourceTest,
                          ::testing::Values(HarnessFactory([]() {
-                             return std::make_unique<FakeSourceHarness>();
-                         })),
+                                               return std::make_unique<FakeSourceHarness>();
+                                           }),
+                                           HarnessFactory([]() {
+                                               return std::make_unique<Elm327SourceHarness>();
+                                           })),
                          harnessName);
 
 } // namespace

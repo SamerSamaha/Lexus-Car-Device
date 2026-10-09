@@ -5,7 +5,7 @@
 | Ticket | LHU-011 |
 | Requirements | none directly; the fixture for REQ-004, REQ-008 and REQ-010 |
 | Author | implementer (build-out form, D-049) |
-| Status | Approved |
+| Status | Implemented |
 | Form | Light (one page: problem, public interface, failure cases, test plan) |
 | Draft written | 2026-10-08, about 15 minutes |
 | Design review | after merge, by the repository owner (D-049) |
@@ -72,4 +72,4 @@ Adapter behaviour: `ATZ` resets (echo on, spaces on, linefeeds on), `ATE0`, `ATL
 
 ## Design vs. implementation
 
-Added after the code pull request is merged.
+Merged as PR #53 (6a5cee4). No deviations. The served path got its automated test with LHU-012: the integration suite, the discovery test and the two scenario files all spawn the emulator through `tests/integration/emulator_process.cpp`. Review finding carried: `silence` drops requests rather than queuing them, which the docstring now states. Status: Implemented.
