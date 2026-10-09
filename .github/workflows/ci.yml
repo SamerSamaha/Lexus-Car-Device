@@ -59,6 +59,9 @@ jobs:
       - name: The HMI reaches past the view models nowhere (REQ-011)
         run: python3 tools/check_hmi_includes.py
 
+      - name: The CAN code has no transmit call (REQ-001)
+        run: python3 tools/check_can_read_only.py
+
       - name: Build (debug with sanitizers)
         run: cmake --build --preset sanitizers
 

@@ -68,3 +68,4 @@ In this order:
 | [DN-021](DN-021-app-hub.md) App hub launcher | LHU-021 | Implemented |
 | [DN-022](DN-022-vehicle-data-service.md) Vehicle-data service over D-Bus | LHU-022 | Implemented |
 | [DN-027](DN-027-dbc-decoder.md) DBC decoder with an independent oracle | LHU-027 | Implemented |
+| [DN-028](DN-028-socketcan-source.md) SocketCAN source (light) | LHU-028 | Implemented |

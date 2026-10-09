@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lexus_head_unit/hardware/byte_transport.h"
+#include "lexus_head_unit/hardware/can_frame_reader.h"
 #include "lexus_head_unit/hardware/fake_source.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
@@ -16,6 +17,7 @@ namespace lexus_head_unit::app {
 // The one place that knows every concrete source (architecture section 4.3).
 struct BuiltSource {
     std::unique_ptr<ByteTransport> transport;
+    std::unique_ptr<CanFrameReader> canReader;
     std::unique_ptr<VehicleDataSource> source;
     FakeSource* fakeSource = nullptr;
     std::string kind;
@@ -25,7 +27,7 @@ struct BuiltSource {
 // Per-signal staleness overrides: staleness.<snake_case_name>_ms, else staleness.default_ms.
 void applyStalenessConfiguration(const KeyValueConfiguration& configuration, SignalStore& store);
 
-// Builds the source named by source.kind ("elm327" or "fake"); an unknown kind gives "fake".
+// Builds the source named by source.kind ("elm327", "can" or "fake"); an unknown kind gives "fake".
 BuiltSource buildSource(const KeyValueConfiguration& configuration,
                         const std::string& kindOverride,
                         const Clock& clock);

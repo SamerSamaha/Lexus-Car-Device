@@ -10,10 +10,12 @@ target_include_directories(lexus_head_unit_test_support
 target_compile_definitions(lexus_head_unit_test_support
     PUBLIC
         LEXUS_HEAD_UNIT_REPOSITORY_ROOT="${CMAKE_SOURCE_DIR}"
+        LEXUS_HEAD_UNIT_DBC_PATH="${CMAKE_SOURCE_DIR}/dbc/simulated_vehicle.dbc"
 )
 
 target_link_libraries(lexus_head_unit_test_support
     PUBLIC
+        lexus_head_unit_can_source
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_service

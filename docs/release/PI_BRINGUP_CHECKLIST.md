@@ -21,7 +21,7 @@ Rules:
 | Web apps, protected audio, browser memory | LHU-023 | Not yet done |
 | Bluetooth audio to the car stereo | LHU-024 | Not yet done |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Not yet done |
-| vcan tests | LHU-028 | Not yet done |
+| vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Not yet done |
 | On-car procedure and drives | LHU-034 | Not yet done |
 
@@ -134,6 +134,21 @@ systemctl --user enable lexus-hub && systemctl --user is-active graphical-sessio
 ```
 
 Record: the `GetConnection` reply; whether `graphical-session.target` is active and `systemctl --user show-environment` lists `WAYLAND_DISPLAY` (A13); after a reboot, whether the hub appears by itself. Fallback if not: remove the hub unit and add `lexus-hub --registry /home/<user>/Lexus-Car-Device/deploy/hub.conf --fullscreen &` to `~/.config/labwc/autostart`. Then tap "Vehicle data" and confirm the values move (the app now reads the service), `systemctl --user restart lexus-vehicle-data-service` turns them Stale and back within a few seconds, and the D-Bus hop (part of LHU-032) is measured with the adapter connected.
+
+Results: not yet measured.
+
+### 3.7 CAN source on vcan0 (LHU-028)
+
+After a build on the Pi (3.3):
+
+```sh
+sudo deploy/setup_vcan.sh                       # expected: vcan0 listed, state UNKNOWN or UP
+ctest --preset release -L vcan --output-on-failure   # expected: 2 tests passed, none skipped
+python3 tools/can_traffic_generator.py --interface vcan0 --rate-hz 50 --duration-seconds 120 &
+~/build/lexus-car-device/release/src/app/lexus-head-unit --source can --config deploy/head_unit.conf --fullscreen
+```
+
+Record in `docs/test/results/<date>_vcan_on_pi.md`: the ctest summary; whether the vehicle-data screen shows the generator's moving values and Connected; whether stopping the generator turns the strip to Error within about 2 s and restarting it reconnects (backoff 1, 2, 4, 8, 10 s); `ip -s link show vcan0` packet counts before and after.
 
 Results: not yet measured.
 

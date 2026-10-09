@@ -12,6 +12,7 @@ target_include_directories(lexus_head_unit_source_wiring
 
 target_link_libraries(lexus_head_unit_source_wiring
     PUBLIC
+        lexus_head_unit_can_source
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_service

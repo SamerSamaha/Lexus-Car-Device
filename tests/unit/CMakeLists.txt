@@ -1,7 +1,7 @@
 add_executable(lexus_head_unit_unit_tests
     can/dbc_decoder_test.cpp
+    can/socket_can_dbc_source_test.cpp
     elm327/elm327_obd_source_test.cpp
-    elm327/reconnect_backoff_test.cpp
     hardware/fake_byte_transport_test.cpp
     hardware/file_descriptor_byte_transport_test.cpp
     hardware/fake_source_test.cpp
@@ -15,6 +15,7 @@ add_executable(lexus_head_unit_unit_tests
     obd/supported_pid_set_test.cpp
     service/connection_state_machine_test.cpp
     service/key_value_configuration_test.cpp
+    service/reconnect_backoff_test.cpp
     service/service_library_smoke_test.cpp
     service/signal_sample_test.cpp
     service/signal_store_feeder_test.cpp
@@ -28,6 +29,7 @@ target_link_libraries(lexus_head_unit_unit_tests
     PRIVATE
         lexus_head_unit_service
         lexus_head_unit_can
+        lexus_head_unit_can_source
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_hub_core
@@ -35,6 +37,11 @@ target_link_libraries(lexus_head_unit_unit_tests
         lexus_head_unit_transport
         lexus_head_unit_build_settings
         GTest::gtest_main
+)
+
+target_include_directories(lexus_head_unit_unit_tests
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/tests/integration
 )
 
 target_compile_definitions(lexus_head_unit_unit_tests
