@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
@@ -74,6 +75,12 @@ void VehicleDataClient::start() {
                          QStringLiteral("DiagnosticsChanged"),
                          this,
                          SLOT(onDiagnosticsChanged()));
+    m_connection.connect(dbus_names::serviceName(),
+                         dbus_names::objectPath(),
+                         dbus_names::interfaceName(),
+                         QStringLiteral("LinkDetailChanged"),
+                         this,
+                         SLOT(onLinkDetailChanged(uint)));
     fetchState();
     fetchDiagnostics();
 }
@@ -126,6 +133,39 @@ void VehicleDataClient::fetchState() {
             &QDBusPendingCallWatcher::finished,
             this,
             &VehicleDataClient::onConnectionReply);
+    auto* detailWatcher = new QDBusPendingCallWatcher(
+        m_connection.asyncCall(methodCall(QStringLiteral("GetLinkDetail"))), this);
+    connect(detailWatcher,
+            &QDBusPendingCallWatcher::finished,
+            this,
+            &VehicleDataClient::onLinkDetailReply);
+}
+
+void VehicleDataClient::onLinkDetailReply(QDBusPendingCallWatcher* watcher) {
+    const QDBusPendingReply<uint> reply = *watcher;
+    watcher->deleteLater();
+    if (reply.isError()) {
+        return;
+    }
+    onLinkDetailChanged(reply.value());
+}
+
+void VehicleDataClient::onLinkDetailChanged(uint detail) {
+    const std::optional<LinkDetail> known = linkDetailFromNumber(detail);
+    if (!known.has_value()) {
+        ++m_malformedMessages;
+        return;
+    }
+    applyLinkDetail(*known);
+}
+
+void VehicleDataClient::applyLinkDetail(LinkDetail detail) {
+    m_linkDetail = detail;
+    emit linkDetailChanged(detail);
+}
+
+LinkDetail VehicleDataClient::linkDetail() const {
+    return m_linkDetail;
 }
 
 void VehicleDataClient::onSamplesReply(QDBusPendingCallWatcher* watcher) {
@@ -224,6 +264,9 @@ void VehicleDataClient::onServiceUnregistered() {
         lost.to = ConnectionState::Error;
         lost.timestampMilliseconds = SteadyClock().nowMilliseconds();
         applyTransition(lost);
+    }
+    if (m_linkDetail != LinkDetail::Idle) {
+        applyLinkDetail(LinkDetail::LinkLostRetrying);
     }
 }
 

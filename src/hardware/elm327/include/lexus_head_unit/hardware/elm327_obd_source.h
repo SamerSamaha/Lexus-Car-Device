@@ -7,6 +7,7 @@
 #include "lexus_head_unit/hardware/supported_pid_set.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/reconnect_backoff.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
@@ -34,6 +35,7 @@ public:
     [[nodiscard]] SourceCounters counters() const override;
     [[nodiscard]] std::int64_t idleHintMilliseconds() const override;
     void requestDiagnostics() override;
+    [[nodiscard]] LinkDetail linkDetail() const override;
 
     [[nodiscard]] const SupportedPidSet& supportedPids() const;
     [[nodiscard]] const std::vector<ObdPid>& pollList() const;
@@ -57,6 +59,9 @@ private:
     void handleDataReply(const Elm327Reply& reply, ObdPid pid);
     void noteAdapterReply();
     void linkLost();
+    void vehicleWentQuiet();
+    // The detail when no adapter answered: searching before the first live data, else retrying.
+    [[nodiscard]] LinkDetail adapterMissingDetail() const;
     void scheduleRetry();
     void raise(ConnectionTrigger trigger);
 
@@ -71,6 +76,9 @@ private:
     std::size_t m_pollIndex = 0;
     std::int64_t m_lastAdapterReplyAtMilliseconds = 0;
     std::int64_t m_lastRequestAtMilliseconds = 0;
+    std::int64_t m_lastDataReplyAtMilliseconds = 0;
+    LinkDetail m_linkDetail = LinkDetail::Idle;
+    bool m_hasBeenLive = false;
     std::int64_t m_nextAttemptAtMilliseconds = 0;
     std::string m_adapterIdentity;
     std::string m_adapterVoltageText;

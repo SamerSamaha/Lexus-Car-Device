@@ -147,6 +147,10 @@ std::unique_ptr<VehicleDataClient> startClient(const QString& busAddress,
                      &viewModel,
                      &VehicleDataViewModel::onConnectionChanged);
     QObject::connect(client.get(),
+                     &VehicleDataClient::linkDetailChanged,
+                     &viewModel,
+                     &VehicleDataViewModel::onLinkDetailChanged);
+    QObject::connect(client.get(),
                      &VehicleDataClient::diagnosticsArrived,
                      &diagnostics,
                      &lexus_head_unit::DiagnosticsViewModel::onDiagnostics);

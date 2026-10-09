@@ -1,7 +1,7 @@
 import QtQuick
 
-// The hub's status strip (DN-021, DN-025): the vehicle connection from the vehicle-data
-// service, the hub's own state (shutdown prompt, the app in front, the last exit, a registry
+// The hub's status strip (DN-021, DN-025, DN-042): the link detail in large text and the
+// vehicle connection from the vehicle-data service, the hub's own state (shutdown prompt, the app in front, the last exit, a registry
 // error), the firmware power flags, and the shutdown button (a 10 mm touch target).
 // connection, power and shutdown may be null; their parts are then hidden.
 Rectangle {
@@ -37,32 +37,33 @@ Rectangle {
     }
 
     Text {
-        id: connectionText
-        objectName: "connectionText"
-        visible: strip.connection !== null
-        anchors.left: connectionDot.right
+        id: connectionDetailText
+        objectName: "connectionDetailText"
+        anchors.left: strip.connection === null ? parent.left : connectionDot.right
         anchors.leftMargin: Sizes.gutter
         anchors.verticalCenter: parent.verticalCenter
-        text: strip.connection === null ? "" : strip.connection.stateText
-        color: Sizes.liveValue
-        font.pixelSize: Sizes.labelPixelSize
+        text: strip.connection === null ? "Lexus Head Unit" : strip.connection.detailText
+        color: strip.connection === null ? Sizes.liveValue
+             : Sizes.detailColour(strip.connection.detailName)
+        font.pixelSize: Sizes.detailPixelSize
         font.bold: true
     }
 
     Text {
-        id: titleText
-        anchors.left: strip.connection === null ? parent.left : connectionText.right
+        id: connectionText
+        objectName: "connectionText"
+        visible: strip.connection !== null
+        anchors.left: connectionDetailText.right
         anchors.leftMargin: Sizes.gutter * 2
         anchors.verticalCenter: parent.verticalCenter
-        text: "Lexus Head Unit"
-        color: Sizes.liveValue
-        font.pixelSize: Sizes.unitPixelSize
-        font.bold: true
+        text: strip.connection === null ? "" : strip.connection.stateText
+        color: Sizes.label
+        font.pixelSize: Sizes.labelPixelSize
     }
 
     Text {
         objectName: "hubStatusText"
-        anchors.left: titleText.right
+        anchors.left: connectionText.visible ? connectionText.right : connectionDetailText.right
         anchors.right: powerDot.left
         anchors.leftMargin: Sizes.gutter * 2
         anchors.rightMargin: Sizes.gutter * 2

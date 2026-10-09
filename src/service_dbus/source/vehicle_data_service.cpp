@@ -1,6 +1,7 @@
 #include "lexus_head_unit/service_dbus/vehicle_data_service.h"
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
 #include "lexus_head_unit/service_dbus/dbus_names.h"
@@ -14,6 +15,7 @@
 #include <QString>
 
 #include <functional>
+#include <optional>
 #include <utility>
 
 // Qt declares its macros and types in internal headers; the public ones are included.
@@ -41,6 +43,11 @@ VehicleDataService::VehicleDataService(QObject* parent) : QObject(parent) {
             &VehicleDataServiceInbox::diagnosticsQueued,
             this,
             &VehicleDataService::applyDiagnostics,
+            Qt::QueuedConnection);
+    connect(&m_inbox,
+            &VehicleDataServiceInbox::linkDetailQueued,
+            this,
+            &VehicleDataService::applyLinkDetail,
             Qt::QueuedConnection);
 }
 
@@ -106,6 +113,23 @@ QList<DBusSample> VehicleDataService::GetSamples() const {
 
 void VehicleDataService::publishDiagnostics(const DiagnosticsReport& report) {
     emit m_inbox.diagnosticsQueued(report);
+}
+
+void VehicleDataService::publishLinkDetail(LinkDetail detail) {
+    emit m_inbox.linkDetailQueued(static_cast<uint>(detail));
+}
+
+void VehicleDataService::applyLinkDetail(uint detail) {
+    const std::optional<LinkDetail> known = linkDetailFromNumber(detail);
+    if (!known.has_value() || *known == m_linkDetail) {
+        return;
+    }
+    m_linkDetail = *known;
+    emit LinkDetailChanged(detail);
+}
+
+uint VehicleDataService::GetLinkDetail() const {
+    return static_cast<uint>(m_linkDetail);
 }
 
 void VehicleDataService::setDiagnosticsRequester(std::function<void()> requester) {

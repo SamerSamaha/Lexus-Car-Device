@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -64,6 +65,15 @@ void FakeVehicleDataViewModel::simulateConnection(const QString& stateName,
     transition.to = stateNamed(stateName);
     transition.trigger = triggerNamed(triggerName);
     onConnectionChanged(transition);
+}
+
+void FakeVehicleDataViewModel::simulateLinkDetail(const QString& detailName) {
+    for (const LinkDetail detail : allLinkDetails) {
+        if (detailName == QString::fromUtf8(toString(detail).data())) {
+            onLinkDetailChanged(detail);
+            return;
+        }
+    }
 }
 
 } // namespace lexus_head_unit::testing

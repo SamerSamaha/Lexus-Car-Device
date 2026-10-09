@@ -2,6 +2,7 @@
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/session_log.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
@@ -158,9 +159,19 @@ int main(int argumentCount, char** argumentValues) {
     feeder.setDiagnosticsHook([&service](const lexus_head_unit::DiagnosticsReport& report) {
         service.publishDiagnostics(report);
     });
-    loop.setPerCycleCallback([&demo, &clock, &sessionLog, &source]() {
+    // The link detail (DN-042) is read after each cycle; only a change is published.
+    lexus_head_unit::LinkDetail publishedDetail = lexus_head_unit::LinkDetail::Idle;
+    loop.setPerCycleCallback([&demo, &clock, &sessionLog, &source, &service, &publishedDetail]() {
         if (demo) {
             demo->scriptNextCycle(clock.nowMilliseconds());
+        }
+        const lexus_head_unit::LinkDetail detail = source.linkDetail();
+        if (detail != publishedDetail) {
+            publishedDetail = detail;
+            service.publishLinkDetail(detail);
+            if (sessionLog) {
+                sessionLog->recordLinkDetail(clock.nowMilliseconds(), detail);
+            }
         }
         if (sessionLog) {
             sessionLog->recordCountersIfDue(

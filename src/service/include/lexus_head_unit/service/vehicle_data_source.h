@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
 #include <cstdint>
@@ -52,6 +53,9 @@ public:
     // runOnce() while connected (DN-030). Safe from any thread. Default: sources that cannot
     // read diagnostics ignore it.
     virtual void requestDiagnostics();
+    // What the driver should be told about the link (DN-042). Default: the mapping of
+    // linkDetailForState() for the current state.
+    [[nodiscard]] virtual LinkDetail linkDetail() const;
 };
 
 } // namespace lexus_head_unit

@@ -4,6 +4,7 @@ add_library(lexus_head_unit_service STATIC
     source/connection_state_machine.cpp
     source/derived_signal_engine.cpp
     source/library_version.cpp
+    source/link_detail.cpp
     source/manual_clock.cpp
     source/power_status.cpp
     source/reconnect_backoff.cpp

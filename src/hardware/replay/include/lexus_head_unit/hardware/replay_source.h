@@ -46,6 +46,7 @@ public:
     [[nodiscard]] ConnectionState connectionState() const override;
     [[nodiscard]] SourceCounters counters() const override;
     [[nodiscard]] std::int64_t idleHintMilliseconds() const override;
+    [[nodiscard]] LinkDetail linkDetail() const override;
 
     // True once the recording is used up and the source has seen the end.
     [[nodiscard]] bool finished() const;

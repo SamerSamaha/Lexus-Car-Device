@@ -18,6 +18,7 @@ add_executable(lexus_head_unit_unit_tests
     service/connection_state_machine_test.cpp
     service/derived_signal_engine_test.cpp
     service/key_value_configuration_test.cpp
+    service/link_detail_test.cpp
     service/power_status_test.cpp
     service/reconnect_backoff_test.cpp
     service/service_library_smoke_test.cpp

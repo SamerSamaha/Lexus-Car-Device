@@ -72,5 +72,11 @@ void VehicleDataViewModel::onConnectionChanged(lexus_head_unit::ConnectionTransi
     m_connection->applyTransition(transition);
 }
 
+// Not const for the same reason as onSample.
+// NOLINTNEXTLINE(readability-make-member-function-const)
+void VehicleDataViewModel::onLinkDetailChanged(lexus_head_unit::LinkDetail detail) {
+    m_connection->applyLinkDetail(detail);
+}
+
 } // namespace lexus_head_unit
 // NOLINTEND(misc-include-cleaner)

@@ -426,6 +426,18 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-035 | Release v1.0.0: documentation, demo video, license (OQ-25) | 4 | exempt | 4 | — |
 | **Total** | | | | **48.75** | |
 
+### Car mode (added 2026-10-09)
+
+The unit runs in the car on its own: the Pi on the power bank, the adapter in the port, no laptop. Requirements REQ-023 to REQ-025. Assumptions about the car and the adapter are in `docs/release/PI_BRINGUP_CHECKLIST.md`.
+
+| Ticket | Work | Build | Gate | Total | REQ |
+|---|---|---|---|---|---|
+| LHU-042 | Link detail on the status strips: searching, no vehicle, live, link lost; ignition off after live detected; discovery timeout. **Done 2026-10-09** (DN-042); the car check is step 3.13 | 4 | 1.75 full | 5.75 | 023 |
+| LHU-043 | Hub in the car: shutdown after the ignition goes off, network address line, a way back to the hub from the vehicle-data app | 3 | 0.75 light | 3.75 | 024 |
+| LHU-044 | Car mode install: boot to the hub, adapter binding from a local file, pairing script, a session folder per boot, demo modes, self-check | 5 | exempt | 5 | 025 |
+| LHU-045 | Car day guide and the README demo section | 2 | exempt | 2 | — |
+| **Total** | | | | **16.5** | |
+
 ### Roadmap (not scheduled)
 
 | Ticket | Work | Build | Gate | Total |

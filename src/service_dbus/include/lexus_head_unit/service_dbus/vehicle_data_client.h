@@ -3,6 +3,7 @@
 #include "lexus_head_unit/qt/value_types.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
@@ -35,6 +36,7 @@ public:
 
     [[nodiscard]] SignalSample latest(SignalId signalId) const;
     [[nodiscard]] ConnectionState connectionState() const;
+    [[nodiscard]] LinkDetail linkDetail() const;
     [[nodiscard]] bool hasInitialState() const;
     [[nodiscard]] bool isServiceAvailable() const;
     [[nodiscard]] quint64 samplesReceived() const;
@@ -46,6 +48,7 @@ signals:
     void initialStateReceived();
     void serviceAvailabilityChanged(bool available);
     void diagnosticsArrived(lexus_head_unit::DiagnosticsReport report);
+    void linkDetailChanged(lexus_head_unit::LinkDetail detail);
 
 private slots:
     void onSampleChanged(
@@ -55,6 +58,7 @@ private slots:
                              uint toState,
                              qlonglong timestampMilliseconds);
     void onDiagnosticsChanged();
+    void onLinkDetailChanged(uint detail);
 
 private:
     void fetchState();
@@ -62,6 +66,8 @@ private:
     void onDiagnosticsReply(QDBusPendingCallWatcher* watcher);
     void onSamplesReply(QDBusPendingCallWatcher* watcher);
     void onConnectionReply(QDBusPendingCallWatcher* watcher);
+    void onLinkDetailReply(QDBusPendingCallWatcher* watcher);
+    void applyLinkDetail(LinkDetail detail);
     void onServiceRegistered();
     void onServiceUnregistered();
     void setServiceAvailable(bool available);
@@ -72,6 +78,7 @@ private:
     QDBusServiceWatcher m_watcher;
     std::array<SignalSample, signalCount> m_samples{};
     ConnectionState m_state = ConnectionState::Disconnected;
+    LinkDetail m_linkDetail = LinkDetail::Idle;
     bool m_samplesFetched = false;
     bool m_connectionFetched = false;
     bool m_serviceAvailable = false;

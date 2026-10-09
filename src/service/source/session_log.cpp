@@ -1,6 +1,7 @@
 #include "lexus_head_unit/service/session_log.h"
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
 #include <cstdint>
@@ -34,6 +35,14 @@ void SessionLog::recordTransition(const ConnectionTransition& transition) {
     row += ',';
     row += toString(transition.to);
     row += ",,,";
+    writeRow(row);
+}
+
+void SessionLog::recordLinkDetail(std::int64_t nowMilliseconds, LinkDetail detail) {
+    std::string row = std::to_string(nowMilliseconds);
+    row += ",detail,";
+    row += toString(detail);
+    row += ",,,,,,";
     writeRow(row);
 }
 

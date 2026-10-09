@@ -173,6 +173,11 @@ Elm327Protocol::Elm327Protocol(ByteTransport& transport,
       m_replyTimeoutMilliseconds(replyTimeoutMilliseconds) {}
 
 Elm327Reply Elm327Protocol::execute(std::string_view command) {
+    return execute(command, m_replyTimeoutMilliseconds);
+}
+
+Elm327Reply Elm327Protocol::execute(std::string_view command,
+                                    std::int64_t replyTimeoutMilliseconds) {
     Elm327Reply reply;
     if (!CommandAllowlist::isAllowed(command)) {
         ++m_refusedCommandCount;
@@ -197,7 +202,7 @@ Elm327Reply Elm327Protocol::execute(std::string_view command) {
         return reply;
     }
     ++m_commandsSent;
-    return readReply(command);
+    return readReply(command, replyTimeoutMilliseconds);
 }
 
 // Anything the adapter sent before this command (a late reply after a timeout) is stale.
@@ -212,9 +217,10 @@ void Elm327Protocol::drainStaleBytes() {
     }
 }
 
-Elm327Reply Elm327Protocol::readReply(std::string_view command) {
+Elm327Reply Elm327Protocol::readReply(std::string_view command,
+                                      std::int64_t replyTimeoutMilliseconds) {
     Elm327Reply reply;
-    const std::int64_t deadline = m_clock->nowMilliseconds() + m_replyTimeoutMilliseconds;
+    const std::int64_t deadline = m_clock->nowMilliseconds() + replyTimeoutMilliseconds;
     std::vector<std::uint8_t> chunk;
     bool promptSeen = false;
     while (!promptSeen) {

@@ -169,6 +169,10 @@ int runHub(int argumentCount, char** argumentValues) {
                      &lexus_head_unit::VehicleDataClient::connectionChanged,
                      &connection,
                      &lexus_head_unit::ConnectionStatusModel::applyTransition);
+    QObject::connect(&vehicleData,
+                     &lexus_head_unit::VehicleDataClient::linkDetailChanged,
+                     &connection,
+                     &lexus_head_unit::ConnectionStatusModel::applyLinkDetail);
     vehicleData.start();
     const QStringList powerCommand =
         commandFrom(configuration, "hub.power_command", "vcgencmd get_throttled");
