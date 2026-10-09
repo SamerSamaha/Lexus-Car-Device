@@ -1,0 +1,108 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "$env{HOME}/build/lexus-car-device/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "LEXUS_HEAD_UNIT_WARNINGS_AS_ERRORS": "ON",
+                "BUILD_TESTING": "ON"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "description": "Day-to-day build: no optimisation, debug information.",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "sanitizers",
+            "displayName": "Debug with sanitizers",
+            "description": "Debug build with AddressSanitizer and UndefinedBehaviorSanitizer. CI runs the unit tests with this preset.",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "LEXUS_HEAD_UNIT_ENABLE_SANITIZERS": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "description": "Optimised build, as shipped to the target.",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "static-analysis",
+            "displayName": "Static analysis (clang-tidy)",
+            "description": "Compiles with clang++ and runs clang-tidy on every source file. Any clang-tidy warning fails the build.",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CXX_CLANG_TIDY": "clang-tidy"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "sanitizers",
+            "configurePreset": "sanitizers"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        },
+        {
+            "name": "static-analysis",
+            "configurePreset": "static-analysis"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "base",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "sanitizers",
+            "inherits": "base",
+            "configurePreset": "sanitizers",
+            "environment": {
+                "UBSAN_OPTIONS": "print_stacktrace=1"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "base",
+            "configurePreset": "release"
+        }
+    ]
+}

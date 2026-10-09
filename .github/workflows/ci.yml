@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  QT_QPA_PLATFORM: offscreen
+
+jobs:
+  build-and-test:
+    name: Build and unit tests
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 15
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates cmake git ninja-build \
+            libgmock-dev libgtest-dev python3 \
+            qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Print tool versions
+        run: |
+          g++ --version
+          cmake --version
+          ninja --version
+
+      - name: Configure (debug with sanitizers)
+        run: cmake --preset sanitizers --graphviz="$RUNNER_TEMP/link_graph.dot"
+
+      - name: Service and HMI targets link to no concrete source (REQ-002)
+        run: python3 tools/check_link_graph.py "$RUNNER_TEMP/link_graph.dot"
+
+      - name: The HMI reaches past the view models nowhere (REQ-011)
+        run: python3 tools/check_hmi_includes.py
+
+      - name: Build (debug with sanitizers)
+        run: cmake --build --preset sanitizers
+
+      - name: Unit tests under AddressSanitizer and UndefinedBehaviorSanitizer
+        run: ctest --preset sanitizers
+
+      - name: Configure (release)
+        run: cmake --preset release
+
+      - name: Build (release)
+        run: cmake --build --preset release
+
+      - name: Unit tests (release)
+        run: ctest --preset release
+
+      - name: Every approved requirement has a tagged test or a measurement file
+        run: python3 tools/check_traceability.py
+
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 15
+    steps:
+      - name: Install analysis tools
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            build-essential ca-certificates clang clang-format clang-tidy cmake git \
+            ninja-build libgmock-dev libgtest-dev python3 \
+            qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Mark the repository as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Print tool versions
+        run: |
+          clang++ --version
+          clang-format --version
+          clang-tidy --version
+
+      - name: Check formatting with clang-format
+        run: |
+          git ls-files '*.cpp' '*.h'
+          git ls-files -z '*.cpp' '*.h' | xargs -0 --no-run-if-empty clang-format --style=file --dry-run --Werror
+
+      - name: Configure (clang-tidy)
+        run: cmake --preset static-analysis
+
+      - name: Build with clang-tidy
+        run: cmake --build --preset static-analysis
+
+  privacy-check:
+    name: Privacy check
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 5
+    steps:
+      - name: Install git and Python
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends ca-certificates git python3
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Mark the repository as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Unit tests of the privacy check
+        run: python3 -m unittest discover --start-directory tools --pattern "test_*.py" --verbose
+
+      - name: No VIN-shaped or Bluetooth-address-shaped string in tracked files
+        run: python3 tools/check_private_data.py

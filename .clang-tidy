@@ -1,0 +1,81 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -modernize-use-trailing-return-type
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: '.*/(src|tests)/.*'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'bits/.*;sys/.*;asm/.*;linux/.*'
+
+  - key: readability-identifier-length.MinimumVariableNameLength
+    value: 3
+  - key: readability-identifier-length.MinimumParameterNameLength
+    value: 3
+  - key: readability-identifier-length.MinimumLoopCounterNameLength
+    value: 3
+  - key: readability-identifier-length.MinimumExceptionNameLength
+    value: 3
+  - key: readability-identifier-length.IgnoredVariableNames
+    value: '^$'
+  - key: readability-identifier-length.IgnoredParameterNames
+    value: '^$'
+  - key: readability-identifier-length.IgnoredLoopCounterNames
+    value: '^$'
+  - key: readability-identifier-length.IgnoredExceptionVariableNames
+    value: '^$'
+
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.ParameterCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: camelBack
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
+...

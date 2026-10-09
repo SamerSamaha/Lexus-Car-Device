@@ -1,0 +1,4 @@
+# <matched text> | <why it is safe>. Documented false positives only.
+
+1M8GDM9AXKP042788 | Hypothetical VIN from the check-digit example in the Wikipedia article "Vehicle identification number"; not a real vehicle. Used by tools/test_check_private_data.py.
+00:00:5E:00:53:01 | Address from the range reserved for documentation by RFC 7042; not a real device. Used by tools/test_check_private_data.py.

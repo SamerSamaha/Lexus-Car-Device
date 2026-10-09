@@ -1,0 +1,7 @@
+---
+InheritParentConfig: true
+Checks: >
+  -readability-magic-numbers,
+  -misc-non-private-member-variables-in-classes,
+  -cppcoreguidelines-non-private-member-variables-in-classes
+...
