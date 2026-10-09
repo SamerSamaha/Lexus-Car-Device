@@ -1,0 +1,18 @@
+# System unit for car mode (LHU-044): binds /dev/rfcomm0 to the adapter whose address is in the
+# car-mode file of the user, at boot and whenever lexus-pair-adapter restarts it. A bound device
+# connects only when the service opens it, so this succeeds with the adapter absent; the service
+# then retries with backoff until the adapter answers. The install script replaces @USER@ and
+# @HOME@.
+[Unit]
+Description=Lexus Head Unit: bind the OBD-II adapter to /dev/rfcomm0
+After=bluetooth.service
+Wants=bluetooth.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/lexus-bind-adapter --config @HOME@/.config/lexus-head-unit/car.conf
+ExecStop=-/usr/bin/rfcomm release 0
+
+[Install]
+WantedBy=multi-user.target

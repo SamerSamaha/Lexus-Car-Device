@@ -11,7 +11,7 @@ The parked run and the drive run below are LHU-034. The audio session (LHU-024) 
 | 1 | The unit is held as decided under OQ-14. Until OQ-14 is decided, only the parked run is allowed, with the unit resting on the passenger seat; no drive run takes place with a loose board in the cabin | |
 | 2 | The power bank (A1383) is charged; the Pi is powered from it; the thermal log is started (checklist step 3.1, label `car_parked_<n>` or `car_drive_<n>`) | |
 | 3 | The adapter is plugged into the diagnostic port only for the run and unplugged afterwards | |
-| 4 | The session log is on: the service runs with `--session-log %h/local_recordings/<date>_<run>.csv` | |
+| 4 | The session log is on. In car mode (LHU-044) every start of the service writes one under `~/lexus-data/sessions/<number>-car/` with the recording and the thermal log; otherwise run the service with `--session-log %h/local_recordings/<date>_<run>.csv` | |
 | 5 | For a drive run: the driver does not look at or touch the screen; a passenger may watch it but does not touch it while the car moves. Anything that needs a tap is done parked | |
 
 ## Parked run (LHU-034, REQ-004, REQ-006, REQ-007, REQ-008, REQ-020)

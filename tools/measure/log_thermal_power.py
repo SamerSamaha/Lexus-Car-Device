@@ -20,6 +20,7 @@ import datetime
 import os
 import re
 import shutil
+import signal
 import statistics
 import subprocess
 import sys
@@ -298,8 +299,14 @@ def parse_arguments(argument_list: Optional[Sequence[str]]) -> argparse.Namespac
     return parser.parse_args(argument_list)
 
 
+def stop_on_termination(_signal_number: int, _frame: object) -> None:
+    """SIGTERM (systemd stopping the car-mode session, LHU-044) ends the log like Ctrl-C."""
+    raise KeyboardInterrupt
+
+
 def main(argument_list: Optional[Sequence[str]] = None) -> int:
     arguments = parse_arguments(argument_list)
+    signal.signal(signal.SIGTERM, stop_on_termination)
     if shutil.which("vcgencmd") is None:
         print("log_thermal_power: vcgencmd not found; this logger runs on the Raspberry Pi", file=sys.stderr)
         return EXIT_CODE_COULD_NOT_RUN

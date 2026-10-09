@@ -28,6 +28,7 @@ Rules:
 | Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
 | The four link situations read from the driver's seat | LHU-042 | Detail, D-Bus members and strip headline built and tested at the desk against the emulator (LHU-042); step 3.13 not yet done |
 | Shutdown after the ignition goes off, address line, Hub button | LHU-043 | Policy, countdown, address and button built and tested at the desk (LHU-043); step 3.14 not yet done |
+| Car mode: install, boot to the hub without input, pairing, session folders, export, demo modes | LHU-044 | Install script, tools, units and self-check built and tested at the desk, the install as a dry run (LHU-044); step 3.15 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
@@ -54,6 +55,9 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | Not yet verified |
 | A18 | The vLinker finishes its protocol search and answers the first `0100` after `ATSP0` within 10 s (`elm327.discovery_timeout_ms`) | DN-042 | Step 3.13, item 2 (time from adapter connected to Live) | Not yet verified |
 | A19 | With the ignition off and the adapter powered, the adapter answers `0100` and the Mode 01 requests with an error text (`UNABLE TO CONNECT`, `NO DATA`, `CAN ERROR`) rather than not at all, so the strip reads "Adapter found, no vehicle"; if it stays silent the strip reads "Link lost, retrying" instead and the unit still recovers | DN-042 | Step 3.13, item 3 | Not yet verified |
+| A20 | The vLinker MC+ pairs on its classic side with the PIN 1234, or without a PIN (secure simple pairing); `lexus-pair-adapter` answers either | LHU-044 | Step 3.15, item 4 | Not yet verified |
+| A21 | Under the Raspberry Pi OS desktop, labwc runs `~/.config/labwc/autostart` at login, so `lexus-hub-session` starts the hub; whether the system autostart (panel, desktop) also runs does not matter, because the hub is full screen and kanshi is started either way | LHU-044 | Step 3.15, item 3 | Not yet verified |
+| A22 | `raspi-config nonint do_boot_behaviour B4` sets automatic login to the desktop on this image (LightDM, `autologin-user` in `/etc/lightdm/lightdm.conf`) | LHU-044 | Step 3.15, items 2 and 3 | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
 ## 3. Steps
@@ -261,6 +265,23 @@ In the car, parked, car mode installed (LHU-044), the hub on the screen and the 
 6. Open Vehicle data, tap Hub on its Home screen: the hub is in front again within 1 s.
 
 Record in `docs/test/results/<date>_ignition_off_shutdown.md`: each step, the times, the two log outputs.
+
+Results: not yet done.
+
+### 3.15 Car mode on the Pi (LHU-044)
+
+At home first, then in the car; `docs/release/CAR_DAY_GUIDE.md` is the same in the order a car day needs it.
+
+1. Install: `deploy/car/install_car_mode.sh --artifact ~/lexus-head-unit-arm64 --with-demo` (or `--build`). Record the whole output and the self-check counts. Run it again: the second run changes nothing (every step says unchanged or kept) and the self-check gives the same counts.
+2. `sudo reboot` with no keyboard or mouse attached. Record: whether the hub appears full screen without input (A21, A22), and the seconds from power-on to the hub by stopwatch. Repeat for 5 cold boots (power removed for 10 s).
+3. Check that no desktop, panel, terminal or dialog is visible at any point after the boot splash. Record anything that appears.
+4. In the car: pair with the hub's Pair adapter tile (A20); record what the terminal printed (the address is shown masked).
+5. Reboot in the car with the adapter in and the ignition on: record the seconds from power-on to "Live".
+6. End one session by pulling the power bank cable while Live. After the next boot: `ls ~/lexus-data/sessions/` shows that session's folder with `session_log.csv`, `obd.rec` and the thermal CSV, each ending within a few seconds of the cut; `journalctl -b -1` and `dmesg` show no ext4 errors.
+7. `lexus-export-sessions`: record the summary line; then `grep -c` for the car's VIN in the export folder gives 0 (type the VIN only on the Pi's command line, never into a file).
+8. Demo modes: tap Demo mode, Replay last drive, Car mode on the hub; each gives a new session folder with the mode in its name.
+
+Record in `docs/test/results/<date>_car_mode_install.md`.
 
 Results: not yet done.
 

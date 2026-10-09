@@ -149,6 +149,10 @@ class LoggingLoopTest(unittest.TestCase):
         self.assertIn("verdict: pass", summary_text)
         self.assertIn("1 command errors", summary_text)
 
+    def test_termination_ends_the_log_like_ctrl_c(self):
+        with self.assertRaises(KeyboardInterrupt):
+            logger.stop_on_termination(15, None)
+
     def test_main_refuses_to_run_without_vcgencmd(self):
         original = logger.shutil.which
         logger.shutil.which = lambda name: None

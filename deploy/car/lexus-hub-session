@@ -1,0 +1,12 @@
+#!/bin/sh
+# Car mode (LHU-044): started from ~/.config/labwc/autostart when the desktop logs in. Makes sure
+# the vehicle-data service runs, then keeps the hub on the screen: if the hub ever exits, it is
+# started again after 1 s. The rotation is applied by kanshi; it is started here too in case
+# the desktop's own autostart did not run (assumption A21).
+pgrep -x kanshi > /dev/null 2>&1 || (kanshi > /dev/null 2>&1 &)
+systemctl --user start lexus-vehicle-data-service.service
+registry="${LEXUS_HUB_REGISTRY:-$HOME/Lexus-Car-Device/deploy/car/hub_car.conf}"
+while true; do
+    lexus-hub --registry "$registry" --fullscreen --first-frame-mark "/run/user/$(id -u)/lexus-first-frame.txt"
+    sleep 1
+done

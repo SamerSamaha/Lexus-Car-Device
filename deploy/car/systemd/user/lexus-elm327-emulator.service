@@ -1,0 +1,9 @@
+# User unit for car mode (LHU-044): the ELM327 emulator on the Pi, for "lexus-mode emulator"
+# (desk demonstrations without the car). Started and stopped by lexus-mode, never at boot.
+[Unit]
+Description=Lexus Head Unit ELM327 emulator (demonstrations)
+
+[Service]
+ExecStart=/usr/bin/python3 %h/Lexus-Car-Device/tools/elm327_emulator/elm327_emulator.py --link /tmp/lexus-obd-emulator --control /tmp/lexus-obd-emulator.control
+Restart=on-failure
+RestartSec=2

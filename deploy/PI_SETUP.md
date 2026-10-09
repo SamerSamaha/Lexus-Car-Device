@@ -83,7 +83,11 @@ The car stereo is paired the same way as an audio sink when LHU-024 is done; the
 
 Every CI run builds the release preset for arm64 and uploads it as the artifact `lexus-head-unit-arm64`. Instead of building on the Pi, it can be downloaded and copied over: `docs/release/PI_BRINGUP_CHECKLIST.md` step 3.12 has the commands and the checks. Building on the Pi stays the day-to-day route (D-022).
 
-## 10. What is not done here
+## 10. Car mode
+
+To run the unit in the car on its own (boot to the hub, the adapter from a local file, a session folder per start, demo modes), run `deploy/car/install_car_mode.sh` on the Pi after the steps above; `docs/release/CAR_DAY_GUIDE.md` is the guide for the day in the car. The phone hotspot of section 7 is how the Pi is reached there.
+
+## 11. What is not done here
 
 - No swap file on the SD card (D-022): the zram swap of the image is kept.
 - No packages beyond the image and the project's dependencies.
