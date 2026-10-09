@@ -19,5 +19,7 @@ Window {
         objectName: "screens"
         anchors.fill: parent
         vehicleData: window.vehicleData
+        diagnostics: typeof diagnosticsContext !== "undefined" ? diagnosticsContext : null
+        power: typeof powerContext !== "undefined" ? powerContext : null
     }
 }

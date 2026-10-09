@@ -4,10 +4,12 @@
 #include "lexus_head_unit/hardware/command_allowlist.h"
 #include "lexus_head_unit/hardware/elm327_protocol.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
+#include "lexus_head_unit/hardware/obd_diagnostics.h"
 #include "lexus_head_unit/hardware/obd_pid_decoder.h"
 #include "lexus_head_unit/hardware/supported_pid_set.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/reconnect_backoff.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -30,6 +32,7 @@ constexpr std::string_view voltageCommand = "ATRV";
 constexpr std::string_view protocolNumberCommand = "ATDPN";
 constexpr std::int64_t idleWhenNothingToPollMilliseconds = 1000;
 constexpr std::uint8_t firstBitmapPid = 0x00;
+constexpr std::uint8_t vehicleIdentificationPid = 0x02;
 
 bool isLinkFailure(Elm327ReplyKind kind) {
     return kind == Elm327ReplyKind::Timeout || kind == Elm327ReplyKind::LinkError;
@@ -78,7 +81,11 @@ void Elm327ObdSource::runOnce() {
     }
     switch (m_machine.state()) {
     case ConnectionState::Connected:
-        pollNextPid();
+        if (m_diagnosticsRequested.exchange(false)) {
+            readDiagnostics();
+        } else {
+            pollNextPid();
+        }
         break;
     case ConnectionState::Error:
         if (m_clock->nowMilliseconds() >= m_nextAttemptAtMilliseconds) {
@@ -233,6 +240,55 @@ bool Elm327ObdSource::discoverSupportedPids() {
         basePid = m_supportedPids.nextBitmapPid(*basePid);
     }
     return anyBitmap;
+}
+
+void Elm327ObdSource::requestDiagnostics() {
+    m_diagnosticsRequested.store(true);
+}
+
+std::optional<Elm327Reply> Elm327ObdSource::diagnosticsRequest(std::uint8_t mode,
+                                                               std::optional<std::uint8_t> pid) {
+    const std::optional<std::string> request = CommandAllowlist::obdRequest(mode, pid);
+    if (!request.has_value()) {
+        return Elm327Reply{};
+    }
+    m_lastRequestAtMilliseconds = m_clock->nowMilliseconds();
+    Elm327Reply reply = m_protocol.execute(*request);
+    if (reply.kind == Elm327ReplyKind::LinkError) {
+        linkLost();
+        return std::nullopt;
+    }
+    if (reply.kind != Elm327ReplyKind::Timeout) {
+        noteAdapterReply();
+    }
+    return reply;
+}
+
+void Elm327ObdSource::readDiagnostics() {
+    DiagnosticsReport report;
+    const std::optional<Elm327Reply> codesReply =
+        diagnosticsRequest(obdModeStoredTroubleCodes, std::nullopt);
+    if (!codesReply.has_value()) {
+        return;
+    }
+    const std::optional<std::vector<std::string>> codes = decodeTroubleCodes(*codesReply);
+    report.codesRead = codes.has_value();
+    for (const std::string& code : codes.value_or(std::vector<std::string>{})) {
+        report.troubleCodes.push_back(TroubleCode{code, troubleCodeDescription(code)});
+    }
+    const std::optional<Elm327Reply> identificationReply =
+        diagnosticsRequest(obdModeVehicleInformation, vehicleIdentificationPid);
+    if (!identificationReply.has_value()) {
+        return;
+    }
+    const std::optional<std::string> identification =
+        decodeVehicleIdentification(*identificationReply);
+    report.identificationRead = identification.has_value();
+    report.vehicleIdentification = identification.value_or(std::string());
+    report.timestampMilliseconds = m_clock->nowMilliseconds();
+    if (m_listener != nullptr) {
+        m_listener->onDiagnostics(report);
+    }
 }
 
 void Elm327ObdSource::pollNextPid() {

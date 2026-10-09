@@ -89,7 +89,36 @@ std::optional<ConnectionTransition> transitionFromDBus(quint32 fromState,
     return transition;
 }
 
+DBusDiagnostics toDBus(const DiagnosticsReport& report) {
+    DBusDiagnostics wire;
+    wire.codesRead = report.codesRead;
+    wire.identificationRead = report.identificationRead;
+    for (const TroubleCode& code : report.troubleCodes) {
+        wire.troubleCodes.append(DBusTroubleCode{QString::fromStdString(code.code),
+                                                 QString::fromStdString(code.description)});
+    }
+    wire.vehicleIdentification = QString::fromStdString(report.vehicleIdentification);
+    wire.timestampMilliseconds = report.timestampMilliseconds;
+    return wire;
+}
+
+DiagnosticsReport fromDBus(const DBusDiagnostics& diagnostics) {
+    DiagnosticsReport report;
+    report.codesRead = diagnostics.codesRead;
+    report.identificationRead = diagnostics.identificationRead;
+    for (const DBusTroubleCode& code : diagnostics.troubleCodes) {
+        report.troubleCodes.push_back(
+            TroubleCode{code.code.toStdString(), code.description.toStdString()});
+    }
+    report.vehicleIdentification = diagnostics.vehicleIdentification.toStdString();
+    report.timestampMilliseconds = diagnostics.timestampMilliseconds;
+    return report;
+}
+
 void registerDBusTypes() {
+    qDBusRegisterMetaType<DBusTroubleCode>();
+    qDBusRegisterMetaType<QList<DBusTroubleCode>>();
+    qDBusRegisterMetaType<DBusDiagnostics>();
     qDBusRegisterMetaType<DBusSample>();
     qDBusRegisterMetaType<QList<DBusSample>>();
     qDBusRegisterMetaType<DBusConnectionState>();
@@ -108,6 +137,37 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, DBusSample& sampl
     argument.beginStructure();
     argument >> sample.signalId >> sample.value >> sample.unit >> sample.timestampMilliseconds >>
         sample.status;
+    argument.endStructure();
+    return argument; // NOLINT(bugprone-return-const-ref-from-parameter)
+}
+
+QDBusArgument& operator<<(QDBusArgument& argument, const DBusTroubleCode& code) {
+    argument.beginStructure();
+    argument << code.code << code.description;
+    argument.endStructure();
+    return argument;
+}
+
+const QDBusArgument& operator>>(const QDBusArgument& argument, DBusTroubleCode& code) {
+    argument.beginStructure();
+    argument >> code.code >> code.description;
+    argument.endStructure();
+    return argument; // NOLINT(bugprone-return-const-ref-from-parameter)
+}
+
+QDBusArgument& operator<<(QDBusArgument& argument, const DBusDiagnostics& diagnostics) {
+    argument.beginStructure();
+    argument << diagnostics.codesRead << diagnostics.identificationRead << diagnostics.troubleCodes
+             << diagnostics.vehicleIdentification << diagnostics.timestampMilliseconds;
+    argument.endStructure();
+    return argument;
+}
+
+const QDBusArgument& operator>>(const QDBusArgument& argument, DBusDiagnostics& diagnostics) {
+    argument.beginStructure();
+    argument >> diagnostics.codesRead >> diagnostics.identificationRead >>
+        diagnostics.troubleCodes >> diagnostics.vehicleIdentification >>
+        diagnostics.timestampMilliseconds;
     argument.endStructure();
     return argument; // NOLINT(bugprone-return-const-ref-from-parameter)
 }

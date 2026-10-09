@@ -1,4 +1,5 @@
 add_executable(lexus_head_unit_view_model_tests
+    diagnostics_view_model_test.cpp
     view_models_test.cpp
 )
 

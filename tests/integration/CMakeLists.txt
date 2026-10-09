@@ -26,6 +26,7 @@ target_link_libraries(lexus_head_unit_test_support
 )
 
 add_executable(lexus_head_unit_integration_tests
+    diagnostics_against_emulator_test.cpp
     hub_process_cycle_test.cpp
     pid_discovery_test.cpp
     record_replay_test.cpp

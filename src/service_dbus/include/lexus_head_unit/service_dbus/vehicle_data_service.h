@@ -13,6 +13,7 @@
 #include <QtGlobal>
 
 #include <array>
+#include <functional>
 #include <optional>
 
 namespace lexus_head_unit {
@@ -30,6 +31,7 @@ public:
 signals:
     void sampleQueued(lexus_head_unit::SignalSample sample);
     void transitionQueued(lexus_head_unit::ConnectionTransition transition);
+    void diagnosticsQueued(lexus_head_unit::DiagnosticsReport report);
 };
 
 // The object the vehicle-data service exports on D-Bus (DN-022). publishSample and
@@ -44,6 +46,11 @@ public:
 
     void publishSample(const SignalSample& sample);
     void publishTransition(const ConnectionTransition& transition);
+    // Any thread: the source's diagnostics report (DN-030).
+    void publishDiagnostics(const DiagnosticsReport& report);
+    // Called on RequestDiagnostics(); the service process passes the source's
+    // requestDiagnostics(), which is safe from this thread.
+    void setDiagnosticsRequester(std::function<void()> requester);
     // Exports the object, then claims the service name. False, with the reason, if either
     // fails (for example, another service already owns the name).
     bool registerOn(QDBusConnection connection, QString& error);
@@ -53,22 +60,28 @@ public slots:
     Q_SCRIPTABLE QList<lexus_head_unit::DBusSample> GetSamples() const;
     Q_SCRIPTABLE lexus_head_unit::DBusConnectionState GetConnection() const;
     Q_SCRIPTABLE uint GetInterfaceVersion() const;
+    Q_SCRIPTABLE void RequestDiagnostics();
+    Q_SCRIPTABLE lexus_head_unit::DBusDiagnostics GetDiagnostics() const;
 
 signals:
     Q_SCRIPTABLE void SampleChanged(
         uint signalId, double value, uint unit, qlonglong timestampMilliseconds, uint status);
     Q_SCRIPTABLE void
     ConnectionChanged(uint from, uint trigger, uint to, qlonglong timestampMilliseconds);
+    Q_SCRIPTABLE void DiagnosticsChanged();
 
 private:
     void applySample(const SignalSample& sample);
     void applyTransition(const ConnectionTransition& transition);
+    void applyDiagnostics(const DiagnosticsReport& report);
 
     VehicleDataServiceInbox m_inbox;
     std::array<SignalSample, signalCount> m_samples{};
     ConnectionState m_state = ConnectionState::Disconnected;
     std::optional<ConnectionTransition> m_lastTransition;
     quint64 m_publishedSampleCount = 0;
+    DiagnosticsReport m_diagnostics;
+    std::function<void()> m_diagnosticsRequester;
 };
 
 } // namespace lexus_head_unit

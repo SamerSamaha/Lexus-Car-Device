@@ -1,4 +1,6 @@
 qt_add_executable(lexus_head_unit_hmi_tests
+    fake_diagnostics_driver.h
+    ${CMAKE_SOURCE_DIR}/tests/hmi_hub/fake_power_status_reader.h
     fake_vehicle_data_view_model.cpp
     fake_vehicle_data_view_model.h
     hmi_test_main.cpp
@@ -6,9 +8,15 @@ qt_add_executable(lexus_head_unit_hmi_tests
 
 lexus_head_unit_add_qml_module(lexus_head_unit_hmi_tests)
 
+target_include_directories(lexus_head_unit_hmi_tests
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/tests/hmi_hub
+)
+
 target_link_libraries(lexus_head_unit_hmi_tests
     PRIVATE
         lexus_head_unit_hmi_viewmodels
+        lexus_head_unit_hub_viewmodels
         lexus_head_unit_build_settings
         Qt6::Qml
         Qt6::Quick

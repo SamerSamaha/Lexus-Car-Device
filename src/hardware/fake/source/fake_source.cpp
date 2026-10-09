@@ -2,12 +2,14 @@
 
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace lexus_head_unit {
@@ -68,6 +70,11 @@ void FakeSource::start(VehicleDataSourceListener& listener) {
 }
 
 void FakeSource::runOnce() {
+    if (m_listener != nullptr && m_machine.state() == ConnectionState::Connected &&
+        m_diagnosticsRequested.exchange(false)) {
+        ++m_diagnosticsRequests;
+        m_listener->onDiagnostics(m_scriptedDiagnostics);
+    }
     if (m_listener == nullptr || m_script.empty()) {
         return;
     }
@@ -93,6 +100,18 @@ void FakeSource::runOnce() {
         handshake();
         break;
     }
+}
+
+void FakeSource::scriptDiagnostics(const DiagnosticsReport& report) {
+    m_scriptedDiagnostics = report;
+}
+
+std::uint64_t FakeSource::diagnosticsRequests() const {
+    return m_diagnosticsRequests;
+}
+
+void FakeSource::requestDiagnostics() {
+    m_diagnosticsRequested.store(true);
 }
 
 void FakeSource::stop() {

@@ -1,6 +1,7 @@
-// Verifies: REQ-017, REQ-002
+// Verifies: REQ-017, REQ-002, REQ-021
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -362,6 +363,67 @@ QSet<QString> membersOf(const QString& xml, const QString& interfaceName) {
     return members;
 }
 
+lexus_head_unit::DiagnosticsReport twoCodeReport() {
+    lexus_head_unit::DiagnosticsReport report;
+    report.codesRead = true;
+    report.troubleCodes = {{"P0133", "Oxygen sensor slow response, bank 1 sensor 1"},
+                           {"U0100", "Lost communication with the engine control module"}};
+    report.identificationRead = true;
+    report.vehicleIdentification = "DEMO-NOT-A-VIN";
+    report.timestampMilliseconds = 1234;
+    return report;
+}
+
+void expectTheTwoCodeReport(const lexus_head_unit::DiagnosticsReport& arrived) {
+    EXPECT_TRUE(arrived.codesRead);
+    ASSERT_EQ(arrived.troubleCodes.size(), 2U);
+    EXPECT_EQ(arrived.troubleCodes.at(1).code, "U0100");
+    EXPECT_EQ(arrived.troubleCodes.at(1).description,
+              "Lost communication with the engine control module");
+    EXPECT_EQ(arrived.vehicleIdentification, "DEMO-NOT-A-VIN");
+    EXPECT_EQ(arrived.timestampMilliseconds, 1234);
+}
+
+TEST_F(VehicleDataDBusTest, DiagnosticsRequestReachesTheSourceAndTheReportReachesEveryClient) {
+    int requests = 0;
+    m_service->setDiagnosticsRequester([&requests]() {
+        ++requests;
+    });
+    auto first = connectedClient(QStringLiteral("diagnostics-first"));
+    auto second = connectedClient(QStringLiteral("diagnostics-second"));
+    std::vector<lexus_head_unit::DiagnosticsReport> received;
+    QObject::connect(&second->client,
+                     &VehicleDataClient::diagnosticsArrived,
+                     [&received](const lexus_head_unit::DiagnosticsReport& report) {
+                         received.push_back(report);
+                     });
+
+    first->client.requestDiagnostics();
+    ASSERT_TRUE(waitFor([&requests]() {
+        return requests == 1;
+    }));
+
+    const lexus_head_unit::DiagnosticsReport report = twoCodeReport();
+    std::thread publisher([this, &report]() {
+        m_service->publishDiagnostics(report);
+    });
+    publisher.join();
+    ASSERT_TRUE(waitFor([&received]() {
+        return !received.empty();
+    }));
+    expectTheTwoCodeReport(received.front());
+    EXPECT_TRUE(waitFor([&first]() {
+        return first->client.latestDiagnostics().codesRead;
+    }));
+
+    // A client that joins later reads the last report without a new request.
+    auto late = connectedClient(QStringLiteral("diagnostics-late"));
+    EXPECT_TRUE(waitFor([&late]() {
+        return late->client.latestDiagnostics().troubleCodes.size() == 2U;
+    }));
+    EXPECT_EQ(requests, 1);
+}
+
 TEST_F(VehicleDataDBusTest, LiveIntrospectionMatchesTheCommittedInterfaceFile) {
     const QDBusConnection connection = m_bus.connect(QStringLiteral("introspector"));
     // Asynchronous: the service object answers from this same thread's event loop.
@@ -381,7 +443,7 @@ TEST_F(VehicleDataDBusTest, LiveIntrospectionMatchesTheCommittedInterfaceFile) {
     const QString live = reply.arguments().value(0).toString();
     const QSet<QString> expected =
         membersOf(committed, lexus_head_unit::dbus_names::interfaceName());
-    EXPECT_EQ(expected.size(), 5);
+    EXPECT_EQ(expected.size(), 8);
     EXPECT_EQ(membersOf(live, lexus_head_unit::dbus_names::interfaceName()), expected);
 }
 

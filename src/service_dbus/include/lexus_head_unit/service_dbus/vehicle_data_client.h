@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/qt/value_types.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
@@ -28,6 +29,9 @@ public:
     explicit VehicleDataClient(QDBusConnection connection, QObject* parent = nullptr);
 
     void start();
+    // Asks the service to read the trouble codes and the identification (DN-030).
+    void requestDiagnostics();
+    [[nodiscard]] DiagnosticsReport latestDiagnostics() const;
 
     [[nodiscard]] SignalSample latest(SignalId signalId) const;
     [[nodiscard]] ConnectionState connectionState() const;
@@ -41,6 +45,7 @@ signals:
     void connectionChanged(lexus_head_unit::ConnectionTransition transition);
     void initialStateReceived();
     void serviceAvailabilityChanged(bool available);
+    void diagnosticsArrived(lexus_head_unit::DiagnosticsReport report);
 
 private slots:
     void onSampleChanged(
@@ -49,9 +54,12 @@ private slots:
                              uint trigger,
                              uint toState,
                              qlonglong timestampMilliseconds);
+    void onDiagnosticsChanged();
 
 private:
     void fetchState();
+    void fetchDiagnostics();
+    void onDiagnosticsReply(QDBusPendingCallWatcher* watcher);
     void onSamplesReply(QDBusPendingCallWatcher* watcher);
     void onConnectionReply(QDBusPendingCallWatcher* watcher);
     void onServiceRegistered();
@@ -69,6 +77,7 @@ private:
     bool m_serviceAvailable = false;
     quint64 m_samplesReceived = 0;
     quint64 m_malformedMessages = 0;
+    DiagnosticsReport m_diagnostics;
 };
 
 } // namespace lexus_head_unit

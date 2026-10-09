@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/hmi/value_types.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
 #include <QObject>
@@ -21,10 +22,12 @@ public:
 
     void publishSample(const SignalSample& sample);
     void publishConnectionChange(const ConnectionTransition& transition);
+    void publishDiagnostics(const DiagnosticsReport& report);
 
 signals:
     void sampleArrived(lexus_head_unit::SignalSample sample);
     void connectionChanged(lexus_head_unit::ConnectionTransition transition);
+    void diagnosticsArrived(lexus_head_unit::DiagnosticsReport report);
 };
 
 } // namespace lexus_head_unit

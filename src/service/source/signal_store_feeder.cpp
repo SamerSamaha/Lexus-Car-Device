@@ -1,5 +1,7 @@
 #include "lexus_head_unit/service/signal_store_feeder.h"
 
+#include "lexus_head_unit/service/diagnostics_report.h"
+
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
@@ -58,6 +60,20 @@ std::uint64_t SignalStoreFeeder::rejectedSampleCount() const {
 
 void SignalStoreFeeder::setTransitionHook(TransitionHook hook) {
     m_transitionHook = std::move(hook);
+}
+
+void VehicleDataSourceListener::onDiagnostics(const DiagnosticsReport& /*report*/) {}
+
+void VehicleDataSource::requestDiagnostics() {}
+
+void SignalStoreFeeder::onDiagnostics(const DiagnosticsReport& report) {
+    if (m_diagnosticsHook) {
+        m_diagnosticsHook(report);
+    }
+}
+
+void SignalStoreFeeder::setDiagnosticsHook(DiagnosticsHook hook) {
+    m_diagnosticsHook = std::move(hook);
 }
 
 } // namespace lexus_head_unit

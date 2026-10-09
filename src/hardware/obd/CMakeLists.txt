@@ -2,6 +2,7 @@ add_library(lexus_head_unit_obd STATIC
     source/command_allowlist.cpp
     source/elm327_protocol.cpp
     source/hex.cpp
+    source/obd_diagnostics.cpp
     source/obd_pid_decoder.cpp
     source/supported_pid_set.cpp
 )

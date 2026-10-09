@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/diagnostics_report.h"
 #include "lexus_head_unit/service/signal_sample.h"
 
 #include <cstdint>
@@ -26,6 +27,8 @@ public:
 
     virtual void onSample(const SignalSample& sample) = 0;
     virtual void onConnectionChanged(const ConnectionTransition& transition) = 0;
+    // The result of a diagnostics read the source was asked for (DN-030). Default: ignored.
+    virtual void onDiagnostics(const DiagnosticsReport& report);
 };
 
 class VehicleDataSource {
@@ -45,6 +48,10 @@ public:
     [[nodiscard]] virtual SourceCounters counters() const = 0;
     // Milliseconds until the next runOnce() can do useful work; 0 means call again at once.
     [[nodiscard]] virtual std::int64_t idleHintMilliseconds() const;
+    // Asks for one read of the stored trouble codes and the vehicle identification on a later
+    // runOnce() while connected (DN-030). Safe from any thread. Default: sources that cannot
+    // read diagnostics ignore it.
+    virtual void requestDiagnostics();
 };
 
 } // namespace lexus_head_unit
