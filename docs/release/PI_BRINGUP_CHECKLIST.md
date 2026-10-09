@@ -19,7 +19,7 @@ Rules:
 | Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
 | Vehicle-data service and hub as systemd user units, the app reading the service over D-Bus | LHU-022 | Built and tested at the desk on a private bus (LHU-022); step 3.6 not yet done |
 | Web apps, protected audio, browser memory | LHU-023 | Procedure, browser flags and memory sampler ready (LHU-023); `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` not yet run |
-| Bluetooth audio to the car stereo | LHU-024 | Not yet done |
+| Bluetooth audio to the car stereo | LHU-024 | Output script, session log and summariser ready (LHU-024); the audio section of `docs/test/MANUAL_ON_CAR_PROCEDURE.md` not yet run |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Flags and the shutdown control built and tested at the desk with a fake reader (LHU-025); step 3.8 not yet done |
 | vcan tests | LHU-028 | Built and skipped at the desk (no vcan module); step 3.7 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Not yet done |

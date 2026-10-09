@@ -2,6 +2,7 @@
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/session_log.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
 #include "lexus_head_unit/service/signal_store_feeder.h"
@@ -17,6 +18,7 @@
 #include <QDBusError>
 #include <QString>
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -37,6 +39,7 @@ using lexus_head_unit::WorkerLoop;
 
 constexpr int exitCodeNoBus = 1;
 constexpr int exitCodeNameTaken = 2;
+constexpr std::int64_t sessionLogIntervalMilliseconds = 10000;
 
 QDBusConnection connectToBus(const QString& kind, const QString& address) {
     if (!address.isEmpty()) {
@@ -80,7 +83,13 @@ int main(int argumentCount, char** argumentValues) {
     parser.addOption(sourceOption);
     parser.addOption(recordOption);
     parser.addOption(busOption);
+    const QCommandLineOption sessionLogOption(
+        QStringLiteral("session-log"),
+        QStringLiteral("write transitions and counters to this CSV (LHU-024; keep it in "
+                       "local_recordings/)"),
+        QStringLiteral("path"));
     parser.addOption(busAddressOption);
+    parser.addOption(sessionLogOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -118,18 +127,38 @@ int main(int argumentCount, char** argumentValues) {
     store.setChangeListener([&service](const SignalSample& sample) {
         service.publishSample(sample);
     });
-    feeder.setTransitionHook([&service](const ConnectionTransition& transition) {
+    // The session log is written only from the worker thread, where the source and its
+    // counters live: the transition hook and the per-cycle callback both run there.
+    std::unique_ptr<lexus_head_unit::SessionLog> sessionLog;
+    if (parser.isSet(sessionLogOption)) {
+        sessionLog = std::make_unique<lexus_head_unit::SessionLog>(
+            parser.value(sessionLogOption).toStdString(), sessionLogIntervalMilliseconds);
+        if (!sessionLog->isOpen()) {
+            std::cerr << "lexus-vehicle-data-service: cannot write the session log\n";
+        }
+    }
+    feeder.setTransitionHook([&service, &sessionLog](const ConnectionTransition& transition) {
         service.publishTransition(transition);
+        if (sessionLog) {
+            sessionLog->recordTransition(transition);
+        }
     });
 
     std::unique_ptr<lexus_head_unit::app::FakeVehicleDemo> demo;
     WorkerLoop loop(*built.source, feeder, monitor, built.minimumCycleMilliseconds);
     if (built.fakeSource != nullptr) {
         demo = std::make_unique<lexus_head_unit::app::FakeVehicleDemo>(*built.fakeSource);
-        loop.setPerCycleCallback([&demo, &clock]() {
-            demo->scriptNextCycle(clock.nowMilliseconds());
-        });
     }
+    lexus_head_unit::VehicleDataSource& source = *built.source;
+    loop.setPerCycleCallback([&demo, &clock, &sessionLog, &source]() {
+        if (demo) {
+            demo->scriptNextCycle(clock.nowMilliseconds());
+        }
+        if (sessionLog) {
+            sessionLog->recordCountersIfDue(
+                clock.nowMilliseconds(), source.connectionState(), source.counters());
+        }
+    });
     if (!lexus_head_unit::installQuitOnSignals()) {
         std::cerr << "lexus-vehicle-data-service: could not install the signal handlers\n";
     }

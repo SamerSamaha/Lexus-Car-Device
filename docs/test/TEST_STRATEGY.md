@@ -93,6 +93,7 @@ Some tests need Python packages that are not part of the product. They are insta
 | Procedure | Requirement | Results |
 |---|---|---|
 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md` | REQ-018 | `docs/test/results/<date>_web_apps.md`, `docs/measurements/memory/` |
+| `docs/test/MANUAL_ON_CAR_PROCEDURE.md` (audio section) | REQ-019 | `docs/test/results/<date>_audio_session.md` with the summarised session log |
 
 ## 7. Deliberately not tested, and why
 
