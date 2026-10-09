@@ -414,7 +414,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 |---|---|---|---|---|---|
 | LHU-027 | DBC decoder with an independent oracle; `simulated_vehicle.dbc`. **Done 2026-10-09** (DN-027), 2.0 h actual (estimated) | 5 | 1.75 full | 6.75 | 005, 010 |
 | LHU-028 | SocketCAN source and vcan tests on the Pi. **Done 2026-10-09** at the desk (DN-028); the vcan run is checklist step 3.7; 2.5 h actual (estimated) | 5 | 0.75 light | 5.75 | 001, 002 |
-| LHU-029 | Record and replay with vehicle-identification scrub | 4 | 1.75 full | 5.75 | 015 |
+| LHU-029 | Record and replay with vehicle-identification scrub. **Done 2026-10-09** (DN-029), 3.0 h actual (estimated) | 4 | 1.75 full | 5.75 | 015 |
 | LHU-030 | Diagnostics screen: trouble codes and vehicle information | 5 | 1.75 full | 6.75 | 021 |
 | LHU-031 | Trip analytics as derived signals | 7 | 1.75 full | 8.75 | 022 |
 | LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass | 6 | exempt | 6 | 009, 013, 014 |

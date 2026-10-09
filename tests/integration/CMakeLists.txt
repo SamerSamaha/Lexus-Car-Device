@@ -16,6 +16,7 @@ target_compile_definitions(lexus_head_unit_test_support
 target_link_libraries(lexus_head_unit_test_support
     PUBLIC
         lexus_head_unit_can_source
+        lexus_head_unit_replay_source
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_service
@@ -27,6 +28,7 @@ target_link_libraries(lexus_head_unit_test_support
 add_executable(lexus_head_unit_integration_tests
     hub_process_cycle_test.cpp
     pid_discovery_test.cpp
+    record_replay_test.cpp
     service_against_each_source_test.cpp
 )
 

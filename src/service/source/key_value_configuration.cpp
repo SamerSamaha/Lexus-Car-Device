@@ -73,6 +73,10 @@ void KeyValueConfiguration::loadFromText(std::string_view text) {
     }
 }
 
+void KeyValueConfiguration::setValue(const std::string& key, const std::string& value) {
+    m_entries[key] = value;
+}
+
 bool KeyValueConfiguration::contains(const std::string& key) const {
     return m_entries.find(key) != m_entries.end();
 }

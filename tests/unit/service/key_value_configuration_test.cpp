@@ -101,4 +101,13 @@ TEST(Elm327SourceConfigurationTest, NonPositiveTimeoutsKeepTheDefaults) {
     EXPECT_EQ(typed.backoffCapMilliseconds, 10000);
 }
 
+TEST(KeyValueConfigurationSetValueTest, SetValueAddsAndOverrides) {
+    lexus_head_unit::KeyValueConfiguration configuration;
+    configuration.loadFromText("[record]\nfile = a.rec\n");
+    configuration.setValue("record.file", "b.rec");
+    configuration.setValue("replay.timing", "fast");
+    EXPECT_EQ(configuration.stringValue("record.file", ""), "b.rec");
+    EXPECT_EQ(configuration.stringValue("replay.timing", ""), "fast");
+}
+
 } // namespace

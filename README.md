@@ -96,7 +96,7 @@ Work is tracked as `LHU-nnn` tickets on the project board, grouped by milestone.
 
 ## Privacy
 
-The repository is public. The vehicle identification number, Bluetooth addresses and raw on-car recordings are never committed; CI enforces the first two, and raw recordings stay in the ignored `local_recordings/` folder until scrubbed.
+The repository is public. The vehicle identification number, Bluetooth addresses and raw on-car recordings are never committed; CI enforces the first two, and raw recordings stay in the ignored `local_recordings/` folder until scrubbed. A drive is recorded with `--record local_recordings/<name>.rec`, replayed with `--source replay`, and scrubbed with `tools/scrub_recording.py`, which removes the VIN in plain text and in the hexadecimal form of the Mode 09 reply and writes nothing if any remains.
 
 ## License
 

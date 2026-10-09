@@ -13,6 +13,7 @@ add_executable(lexus_head_unit_unit_tests
     obd/elm327_protocol_test.cpp
     obd/obd_pid_decoder_test.cpp
     obd/supported_pid_set_test.cpp
+    replay/recording_test.cpp
     service/connection_state_machine_test.cpp
     service/key_value_configuration_test.cpp
     service/reconnect_backoff_test.cpp
@@ -30,6 +31,7 @@ target_link_libraries(lexus_head_unit_unit_tests
         lexus_head_unit_service
         lexus_head_unit_can
         lexus_head_unit_can_source
+        lexus_head_unit_recording
         lexus_head_unit_elm327_source
         lexus_head_unit_fake_source
         lexus_head_unit_hub_core

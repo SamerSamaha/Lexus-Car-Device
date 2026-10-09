@@ -72,8 +72,13 @@ int main(int argumentCount, char** argumentValues) {
         QStringLiteral("bus-address"),
         QStringLiteral("connect to this bus address instead (tests use a private bus)"),
         QStringLiteral("address"));
+    const QCommandLineOption recordOption(
+        QStringLiteral("record"),
+        QStringLiteral("record the ELM327 bytes to this file (keep it in local_recordings/)"),
+        QStringLiteral("path"));
     parser.addOption(configOption);
     parser.addOption(sourceOption);
+    parser.addOption(recordOption);
     parser.addOption(busOption);
     parser.addOption(busAddressOption);
     parser.process(application);
@@ -83,6 +88,9 @@ int main(int argumentCount, char** argumentValues) {
     if (!configuration.loadFromFile(configurationPath)) {
         std::cerr << "lexus-vehicle-data-service: configuration file " << configurationPath
                   << " not found; using defaults\n";
+    }
+    if (parser.isSet(recordOption)) {
+        configuration.setValue("record.file", parser.value(recordOption).toStdString());
     }
 
     // The bus and the name come first: a second service must stop before it opens the adapter.
