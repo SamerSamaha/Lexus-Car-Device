@@ -1,4 +1,5 @@
 qt_add_executable(lexus_head_unit_hub_hmi_tests
+    fake_power_status_reader.h
     hub_hmi_test_main.cpp
 )
 
@@ -12,6 +13,7 @@ target_include_directories(lexus_head_unit_hub_hmi_tests
 target_link_libraries(lexus_head_unit_hub_hmi_tests
     PRIVATE
         lexus_head_unit_hub_viewmodels
+        lexus_head_unit_hmi_viewmodels
         lexus_head_unit_build_settings
         Qt6::Qml
         Qt6::Quick

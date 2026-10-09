@@ -16,6 +16,7 @@ add_executable(lexus_head_unit_unit_tests
     replay/recording_test.cpp
     service/connection_state_machine_test.cpp
     service/key_value_configuration_test.cpp
+    service/power_status_test.cpp
     service/reconnect_backoff_test.cpp
     service/service_library_smoke_test.cpp
     service/signal_sample_test.cpp

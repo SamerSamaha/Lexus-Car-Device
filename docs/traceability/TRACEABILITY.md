@@ -27,7 +27,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-017 | `VehicleDataService` (D-Bus adapter over the service layer), `VehicleDataClient`, the interface file `src/service_dbus/interface/io.github.samersamaha.LexusHeadUnit.VehicleData1.xml`, the executable `lexus-vehicle-data-service` (DN-022) | LHU-022 | `tests/integration/vehicle_data_dbus_test.cpp` on a private bus (two clients, identical 1,000-sample sequences with the hop printed; a late client complete within 500 ms; transitions; service gone and back; name already owned; live introspection equals the file; the executable end to end); `tests/unit/service_dbus/dbus_types_test.cpp`; the hop on the Pi is part of LHU-032 | Desk part tagged and merged (LHU-022); the hop on the Pi is not yet measured |
 | REQ-018 | URL entries in `AppRegistry`; browser launch configuration in `deploy/` | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`; results in `docs/test/results/`; browser memory in `docs/measurements/memory/` | Planned |
 | REQ-019 | Operating-system audio configuration in `deploy/`; connection log of `ConnectionStateMachine` | LHU-024 | `docs/test/MANUAL_ON_CAR_PROCEDURE.md` (audio section); results and logs in `docs/test/results/` | Planned |
-| REQ-020 | `PowerStatusProvider` (real and fake), shutdown control in the hub | LHU-025 | `tests/unit/service/power_status_decoding_test.cpp`; `tests/hmi/power_flags_test.qml`; shutdown cycles in `docs/test/results/` | Planned |
+| REQ-020 | `decodeGetThrottled` and `PowerFlags` (service library); `PowerStatusReader` (`vcgencmd` through `QProcess`, and a fake), `PowerStatusModel`, `ShutdownController` and the hub status strip (DN-025) | LHU-025 | `tests/unit/service/power_status_test.cpp` (every bit, the logger's 0x50005 example, malformed outputs); `tests/unit/hmi/power_status_model_test.cpp` (each flag set and cleared, unavailable, skipped polls; two-tap shutdown, expiry, failure); `tests/hmi_hub/tst_hub_power.qml` (each current flag on the strip within 5 s and cleared, the 10 mm shutdown button needing two taps); 10 shutdown cycles on the Pi in `docs/test/results/` (checklist step 3.8) | Desk part tagged and merged (LHU-025); the shutdown cycles are a Pi step |
 | REQ-021 | `DtcDecoder`, `VehicleInfoDecoder`, `DiagnosticsModel`, diagnostics screen | LHU-030 | `tests/unit/obd/dtc_decoder_test.cpp` (0, 1, 2, 6 codes; P, C, B, U; multi-frame); `tests/unit/obd/vehicle_info_decoder_test.cpp`; `tests/hmi/diagnostics_screen_test.qml` | Planned |
 | REQ-022 | `DerivedSignalEngine` and its derived-signal definitions | LHU-031 | `tests/unit/service/fuel_economy_test.cpp`, `tests/unit/service/trip_totals_test.cpp`; `tests/integration/replay_deterministic_totals_test.cpp` | Planned |
 
@@ -39,7 +39,7 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | With a named design element | 22 |
 | With a named ticket | 22 |
 | With a named test or measurement | 22 |
-| With a test that exists and is tagged | 14 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017) |
+| With a test that exists and is tagged | 15 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 

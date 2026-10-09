@@ -6,6 +6,9 @@ Rectangle {
     id: screen
 
     required property var hub
+    property var connection: null
+    property var power: null
+    property var shutdown: null
     readonly property int columns: 4
     readonly property int rows: 2
 
@@ -18,6 +21,9 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         hub: screen.hub
+        connection: screen.connection
+        power: screen.power
+        shutdown: screen.shutdown
     }
 
     GridView {

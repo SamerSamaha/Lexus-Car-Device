@@ -403,7 +403,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-022 | Vehicle-data service over D-Bus; client library; systemd units. **Done 2026-10-08** (DN-022), 3.0 h actual (estimated) | 6 | 1.75 full | 7.75 | 017, 002, 011 |
 | LHU-023 | Web apps in the system browser; protected-audio and memory facts recorded (OQ-27) | 3 | exempt | 3 | 018 |
 | LHU-024 | Bluetooth audio from the Pi to the car stereo; coexistence measured (OQ-28) | 4 | exempt | 4 | 019 |
-| LHU-025 | Power status and clean shutdown | 4 | 0.75 light | 4.75 | 020 |
+| LHU-025 | Power status and clean shutdown. **Done 2026-10-09** at the desk (DN-025); shutdown cycles are checklist step 3.8; 2.0 h actual (estimated) | 4 | 0.75 light | 4.75 | 020 |
 | LHU-026 | Release v0.2.0 Platform | 1.5 | exempt | 1.5 | — |
 | LHU-016, 017, 018 | Carried from v0.1.0 (rows above) | 4.5 | exempt | 4.5 | — |
 | **Total** | | | | **37.25** | |

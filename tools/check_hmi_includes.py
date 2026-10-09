@@ -4,7 +4,8 @@
 Under src/hmi/, and under src/hub/viewmodels/ and src/hub/qml/ when they exist:
   * no C++ file may include a header from lexus_head_unit/hardware/;
   * the only lexus_head_unit/service/ headers allowed are the value types the view models
-    display: signal_id.h, signal_sample.h, signal_definition.h, connection_state_machine.h;
+    display: signal_id.h, signal_sample.h, signal_definition.h, connection_state_machine.h,
+    power_status.h;
   * QML files may import only Qt modules (QtQuick, QtQuick.*, QtQml, QtQml.*, QtTest) and the
     project's own modules LexusHeadUnit and LexusHub.
 
@@ -32,6 +33,8 @@ ALLOWED_SERVICE_HEADERS = (
     "lexus_head_unit/service/signal_sample.h",
     "lexus_head_unit/service/signal_definition.h",
     "lexus_head_unit/service/connection_state_machine.h",
+    # PowerFlags and its pure decoder (DN-025): a value type, no hardware and no service state.
+    "lexus_head_unit/service/power_status.h",
 )
 ALLOWED_QML_IMPORT_PREFIXES = ("QtQuick", "QtQml", "LexusHeadUnit", "LexusHub", "QtTest")
 

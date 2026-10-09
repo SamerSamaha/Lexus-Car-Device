@@ -1,15 +1,20 @@
+#include "lexus_head_unit/hmi/connection_status_model.h"
 #include "lexus_head_unit/hub/app_process_manager.h"
 #include "lexus_head_unit/hub/app_registry.h"
+#include "lexus_head_unit/hub/command_line.h"
 #include "lexus_head_unit/hub/hub_control_server.h"
 #include "lexus_head_unit/hub/hub_view_model.h"
 #include "lexus_head_unit/hub/posix_process_launcher.h"
+#include "lexus_head_unit/hub/power_status_model.h"
 #include "lexus_head_unit/process_support/quit_on_signals.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service_dbus/vehicle_data_client.h"
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QDBusConnection>
 #include <QGuiApplication>
 #include <QObject>
 #include <QQmlApplicationEngine>
@@ -21,7 +26,9 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <optional>
 #include <string>
+#include <vector>
 
 // Qt declares its macros and enumerations in internal headers; the public ones are included.
 // NOLINTBEGIN(misc-include-cleaner)
@@ -37,6 +44,7 @@ using lexus_head_unit::PosixProcessLauncher;
 using lexus_head_unit::SteadyClock;
 
 constexpr int pollIntervalMilliseconds = 100;
+constexpr std::int64_t defaultPowerPollMilliseconds = 2000;
 constexpr int sendTimeoutMilliseconds = 3000;
 constexpr std::int64_t shutdownWaitMilliseconds = 3000;
 constexpr int exitCodeCommandFailed = 1;
@@ -54,6 +62,20 @@ bool isClientInvocation(int argumentCount, char** argumentValues) {
         }
     }
     return false;
+}
+
+// A command line from the registry file, split without a shell; the default if the key is
+// missing or the text cannot be split.
+QStringList commandFrom(const KeyValueConfiguration& configuration,
+                        const std::string& key,
+                        const std::string& defaultCommand) {
+    const std::optional<std::vector<std::string>> words =
+        lexus_head_unit::splitCommandLine(configuration.stringValue(key, defaultCommand));
+    QStringList command;
+    for (const std::string& word : words.value_or(std::vector<std::string>{})) {
+        command << QString::fromStdString(word);
+    }
+    return command;
 }
 
 QCommandLineOption socketOption() {
@@ -132,8 +154,29 @@ int runHub(int argumentCount, char** argumentValues) {
         std::cerr << "lexus-hub: could not install the signal handlers\n";
     }
 
+    // The status strip (DN-025): connection state from the vehicle-data service over D-Bus,
+    // the firmware power flags, and the two-tap shutdown.
+    lexus_head_unit::ConnectionStatusModel connection;
+    lexus_head_unit::VehicleDataClient vehicleData(QDBusConnection::sessionBus());
+    QObject::connect(&vehicleData,
+                     &lexus_head_unit::VehicleDataClient::connectionChanged,
+                     &connection,
+                     &lexus_head_unit::ConnectionStatusModel::applyTransition);
+    vehicleData.start();
+    const QStringList powerCommand =
+        commandFrom(configuration, "hub.power_command", "vcgencmd get_throttled");
+    lexus_head_unit::ProcessPowerStatusReader powerReader(powerCommand.value(0),
+                                                          powerCommand.mid(1));
+    lexus_head_unit::PowerStatusModel power(powerReader);
+    lexus_head_unit::ShutdownController shutdown(
+        commandFrom(configuration, "hub.shutdown_command", "systemctl poweroff"),
+        lexus_head_unit::ShutdownController::detachedProcessExecutor());
+
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("hubContext"), &hub);
+    engine.rootContext()->setContextProperty(QStringLiteral("connectionContext"), &connection);
+    engine.rootContext()->setContextProperty(QStringLiteral("powerContext"), &power);
+    engine.rootContext()->setContextProperty(QStringLiteral("shutdownContext"), &shutdown);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
@@ -154,6 +197,8 @@ int runHub(int argumentCount, char** argumentValues) {
     });
 
     hub.startPolling(pollIntervalMilliseconds);
+    power.startPolling(static_cast<int>(
+        configuration.integerValue("hub.power_poll_ms", defaultPowerPollMilliseconds)));
     std::cerr << "lexus-hub: " << registry.entries().size() << " apps, control socket "
               << parser.value(socket).toStdString() << "\n";
     const int exitCode = QGuiApplication::exec();
