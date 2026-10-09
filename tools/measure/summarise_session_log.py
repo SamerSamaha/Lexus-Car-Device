@@ -13,6 +13,11 @@ from the start of the log when audio started and stopped), it reports:
 
     summarise_session_log.py session.csv --audio-start-seconds 600 --audio-end-seconds 1800
 
+Without the audio window (the parked and drive runs of LHU-034) it reports the request rate over
+the whole log and every transition out of Connected:
+
+    summarise_session_log.py session.csv
+
 Standard library only. Exit 0 printed, 2 could not run.
 """
 
@@ -95,18 +100,37 @@ def summarise(counters: Sequence[CounterRow], transitions: Sequence[Transition],
     return "\n".join(lines)
 
 
+def summarise_whole_log(counters: Sequence[CounterRow], transitions: Sequence[Transition]) -> str:
+    log_end = counters[-1].seconds if counters else 0.0
+    rate = rate_between(counters, 0.0, log_end)
+    lines = [f"log: {log_end:.0f} s, {len(counters)} counter rows, {len(transitions)} transitions"]
+    lines.append("request rate: " + ("unknown" if rate is None else f"{rate:.2f}/s"))
+    lost = [transition for transition in transitions if transition.origin == "Connected"]
+    lines.append(f"transitions out of Connected: {len(lost)}")
+    for transition in lost:
+        lines.append(f"  {transition.seconds:.1f} s {transition.trigger} -> {transition.target}")
+    return "\n".join(lines)
+
+
 def main(argument_list: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Summarise a session log for REQ-019.")
     parser.add_argument("log", type=Path)
-    parser.add_argument("--audio-start-seconds", type=float, required=True)
-    parser.add_argument("--audio-end-seconds", type=float, required=True)
+    parser.add_argument("--audio-start-seconds", type=float)
+    parser.add_argument("--audio-end-seconds", type=float)
     arguments = parser.parse_args(argument_list)
+    window = (arguments.audio_start_seconds, arguments.audio_end_seconds)
+    if (window[0] is None) != (window[1] is None):
+        parser.error("give both --audio-start-seconds and --audio-end-seconds, or neither")
     try:
         counters, transitions = read_log(arguments.log)
     except (OSError, KeyError, ValueError) as error:
         print(f"summarise_session_log: error: {error}", file=sys.stderr)
         return EXIT_CODE_COULD_NOT_RUN
-    print(summarise(counters, transitions, arguments.audio_start_seconds, arguments.audio_end_seconds))
+    if window[0] is None:
+        print(summarise_whole_log(counters, transitions))
+    else:
+        print(summarise(counters, transitions, arguments.audio_start_seconds,
+                        arguments.audio_end_seconds))
     return EXIT_CODE_OK
 
 

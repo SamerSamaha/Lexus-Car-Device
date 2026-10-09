@@ -26,7 +26,7 @@ Rules:
 | Trip values compared with the car's own trip meter; PID 0x10 supported or not | LHU-031 | Engine, trip screen and replay test built at the desk (LHU-031); step 3.11 not yet done |
 | Trouble codes and vehicle identification read from the car | LHU-030 | Decoders, source, D-Bus members and screen built and tested at the desk against the emulator (LHU-030); step 3.10 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
-| On-car procedure and drives | LHU-034 | Not yet done |
+| On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
 
