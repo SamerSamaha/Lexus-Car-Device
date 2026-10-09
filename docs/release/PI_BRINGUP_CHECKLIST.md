@@ -17,6 +17,7 @@ Rules:
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
 | Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
+| Vehicle-data service and hub as systemd user units, the app reading the service over D-Bus | LHU-022 | Built and tested at the desk on a private bus (LHU-022); step 3.6 not yet done |
 | Web apps, protected audio, browser memory | LHU-023 | Not yet done |
 | Bluetooth audio to the car stereo | LHU-024 | Not yet done |
 | Power flags on screen, clean shutdown cycles | LHU-025 | Not yet done |
@@ -42,6 +43,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A10 | Chromium started with its own `--user-data-dir` stays as the process the hub launched, rather than handing the URL to a running instance and exiting, so the hub can track a URL app | DN-021 | Step 3.5, item 5 | Not yet verified |
 | A11 | The Raspberry Pi OS panel stays visible above a maximised app window under labwc, and a launcher on it runs `lexus-hub --send return` from a tap | DN-021 | Step 3.5, items 3 and 4 | Not yet verified |
 | A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
+| A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
 
 ## 3. Steps
 
@@ -116,6 +118,22 @@ lexus-hub --send status    # expected: state idle app - hub_pid <n> app_pid - wi
 6. Close the vehicle-data app from inside (if it has no close control, `kill <app_pid>`): the hub must be in front within 1 s.
 
 Record everything in `docs/test/results/<date>_hub_on_pi.md`.
+
+Results: not yet measured.
+
+### 3.6 Service and hub as user units (LHU-022)
+
+After 3.5, with the executables linked into `/usr/local/bin` (also `lexus-vehicle-data-service` from `src/service_dbus/`):
+
+```sh
+install -D -m 644 deploy/systemd/*.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now lexus-vehicle-data-service
+busctl --user call io.github.samersamaha.LexusHeadUnit /io/github/samersamaha/LexusHeadUnit/VehicleData io.github.samersamaha.LexusHeadUnit.VehicleData1 GetConnection
+systemctl --user enable lexus-hub && systemctl --user is-active graphical-session.target
+```
+
+Record: the `GetConnection` reply; whether `graphical-session.target` is active and `systemctl --user show-environment` lists `WAYLAND_DISPLAY` (A13); after a reboot, whether the hub appears by itself. Fallback if not: remove the hub unit and add `lexus-hub --registry /home/<user>/Lexus-Car-Device/deploy/hub.conf --fullscreen &` to `~/.config/labwc/autostart`. Then tap "Vehicle data" and confirm the values move (the app now reads the service), `systemctl --user restart lexus-vehicle-data-service` turns them Stale and back within a few seconds, and the D-Bus hop (part of LHU-032) is measured with the adapter connected.
 
 Results: not yet measured.
 

@@ -80,3 +80,35 @@ if(LEXUS_HEAD_UNIT_BUILD_HMI)
             TIMEOUT 120
     )
 endif()
+
+if(LEXUS_HEAD_UNIT_BUILD_HMI)
+    add_executable(lexus_head_unit_dbus_integration_tests
+        vehicle_data_dbus_test.cpp
+    )
+
+    target_compile_definitions(lexus_head_unit_dbus_integration_tests
+        PRIVATE
+            LEXUS_HEAD_UNIT_SERVICE_PATH="$<TARGET_FILE:lexus_head_unit_vehicle_data_service_app>"
+            LEXUS_HEAD_UNIT_INTERFACE_XML="${CMAKE_SOURCE_DIR}/src/service_dbus/interface/io.github.samersamaha.LexusHeadUnit.VehicleData1.xml"
+    )
+    add_dependencies(lexus_head_unit_dbus_integration_tests
+        lexus_head_unit_vehicle_data_service_app
+    )
+
+    target_link_libraries(lexus_head_unit_dbus_integration_tests
+        PRIVATE
+            lexus_head_unit_service_dbus
+            lexus_head_unit_build_settings
+            Qt6::Core
+            Qt6::DBus
+            GTest::gtest
+    )
+
+    gtest_discover_tests(lexus_head_unit_dbus_integration_tests
+        DISCOVERY_TIMEOUT 30
+        PROPERTIES
+            LABELS integration
+            ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
+            TIMEOUT 120
+    )
+endif()

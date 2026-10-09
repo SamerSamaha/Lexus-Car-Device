@@ -88,6 +88,14 @@ class CheckLinkGraphTest(unittest.TestCase):
             output,
         )
 
+    def test_dbus_service_library_linking_a_source_fails(self):
+        graph = CLEAN_GRAPH.replace(
+            'label = "lexus_head_unit_service"', 'label = "lexus_head_unit_service_dbus"'
+        ).replace('"node4" -> "node0"', '"node4" -> "node0"\n    "node2" -> "node3"')
+        exit_code, output, _ = run_main(graph)
+        self.assertEqual(exit_code, check_link_graph.EXIT_CODE_FINDING)
+        self.assertIn("lexus_head_unit_service_dbus links to the concrete source", output)
+
     def test_empty_graph_cannot_run(self):
         exit_code, _, error = run_main("digraph x {}\n")
         self.assertEqual(exit_code, check_link_graph.EXIT_CODE_CHECK_COULD_NOT_RUN)

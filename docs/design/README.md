@@ -66,3 +66,4 @@ In this order:
 | [DN-039](DN-039-vehicle-data-screen.md) Vehicle-data screen, 4 x 2 signal grid | LHU-039 | Implemented |
 | [DN-015](DN-015-thermal-logger.md) Thermal and power logger | LHU-015 | Implemented |
 | [DN-021](DN-021-app-hub.md) App hub launcher | LHU-021 | Implemented |
+| [DN-022](DN-022-vehicle-data-service.md) Vehicle-data service over D-Bus | LHU-022 | Implemented |

@@ -1,0 +1,134 @@
+#include "lexus_head_unit/process_support/quit_on_signals.h"
+#include "lexus_head_unit/service/clock.h"
+#include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/signal_sample.h"
+#include "lexus_head_unit/service/signal_store.h"
+#include "lexus_head_unit/service/signal_store_feeder.h"
+#include "lexus_head_unit/service/staleness_monitor.h"
+#include "lexus_head_unit/service/worker_loop.h"
+#include "lexus_head_unit/service_dbus/vehicle_data_service.h"
+#include "source_factory.h"
+
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QCoreApplication>
+#include <QDBusConnection>
+#include <QDBusError>
+#include <QString>
+
+#include <iostream>
+#include <memory>
+#include <string>
+
+// Qt declares its macros and enumerations in internal headers; the public ones are included.
+// NOLINTBEGIN(misc-include-cleaner)
+namespace {
+
+using lexus_head_unit::ConnectionTransition;
+using lexus_head_unit::KeyValueConfiguration;
+using lexus_head_unit::SignalSample;
+using lexus_head_unit::SignalStore;
+using lexus_head_unit::SignalStoreFeeder;
+using lexus_head_unit::StalenessMonitor;
+using lexus_head_unit::SteadyClock;
+using lexus_head_unit::VehicleDataService;
+using lexus_head_unit::WorkerLoop;
+
+constexpr int exitCodeNoBus = 1;
+constexpr int exitCodeNameTaken = 2;
+
+QDBusConnection connectToBus(const QString& kind, const QString& address) {
+    if (!address.isEmpty()) {
+        return QDBusConnection::connectToBus(address, QStringLiteral("lexus-vehicle-data-service"));
+    }
+    return kind == QStringLiteral("system") ? QDBusConnection::systemBus()
+                                            : QDBusConnection::sessionBus();
+}
+
+} // namespace
+
+int main(int argumentCount, char** argumentValues) {
+    const QCoreApplication application(argumentCount, argumentValues);
+    QCoreApplication::setApplicationName(QStringLiteral("lexus-vehicle-data-service"));
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription(
+        QStringLiteral("Lexus Head Unit vehicle-data service: the one process that reads the "
+                       "vehicle, publishing its signals on D-Bus"));
+    parser.addHelpOption();
+    const QCommandLineOption configOption(QStringLiteral("config"),
+                                          QStringLiteral("configuration file"),
+                                          QStringLiteral("path"),
+                                          QStringLiteral("deploy/head_unit.conf"));
+    const QCommandLineOption sourceOption(QStringLiteral("source"),
+                                          QStringLiteral("source kind: elm327 or fake"),
+                                          QStringLiteral("kind"));
+    const QCommandLineOption busOption(QStringLiteral("bus"),
+                                       QStringLiteral("session (default) or system"),
+                                       QStringLiteral("kind"),
+                                       QStringLiteral("session"));
+    const QCommandLineOption busAddressOption(
+        QStringLiteral("bus-address"),
+        QStringLiteral("connect to this bus address instead (tests use a private bus)"),
+        QStringLiteral("address"));
+    parser.addOption(configOption);
+    parser.addOption(sourceOption);
+    parser.addOption(busOption);
+    parser.addOption(busAddressOption);
+    parser.process(application);
+
+    KeyValueConfiguration configuration;
+    const std::string configurationPath = parser.value(configOption).toStdString();
+    if (!configuration.loadFromFile(configurationPath)) {
+        std::cerr << "lexus-vehicle-data-service: configuration file " << configurationPath
+                  << " not found; using defaults\n";
+    }
+
+    // The bus and the name come first: a second service must stop before it opens the adapter.
+    VehicleDataService service;
+    const QDBusConnection connection =
+        connectToBus(parser.value(busOption), parser.value(busAddressOption));
+    QString registrationError;
+    if (!connection.isConnected()) {
+        std::cerr << "lexus-vehicle-data-service: no bus: "
+                  << connection.lastError().message().toStdString() << "\n";
+        return exitCodeNoBus;
+    }
+    if (!service.registerOn(connection, registrationError)) {
+        std::cerr << "lexus-vehicle-data-service: " << registrationError.toStdString() << "\n";
+        return exitCodeNameTaken;
+    }
+
+    const SteadyClock clock;
+    SignalStore store;
+    lexus_head_unit::app::applyStalenessConfiguration(configuration, store);
+    StalenessMonitor monitor(store, clock);
+    SignalStoreFeeder feeder(store);
+    lexus_head_unit::app::BuiltSource built = lexus_head_unit::app::buildSource(
+        configuration, parser.value(sourceOption).toStdString(), clock);
+    store.setChangeListener([&service](const SignalSample& sample) {
+        service.publishSample(sample);
+    });
+    feeder.setTransitionHook([&service](const ConnectionTransition& transition) {
+        service.publishTransition(transition);
+    });
+
+    std::unique_ptr<lexus_head_unit::app::FakeVehicleDemo> demo;
+    WorkerLoop loop(*built.source, feeder, monitor, built.minimumCycleMilliseconds);
+    if (built.fakeSource != nullptr) {
+        demo = std::make_unique<lexus_head_unit::app::FakeVehicleDemo>(*built.fakeSource);
+        loop.setPerCycleCallback([&demo, &clock]() {
+            demo->scriptNextCycle(clock.nowMilliseconds());
+        });
+    }
+    if (!lexus_head_unit::installQuitOnSignals()) {
+        std::cerr << "lexus-vehicle-data-service: could not install the signal handlers\n";
+    }
+    std::cerr << "lexus-vehicle-data-service: source " << built.kind << ", bus name owned\n";
+    loop.start();
+    const int exitCode = QCoreApplication::exec();
+    loop.stop();
+    return exitCode;
+}
+// NOLINTEND(misc-include-cleaner)

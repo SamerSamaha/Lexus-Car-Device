@@ -116,9 +116,11 @@ The service layer depends on the C++17 standard library only. No Qt header is in
 
 | Component | Responsibility | Notes |
 |---|---|---|
-| `VehicleDataService` | Hosts the service layer and the active source in its own process; publishes every signal change and connection state change over D-Bus; answers a current-state query so a late-joining client starts complete | REQ-017, LHU-022. Qt D-Bus adapter only; the service layer underneath is unchanged |
-| `VehicleDataClient` | Client-side mirror: subscribes, holds the latest sample per signal, exposes them to view models | The only path from a view model to vehicle data (REQ-011 from v0.2.0). Used by the vehicle-data app and the hub's status strip |
-| D-Bus interface definition | Introspection XML in `src/service_dbus/` naming the signals and the state query | Versioned; the test of REQ-017 runs two clients against it |
+| `VehicleDataService` | The object exported by the `lexus-vehicle-data-service` process, which hosts the service layer and the active source; publishes every sample and transition as a D-Bus signal (`SampleChanged`, `ConnectionChanged`), and answers `GetSamples` and `GetConnection` from a mirror kept on its own thread, so a late-joining client starts complete | REQ-017, LHU-022, DN-022. Qt D-Bus adapter only; the service layer underneath is unchanged. The worker thread hands samples over with a queued call |
+| `VehicleDataClient` | Client-side mirror: subscribes first, then fetches the state, and applies every message in arrival order (one sender's messages arrive in order, so no timestamps are compared); marks values Stale and the connection Error when the service goes away, and fetches again when it returns | The only path from a view model to vehicle data (REQ-011 from v0.2.0). Used by the vehicle-data app with `--source dbus`; the hub's status strip uses it from LHU-025 |
+| D-Bus interface definition | `src/service_dbus/interface/io.github.samersamaha.LexusHeadUnit.VehicleData1.xml`: bus name `io.github.samersamaha.LexusHeadUnit`, object `/io/github/samersamaha/LexusHeadUnit/VehicleData` | Versioned by the trailing 1; a test compares the live introspection with the file |
+| `lexus_head_unit_qt_value_types`, `lexus_head_unit_source_wiring`, `lexus_head_unit_process_support` | The Qt meta-type declarations shared by the view models and the client; `buildSource` and the staleness configuration shared by the app and the service; the SIGTERM handling shared by the hub and the service | Shared so that the service process links no HMI code |
+| `deploy/systemd/` | User units: the service (`Type=dbus`, restart on failure) and the hub (after the service, restart always), with absolute paths | Whether labwc starts the graphical session target is assumption A13 |
 
 ### 4.3 HMI, `src/hmi/`
 
@@ -239,7 +241,6 @@ The 5-inch Touch Display 2 is 720 x 1280 pixels on an active area of 62.1 mm x 1
 
 | Item | Decided by |
 |---|---|
-| D-Bus interface names, signal payload layout, current-state query | DN-022 |
 | Whether the system browser plays protected audio on this unit (OQ-27) | LHU-023, recorded as a fact either way |
 | Audio and OBD links sharing one Bluetooth radio (OQ-28) | LHU-024, measured |
 | Per-process memory budgets replacing the single 150 MB figure of REQ-014 | LHU-032 baseline (OQ-8) |

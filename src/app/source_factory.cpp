@@ -6,8 +6,11 @@
 #include "lexus_head_unit/hardware/file_descriptor_byte_transport.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
+#include "lexus_head_unit/service/signal_store.h"
 
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <memory>
@@ -15,6 +18,21 @@
 #include <utility>
 
 namespace lexus_head_unit::app {
+
+void applyStalenessConfiguration(const KeyValueConfiguration& configuration, SignalStore& store) {
+    const std::int64_t defaultTimeout =
+        configuration.integerValue("staleness.default_ms", defaultStalenessTimeoutMilliseconds);
+    for (const SignalId signalId : allSignalIds) {
+        std::string key = "staleness.";
+        for (const char character : definitionOf(signalId).name) {
+            const auto lowered =
+                static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+            key.push_back(character == ' ' ? '_' : lowered);
+        }
+        key += "_ms";
+        store.setStalenessTimeout(signalId, configuration.integerValue(key, defaultTimeout));
+    }
+}
 
 namespace {
 
