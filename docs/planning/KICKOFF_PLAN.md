@@ -1,6 +1,6 @@
 # Lexus Head Unit — project plan
 
-**Revision 7, 2026-10-08.**
+**Revision 8, 2026-10-08.**
 - Revision 1: kickoff plan.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
@@ -8,6 +8,7 @@
 - Revision 5: design-first gate made tiered and LHU-011, LHU-012 moved to sprint 2 (D-037); LHU-004 re-estimated to 4 h (D-039); actual hours of LHU-002, LHU-003 and LHU-005 recorded; CI status checks required on both branches.
 - Revision 6: scope review closed (D-042 to D-047): the head unit becomes a platform (app hub, vehicle-data service over D-Bus, apps); milestones replace dates and the MVP date is withdrawn (D-043); no further purchases (D-044); desktop image and labwc as the display stack (D-045); REQ-016 to REQ-022 added; tickets LHU-016 to LHU-039 created with milestones; hardware as arrived and the Pi bring-up recorded; LHU-001 closed (power bank record).
 - Revision 7: ticket statuses brought up to date (LHU-019 and LHU-040 done, LHU-041 added); design notes for the build-out written by the implementer and reviewed after merge (D-049); `docs/release/PI_BRINGUP_CHECKLIST.md` created as the single list of steps that need the Pi or the car.
+- Revision 8: v0.1.0 Core released at the desk (LHU-014); the three tickets that need the Pi or the car (LHU-016, LHU-017, LHU-018) are carried into the v0.2.0 milestone; LHU-015 closed.
 
 The canonical copy of this file is `docs/planning/KICKOFF_PLAN.md` in the repository. Ticket LHU-004 split it into the other `docs/` files; those files are the detailed references and this file is the plan.
 
@@ -59,12 +60,12 @@ Each milestone is a tagged release from `dev` to `main` after `docs/release/RELE
 
 | Milestone | Content | Tickets | Estimated hours |
 |---|---|---|---|
-| **v0.1.0 Core** | Service layer, connection state machine, source interface, PID decoder, ELM327 parser and allowlist, emulator, `Elm327ObdSource`, home and vehicle-data screens on the Pi, adapter paired, first parked car session, thermal logging, build measurement, this revision | LHU-001, 006 to 015, 016 to 019, 039, 040, 041 | 49.25 remaining (table below) |
-| **v0.2.0 Platform** | Return-to-hub spike, hub launcher, vehicle-data service over D-Bus, web apps, Bluetooth audio to the car, power status and clean shutdown, release | LHU-020 to 026 | 32.75 |
+| **v0.1.0 Core** | Service layer, connection state machine, source interface, PID decoder, ELM327 parser and allowlist, emulator, `Elm327ObdSource`, home and vehicle-data screens on the Pi, adapter paired, first parked car session, thermal logging, build measurement, this revision | LHU-001 to 015, 019, 039, 040, 041 | **Released 2026-10-08** (desk release; LHU-016 to 018 carried into v0.2.0) |
+| **v0.2.0 Platform** | Return-to-hub spike, hub launcher, vehicle-data service over D-Bus, web apps, Bluetooth audio to the car, power status and clean shutdown, release | LHU-016 to 018, 020 to 026 | 37.25 |
 | **v1.0.0 Head unit** | DBC decoder, SocketCAN source, record and replay, diagnostics screen, trip analytics, whole-system measurements and one optimisation pass, arm64 CI build, on-car procedure and drives, docs, demo video, license, release | LHU-027 to 035 | 48.75 |
 | **Roadmap** | GPS from phone position and map tiles, offline statistics, call and notification status (optional) | LHU-036 to 038 | 32.75, not scheduled |
 
-Total planned to v1.0.0: about 132 hours of remaining work. At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
+Total planned to v1.0.0: about 86 hours of remaining work (37.25 for v0.2.0 and 48.75 for v1.0.0). At the sprint 1 pace of 35 hours per week that is four weeks; at fewer hours it is longer. No date is attached (D-043). The one dated recommendation on record: the referral makes a "resume-ready" point worth naming, and that point is v0.2.0 plus LHU-030.
 
 ## Hardware as arrived (D-011, D-012, D-026, D-044)
 
@@ -383,15 +384,15 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-012 | `Elm327ObdSource`: serial transport, handshake, discovery, polling loop, loss detection, backoff; configuration file; integration and scenario tests against the emulator | 4 | 1.75 full | 5.75 | 3.5 (estimated) | **Done 2026-10-08** (PR #54) | 002, 004, 008 |
 | LHU-013 | View models, worker loop, application, QML home screen sized in millimetres, HMI tests, REQ-011 CI check | 3 | 1.75 full | 4.75 | 3.0 (estimated) | **Done 2026-10-08** (PR #55) | 006, 007, 011, 012 |
 | LHU-039 | Vehicle-data screen: 4 x 2 signal grid, navigation between the screens | 4 | 0.75 light | 4.75 | 1.5 (estimated) | **Done 2026-10-08** (PR #56) | 006, 012 |
-| LHU-015 | Thermal and power logger script, with unit tests of parsing, summary and verdict | 0.75 | 0.75 light | 1.5 | | **Done** (DN-015, this PR) | — |
-| LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Backlog | — |
-| LHU-017 | vLinker MC+ pairing and first parked car session; PID support and request rate recorded | 2 | exempt | 2 | | Backlog | feeds 004 |
-| LHU-018 | Build-strategy measurement on the 2GB Pi | 1 | exempt | 1 | | Backlog | — |
+| LHU-015 | Thermal and power logger script, with unit tests of parsing, summary and verdict | 0.75 | 0.75 light | 1.5 | 1.0 (estimated) | **Done 2026-10-08** (PR #57) | — |
+| LHU-016 | Thermal and power logging in every bring-up and on-car session; CSVs committed | 1.5 | exempt | 1.5 | | Carried into v0.2.0 (Pi) | — |
+| LHU-017 | vLinker MC+ pairing and first parked car session; PID support and request rate recorded | 2 | exempt | 2 | | Carried into v0.2.0 (Pi, car) | feeds 004 |
+| LHU-018 | Build-strategy measurement on the 2GB Pi | 1 | exempt | 1 | | Carried into v0.2.0 (Pi) | — |
 | LHU-019 | Plan revision 6, hardware record, Pi first-boot checklist | 1.5 | exempt | 1.5 | | **Done 2026-10-06** (PR #43) | 016 to 022 (docs) |
 | LHU-040 | README front page and repository cleanup | 1 | exempt | 1 | 1.0 (estimated after the fact) | **Done 2026-10-06** (PR #45) | — |
-| LHU-041 | Plan status fixes, build-out design-note process (D-049), Pi bring-up checklist created | 0.5 | exempt | 0.5 | | **Done with this revision** | — |
-| LHU-014 | Release v0.1.0 Core: review, measurements so far | 1.5 | exempt | 1.5 | | Backlog | — |
-| **Remaining** | | | | **49.25** | 6.5 actual on 12.25 estimated for the five closed tickets with hours recorded; LHU-001 and LHU-019 have none | | |
+| LHU-041 | Plan status fixes, build-out design-note process (D-049), Pi bring-up checklist created | 0.5 | exempt | 0.5 | 0.5 (estimated) | **Done 2026-10-08** (PR #47) | — |
+| LHU-014 | Release v0.1.0 Core: review, measurements so far | 1.5 | exempt | 1.5 | 1.0 (estimated) | **Done 2026-10-08** (release PR) | — |
+| **Closed** | | | | | 28.0 actual (estimated after the fact for the build-out tickets) on 57.5 estimated for the 17 closed tickets with hours recorded; LHU-001 and LHU-019 have none | | |
 
 ### v0.2.0 Platform
 
@@ -404,7 +405,8 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-024 | Bluetooth audio from the Pi to the car stereo; coexistence measured (OQ-28) | 4 | exempt | 4 | 019 |
 | LHU-025 | Power status and clean shutdown | 4 | 0.75 light | 4.75 | 020 |
 | LHU-026 | Release v0.2.0 Platform | 1.5 | exempt | 1.5 | — |
-| **Total** | | | | **32.75** | |
+| LHU-016, 017, 018 | Carried from v0.1.0 (rows above) | 4.5 | exempt | 4.5 | — |
+| **Total** | | | | **37.25** | |
 
 ### v1.0.0 Head unit
 
