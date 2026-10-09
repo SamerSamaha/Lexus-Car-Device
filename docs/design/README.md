@@ -63,4 +63,5 @@ In this order:
 | [DN-011](DN-011-elm327-emulator.md) ELM327 emulator with fault injection | LHU-011 | Implemented |
 | [DN-012](DN-012-elm327-obd-source.md) Elm327ObdSource | LHU-012 | Implemented |
 | [DN-013](DN-013-qml-home-screen.md) QML home screen, view models and the application | LHU-013 | Implemented |
-| [DN-039](DN-039-vehicle-data-screen.md) Vehicle-data screen, 4 x 2 signal grid | LHU-039 | Approved |
+| [DN-039](DN-039-vehicle-data-screen.md) Vehicle-data screen, 4 x 2 signal grid | LHU-039 | Implemented |
+| [DN-015](DN-015-thermal-logger.md) Thermal and power logger | LHU-015 | Approved |

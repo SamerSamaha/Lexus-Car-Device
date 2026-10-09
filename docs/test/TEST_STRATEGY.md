@@ -31,7 +31,7 @@ Checks that are not tests of the software but run in CI on every pull request:
 | Privacy | `tools/check_private_data.py`: no VIN-shaped or Bluetooth-address-shaped string in tracked files or file names; the script has its own unit tests | LHU-005 |
 | Traceability | `tools/check_traceability.py`: every requirement ID in `REQUIREMENTS.md` appears in at least one test file tag (section 5) | LHU-006, with the first tagged test |
 | Dependency rules | Service and HMI targets link to no concrete source (`tools/check_link_graph.py`); the HMI includes no hardware header and only value-type service headers, and QML imports only Qt and `LexusHeadUnit` (`tools/check_hmi_includes.py`) (REQ-002, REQ-011) | LHU-008 (link graph), LHU-013 (include check) |
-| Thermal and power | `tools/measure/log_thermal_power.py` runs during every Pi bring-up and on-car session; judged against the thresholds of D-025 | LHU-015 (script), LHU-016 (sessions) |
+| Thermal and power | `tools/measure/log_thermal_power.py` runs during every Pi bring-up and on-car session; judged against the thresholds of D-025; its parsing, summary and verdict have unit tests in `tools/test_log_thermal_power.py` | LHU-015 (script), LHU-016 (sessions) |
 
 ## 3. Scenario coverage (T4)
 
