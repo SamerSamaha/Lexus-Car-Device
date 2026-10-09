@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/qt/value_types.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service_dbus/dbus_types.h"
@@ -32,6 +33,7 @@ signals:
     void sampleQueued(lexus_head_unit::SignalSample sample);
     void transitionQueued(lexus_head_unit::ConnectionTransition transition);
     void diagnosticsQueued(lexus_head_unit::DiagnosticsReport report);
+    void linkDetailQueued(uint detail);
 };
 
 // The object the vehicle-data service exports on D-Bus (DN-022). publishSample and
@@ -48,6 +50,8 @@ public:
     void publishTransition(const ConnectionTransition& transition);
     // Any thread: the source's diagnostics report (DN-030).
     void publishDiagnostics(const DiagnosticsReport& report);
+    // Any thread: the source's link detail (DN-042).
+    void publishLinkDetail(LinkDetail detail);
     // Called on RequestDiagnostics(); the service process passes the source's
     // requestDiagnostics(), which is safe from this thread.
     void setDiagnosticsRequester(std::function<void()> requester);
@@ -62,6 +66,7 @@ public slots:
     Q_SCRIPTABLE uint GetInterfaceVersion() const;
     Q_SCRIPTABLE void RequestDiagnostics();
     Q_SCRIPTABLE lexus_head_unit::DBusDiagnostics GetDiagnostics() const;
+    Q_SCRIPTABLE uint GetLinkDetail() const;
 
 signals:
     Q_SCRIPTABLE void SampleChanged(
@@ -69,11 +74,13 @@ signals:
     Q_SCRIPTABLE void
     ConnectionChanged(uint from, uint trigger, uint to, qlonglong timestampMilliseconds);
     Q_SCRIPTABLE void DiagnosticsChanged();
+    Q_SCRIPTABLE void LinkDetailChanged(uint detail);
 
 private:
     void applySample(const SignalSample& sample);
     void applyTransition(const ConnectionTransition& transition);
     void applyDiagnostics(const DiagnosticsReport& report);
+    void applyLinkDetail(uint detail);
 
     VehicleDataServiceInbox m_inbox;
     std::array<SignalSample, signalCount> m_samples{};
@@ -82,6 +89,7 @@ private:
     quint64 m_publishedSampleCount = 0;
     DiagnosticsReport m_diagnostics;
     std::function<void()> m_diagnosticsRequester;
+    LinkDetail m_linkDetail = LinkDetail::Idle;
 };
 
 } // namespace lexus_head_unit

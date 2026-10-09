@@ -86,10 +86,14 @@ std::size_t FakeByteTransport::write(const std::vector<std::uint8_t>& bytes) {
     return bytes.size();
 }
 
+std::int64_t FakeByteTransport::lastReadTimeoutMilliseconds() const {
+    return m_lastReadTimeoutMilliseconds;
+}
+
 ReadResult FakeByteTransport::read(std::vector<std::uint8_t>& buffer,
                                    std::size_t maxBytes,
                                    std::int64_t timeoutMilliseconds) {
-    static_cast<void>(timeoutMilliseconds);
+    m_lastReadTimeoutMilliseconds = timeoutMilliseconds;
     buffer.clear();
     if (!m_open) {
         return ReadResult{0, ReadStatus::Closed};

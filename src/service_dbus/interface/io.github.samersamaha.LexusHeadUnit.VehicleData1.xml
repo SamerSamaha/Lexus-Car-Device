@@ -7,7 +7,9 @@
      position, intake air temperature, control module voltage, fuel level); unit 0..4 (km/h,
      rpm, degC, %, V); status 0..2 (NeverReceived, Valid, Stale); state 0..3 (Disconnected,
      Connecting, Connected, Error); trigger 0..5 (StartRequested, HandshakeSucceeded,
-     HandshakeFailed, LinkLost, BackoffElapsed, StopRequested). The service never accepts a
+     HandshakeFailed, LinkLost, BackoffElapsed, StopRequested); link detail 0..4 (Idle,
+     SearchingForAdapter, AdapterWithoutVehicle, Live, LinkLostRetrying; DN-042, added without
+     changing any earlier member). The service never accepts a
      request that reaches the vehicle: every method only reads its own mirror. -->
 <node>
   <interface name="io.github.samersamaha.LexusHeadUnit.VehicleData1">
@@ -41,5 +43,11 @@
       <arg name="timestampMilliseconds" type="x" direction="out"/>
     </signal>
     <signal name="DiagnosticsChanged"/>
+    <method name="GetLinkDetail">
+      <arg type="u" direction="out"/>
+    </method>
+    <signal name="LinkDetailChanged">
+      <arg name="detail" type="u" direction="out"/>
+    </signal>
   </interface>
 </node>

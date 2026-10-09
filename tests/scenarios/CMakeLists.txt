@@ -1,5 +1,6 @@
 add_executable(lexus_head_unit_scenario_tests
     fault_injection_scenarios_test.cpp
+    link_detail_scenarios_test.cpp
     reconnect_after_emulator_restart_test.cpp
 )
 

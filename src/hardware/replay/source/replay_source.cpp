@@ -5,6 +5,7 @@
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/key_value_configuration.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
 #include <chrono>
@@ -89,6 +90,10 @@ void ReplaySource::stop() {
 
 ConnectionState ReplaySource::connectionState() const {
     return m_source.connectionState();
+}
+
+LinkDetail ReplaySource::linkDetail() const {
+    return m_source.linkDetail();
 }
 
 SourceCounters ReplaySource::counters() const {

@@ -2,6 +2,7 @@
 // verified in the car (docs/test/MANUAL_ON_CAR_PROCEDURE.md), so this file carries no tag.
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/session_log.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
 
@@ -62,6 +63,24 @@ TEST(SessionLogTest, TransitionsAndCountersAtTheInterval) {
         "200,counters,Connected,,,,12,10,1",
         "10200,counters,Connected,,,,300,10,1",
         "15000,transition,Error,LinkLost,Connected,Error,,,",
+    };
+    EXPECT_EQ(lines, expected);
+}
+
+TEST(SessionLogTest, LinkDetailChangesAreRows) {
+    const std::string path = "/tmp/lexus_session_detail_" + std::to_string(::getpid()) + ".csv";
+    {
+        SessionLog log(path, 10000);
+        ASSERT_TRUE(log.isOpen());
+        log.recordLinkDetail(500, lexus_head_unit::LinkDetail::AdapterWithoutVehicle);
+        log.recordLinkDetail(9000, lexus_head_unit::LinkDetail::Live);
+    }
+    const std::vector<std::string> lines = linesOf(path);
+    static_cast<void>(std::remove(path.c_str()));
+    const std::vector<std::string> expected = {
+        SessionLog::header,
+        "500,detail,AdapterWithoutVehicle,,,,,,",
+        "9000,detail,Live,,,,,,",
     };
     EXPECT_EQ(lines, expected);
 }

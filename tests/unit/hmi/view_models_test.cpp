@@ -124,6 +124,39 @@ TEST(ConnectionStatusModelTest, StartsDisconnectedAndFollowsTransitions) {
     EXPECT_EQ(spy.count(), 2);
 }
 
+TEST(ConnectionStatusModelTest, DetailFollowsTransitionsUntilTheSourceReportsItsOwn) {
+    ConnectionStatusModel model;
+    EXPECT_EQ(model.detailText(), QStringLiteral("Not started"));
+    EXPECT_EQ(model.detailName(), QStringLiteral("Idle"));
+    ConnectionTransition transition;
+    transition.trigger = ConnectionTrigger::HandshakeFailed;
+    transition.to = ConnectionState::Error;
+    model.applyTransition(transition);
+    EXPECT_EQ(model.detailText(), QStringLiteral("Searching for adapter"));
+
+    const QSignalSpy spy(&model, &ConnectionStatusModel::changed);
+    model.applyLinkDetail(lexus_head_unit::LinkDetail::AdapterWithoutVehicle);
+    EXPECT_EQ(model.detailText(), QStringLiteral("Adapter found, no vehicle"));
+    EXPECT_EQ(model.detailName(), QStringLiteral("AdapterWithoutVehicle"));
+    EXPECT_EQ(spy.count(), 1);
+    model.applyLinkDetail(lexus_head_unit::LinkDetail::AdapterWithoutVehicle);
+    EXPECT_EQ(spy.count(), 1);
+
+    // A retry (Connecting) keeps the detail; the handshake that succeeds makes it Live.
+    transition.trigger = ConnectionTrigger::BackoffElapsed;
+    transition.to = ConnectionState::Connecting;
+    model.applyTransition(transition);
+    EXPECT_EQ(model.detailName(), QStringLiteral("AdapterWithoutVehicle"));
+    transition.trigger = ConnectionTrigger::HandshakeSucceeded;
+    transition.to = ConnectionState::Connected;
+    model.applyTransition(transition);
+    EXPECT_EQ(model.detailText(), QStringLiteral("Live"));
+    transition.trigger = ConnectionTrigger::LinkLost;
+    transition.to = ConnectionState::Error;
+    model.applyTransition(transition);
+    EXPECT_EQ(model.detailText(), QStringLiteral("Link lost, retrying"));
+}
+
 // True when the tile for the id exists, carries the id, and sits at the id's index in tiles().
 bool tileIsInPlace(const VehicleDataViewModel& viewModel, SignalId signalId) {
     const SignalTileModel* tile = viewModel.tile(signalId);

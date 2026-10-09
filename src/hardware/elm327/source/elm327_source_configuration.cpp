@@ -31,6 +31,14 @@ Elm327SourceConfiguration::fromConfiguration(const KeyValueConfiguration& config
     result.backoffCapMilliseconds = positiveOrDefault(
         configuration.integerValue("elm327.backoff_cap_ms", result.backoffCapMilliseconds),
         result.backoffCapMilliseconds);
+    result.discoveryTimeoutMilliseconds =
+        positiveOrDefault(configuration.integerValue("elm327.discovery_timeout_ms",
+                                                     result.discoveryTimeoutMilliseconds),
+                          result.discoveryTimeoutMilliseconds);
+    result.vehicleSilenceTimeoutMilliseconds =
+        positiveOrDefault(configuration.integerValue("elm327.vehicle_silence_timeout_ms",
+                                                     result.vehicleSilenceTimeoutMilliseconds),
+                          result.vehicleSilenceTimeoutMilliseconds);
     return result;
 }
 

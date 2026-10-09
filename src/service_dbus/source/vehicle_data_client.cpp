@@ -2,6 +2,7 @@
 
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
@@ -74,6 +75,12 @@ void VehicleDataClient::start() {
                          QStringLiteral("DiagnosticsChanged"),
                          this,
                          SLOT(onDiagnosticsChanged()));
+    m_connection.connect(dbus_names::serviceName(),
+                         dbus_names::objectPath(),
+                         dbus_names::interfaceName(),
+                         QStringLiteral("LinkDetailChanged"),
+                         this,
+                         SLOT(onLinkDetailChanged(uint)));
     fetchState();
     fetchDiagnostics();
 }
@@ -114,6 +121,7 @@ void VehicleDataClient::onDiagnosticsReply(QDBusPendingCallWatcher* watcher) {
 void VehicleDataClient::fetchState() {
     m_samplesFetched = false;
     m_connectionFetched = false;
+    m_linkDetailFetched = false;
     auto* samplesWatcher = new QDBusPendingCallWatcher(
         m_connection.asyncCall(methodCall(QStringLiteral("GetSamples"))), this);
     connect(samplesWatcher,
@@ -126,6 +134,47 @@ void VehicleDataClient::fetchState() {
             &QDBusPendingCallWatcher::finished,
             this,
             &VehicleDataClient::onConnectionReply);
+    auto* detailWatcher = new QDBusPendingCallWatcher(
+        m_connection.asyncCall(methodCall(QStringLiteral("GetLinkDetail"))), this);
+    connect(detailWatcher,
+            &QDBusPendingCallWatcher::finished,
+            this,
+            &VehicleDataClient::onLinkDetailReply);
+}
+
+void VehicleDataClient::onLinkDetailReply(QDBusPendingCallWatcher* watcher) {
+    const QDBusPendingReply<uint> reply = *watcher;
+    watcher->deleteLater();
+    if (reply.isError()) {
+        return;
+    }
+    onLinkDetailChanged(reply.value());
+    m_linkDetailFetched = true;
+    noteFetched();
+}
+
+void VehicleDataClient::noteFetched() {
+    if (hasInitialState()) {
+        emit initialStateReceived();
+    }
+}
+
+void VehicleDataClient::onLinkDetailChanged(uint detail) {
+    const std::optional<LinkDetail> known = linkDetailFromNumber(detail);
+    if (!known.has_value()) {
+        ++m_malformedMessages;
+        return;
+    }
+    applyLinkDetail(*known);
+}
+
+void VehicleDataClient::applyLinkDetail(LinkDetail detail) {
+    m_linkDetail = detail;
+    emit linkDetailChanged(detail);
+}
+
+LinkDetail VehicleDataClient::linkDetail() const {
+    return m_linkDetail;
 }
 
 void VehicleDataClient::onSamplesReply(QDBusPendingCallWatcher* watcher) {
@@ -144,9 +193,7 @@ void VehicleDataClient::onSamplesReply(QDBusPendingCallWatcher* watcher) {
         applySample(*sample);
     }
     m_samplesFetched = true;
-    if (m_connectionFetched) {
-        emit initialStateReceived();
-    }
+    noteFetched();
 }
 
 void VehicleDataClient::onConnectionReply(QDBusPendingCallWatcher* watcher) {
@@ -173,9 +220,7 @@ void VehicleDataClient::onConnectionReply(QDBusPendingCallWatcher* watcher) {
     }
     m_state = *state;
     m_connectionFetched = true;
-    if (m_samplesFetched) {
-        emit initialStateReceived();
-    }
+    noteFetched();
 }
 
 void VehicleDataClient::onSampleChanged(
@@ -225,6 +270,9 @@ void VehicleDataClient::onServiceUnregistered() {
         lost.timestampMilliseconds = SteadyClock().nowMilliseconds();
         applyTransition(lost);
     }
+    if (m_linkDetail != LinkDetail::Idle) {
+        applyLinkDetail(LinkDetail::LinkLostRetrying);
+    }
 }
 
 void VehicleDataClient::setServiceAvailable(bool available) {
@@ -254,7 +302,7 @@ ConnectionState VehicleDataClient::connectionState() const {
 }
 
 bool VehicleDataClient::hasInitialState() const {
-    return m_samplesFetched && m_connectionFetched;
+    return m_samplesFetched && m_connectionFetched && m_linkDetailFetched;
 }
 
 bool VehicleDataClient::isServiceAvailable() const {

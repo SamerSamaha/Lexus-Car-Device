@@ -1,4 +1,4 @@
-// Verifies: REQ-012, REQ-006, REQ-007
+// Verifies: REQ-012, REQ-006, REQ-007, REQ-023
 
 import QtQuick
 import QtTest
@@ -106,6 +106,29 @@ TestCase {
         vehicleData.simulateConnection("Error", "LinkLost")
         tryCompare(stateText, "text", "Error", 500)
         compare(findChild(strip, "stateDot").color, Sizes.error)
+    }
+
+    function test_each_link_detail_is_shown_large_within_500_ms() {
+        var home = createHome()
+        var strip = tileOf(home, "statusStrip")
+        var detailText = findChild(strip, "detailText")
+        verify(detailText !== null, "detail text exists")
+        var cases = [["SearchingForAdapter", "Searching for adapter", Sizes.connecting],
+                     ["AdapterWithoutVehicle", "Adapter found, no vehicle", Sizes.connecting],
+                     ["Live", "Live", Sizes.connected],
+                     ["LinkLostRetrying", "Link lost, retrying", Sizes.error]]
+        for (var index = 0; index < cases.length; ++index) {
+            vehicleData.simulateLinkDetail(cases[index][0])
+            tryCompare(detailText, "text", cases[index][1], 500)
+            compare(detailText.color, cases[index][2])
+        }
+        verify(detailText.font.pixelSize >= Sizes.mm(4.5), "detail at least 4.5 mm em size")
+        verify(detailText.font.pixelSize > findChild(strip, "stateText").font.pixelSize,
+               "detail larger than the state text")
+        // The longest text fits on the strip next to the state and the cause.
+        vehicleData.simulateLinkDetail("AdapterWithoutVehicle")
+        var causeText = findChild(strip, "causeText")
+        verify(causeText.x + causeText.width <= strip.width, "strip content fits")
     }
 
     function test_sizes_follow_the_millimetre_rules() {

@@ -1,7 +1,7 @@
 import QtQuick
 
-// Connection state and its last cause across the top of every screen, with an optional
-// navigation button (a 10 mm touch target) at the right.
+// The link detail in large text (DN-042), then the connection state and its last cause, across
+// the top of every screen, with an optional navigation button (a 10 mm touch target) at the right.
 Rectangle {
     id: strip
 
@@ -30,15 +30,26 @@ Rectangle {
     }
 
     Text {
-        id: stateText
-        objectName: "stateText"
+        id: detailText
+        objectName: "detailText"
         anchors.left: stateDot.right
         anchors.leftMargin: Sizes.gutter
         anchors.verticalCenter: parent.verticalCenter
-        text: strip.connection.stateText
-        color: Sizes.liveValue
-        font.pixelSize: Sizes.unitPixelSize
+        text: strip.connection.detailText
+        color: Sizes.detailColour(strip.connection.detailName)
+        font.pixelSize: Sizes.detailPixelSize
         font.bold: true
+    }
+
+    Text {
+        id: stateText
+        objectName: "stateText"
+        anchors.left: detailText.right
+        anchors.leftMargin: Sizes.gutter * 2
+        anchors.verticalCenter: parent.verticalCenter
+        text: strip.connection.stateText
+        color: Sizes.label
+        font.pixelSize: Sizes.labelPixelSize
     }
 
     Text {
@@ -48,16 +59,6 @@ Rectangle {
         anchors.leftMargin: Sizes.gutter
         anchors.verticalCenter: parent.verticalCenter
         text: strip.connection.lastCauseText
-        color: Sizes.label
-        font.pixelSize: Sizes.labelPixelSize
-    }
-
-    Text {
-        id: titleText
-        anchors.right: navigationButton.visible ? navigationButton.left : parent.right
-        anchors.rightMargin: Sizes.gutter
-        anchors.verticalCenter: parent.verticalCenter
-        text: "Lexus Head Unit"
         color: Sizes.label
         font.pixelSize: Sizes.labelPixelSize
     }

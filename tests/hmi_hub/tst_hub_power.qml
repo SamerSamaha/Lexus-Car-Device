@@ -1,4 +1,4 @@
-// Verifies: REQ-020
+// Verifies: REQ-020, REQ-023
 
 import QtQuick
 import QtTest
@@ -51,6 +51,16 @@ TestCase {
             reader.setOutput("throttled=0x0\n", true)
             tryCompare(powerText, "text", "Power OK", 5000)
         }
+    }
+
+    function test_the_link_detail_is_the_large_headline_of_the_strip() {
+        var screen = createScreen()
+        var detail = findChild(screen, "connectionDetailText")
+        verify(detail !== null, "detail headline exists")
+        compare(detail.text, connection.detailText)
+        verify(detail.font.pixelSize >= Sizes.mm(4.5), "detail at least 4.5 mm em size")
+        verify(detail.font.pixelSize > findChild(screen, "connectionText").font.pixelSize,
+               "detail larger than the state text")
     }
 
     function test_unavailable_power_status_is_said_not_hidden() {

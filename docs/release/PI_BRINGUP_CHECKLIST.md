@@ -26,6 +26,7 @@ Rules:
 | Trip values compared with the car's own trip meter; PID 0x10 supported or not | LHU-031 | Engine, trip screen and replay test built at the desk (LHU-031); step 3.11 not yet done |
 | Trouble codes and vehicle identification read from the car | LHU-030 | Decoders, source, D-Bus members and screen built and tested at the desk against the emulator (LHU-030); step 3.10 not yet done |
 | Boot time, latency, memory per process | LHU-032 | Probe, marker and three measurement scripts ready (LHU-032); step 3.9 not yet done |
+| The four link situations read from the driver's seat | LHU-042 | Detail, D-Bus members and strip headline built and tested at the desk against the emulator (LHU-042); step 3.13 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
@@ -50,6 +51,8 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
 | A17 | Executables built in the `debian:trixie` container run on Raspberry Pi OS (same Debian 13 base): every shared library resolves, and the Qt QML and Quick packages on the Pi are the versions the container used (6.8.2+dfsg-7) | LHU-033 | Step 3.12 | Not yet verified |
 | A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | Not yet verified |
+| A18 | The vLinker finishes its protocol search and answers the first `0100` after `ATSP0` within 10 s (`elm327.discovery_timeout_ms`) | DN-042 | Step 3.13, item 2 (time from adapter connected to Live) | Not yet verified |
+| A19 | With the ignition off and the adapter powered, the adapter answers `0100` and the Mode 01 requests with an error text (`UNABLE TO CONNECT`, `NO DATA`, `CAN ERROR`) rather than not at all, so the strip reads "Adapter found, no vehicle"; if it stays silent the strip reads "Link lost, retrying" instead and the unit still recovers | DN-042 | Step 3.13, item 3 | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
 ## 3. Steps
@@ -227,6 +230,21 @@ On the Pi:
 2. `chmod +x ~/lexus-head-unit-arm64/lexus-*` (an artifact does not keep the executable bit), then `ldd ~/lexus-head-unit-arm64/lexus-head-unit | grep "not found"` prints nothing; the same for the other two.
 3. `~/lexus-head-unit-arm64/lexus-head-unit --source fake --fullscreen` shows the home screen with moving values; Trip and Diagnostics open.
 4. Record in `docs/test/results/<date>_ci_arm64_build_on_pi.md`: the run ID, the differences of item 1, the result of items 2 and 3. A17 is verified when items 2 and 3 pass.
+
+Results: not yet done.
+
+### 3.13 The four link situations in the car (LHU-042)
+
+Parked, the unit running in car mode (the vehicle-data service as a user unit, the hub on the screen). Read the large text at the left of the hub strip from the driver's seat each time.
+
+1. Adapter not in the port, Pi powered: "Searching for adapter" in amber. Record whether it is readable from the driver's seat without leaning (yes or no).
+2. Plug the adapter in, ignition to ON (engine off): the text changes to "Live" in green. Record the seconds from plugging in to "Live" with a stopwatch, 3 times (A18: under 10 s of protocol search, plus Bluetooth connection time, which is not yet measured).
+3. Ignition off, adapter left in: within about 7 s, "Adapter found, no vehicle" in amber (A19). If it reads "Link lost, retrying" instead, record that: the adapter is silent rather than answering with an error.
+4. Ignition back to ON: "Live" again. Record the seconds.
+5. Unplug the adapter while "Live": "Link lost, retrying" in red within about 2 s; plug it back: "Live".
+6. Copy the session log of the run (it has a `detail` row for every change) next to the results.
+
+Record in `docs/test/results/<date>_link_detail_in_car.md`: each step's text, colour, time and readability.
 
 Results: not yet done.
 

@@ -101,6 +101,22 @@ TEST(Elm327SourceConfigurationTest, NonPositiveTimeoutsKeepTheDefaults) {
     EXPECT_EQ(typed.backoffCapMilliseconds, 10000);
 }
 
+TEST(Elm327SourceConfigurationTest, DiscoveryAndVehicleSilenceTimeoutsAreReadOrDefaulted) {
+    KeyValueConfiguration configuration;
+    configuration.loadFromText(
+        "[elm327]\ndiscovery_timeout_ms = 12000\nvehicle_silence_timeout_ms = 8000\n");
+    const Elm327SourceConfiguration typed =
+        Elm327SourceConfiguration::fromConfiguration(configuration);
+    EXPECT_EQ(typed.discoveryTimeoutMilliseconds, 12000);
+    EXPECT_EQ(typed.vehicleSilenceTimeoutMilliseconds, 8000);
+    KeyValueConfiguration invalid;
+    invalid.loadFromText("[elm327]\ndiscovery_timeout_ms = 0\nvehicle_silence_timeout_ms = -1\n");
+    const Elm327SourceConfiguration defaulted =
+        Elm327SourceConfiguration::fromConfiguration(invalid);
+    EXPECT_EQ(defaulted.discoveryTimeoutMilliseconds, 10000);
+    EXPECT_EQ(defaulted.vehicleSilenceTimeoutMilliseconds, 5000);
+}
+
 TEST(KeyValueConfigurationSetValueTest, SetValueAddsAndOverrides) {
     lexus_head_unit::KeyValueConfiguration configuration;
     configuration.loadFromText("[record]\nfile = a.rec\n");

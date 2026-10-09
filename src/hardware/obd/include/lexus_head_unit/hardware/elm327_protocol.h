@@ -63,6 +63,8 @@ public:
                    std::int64_t replyTimeoutMilliseconds = defaultReplyTimeoutMilliseconds);
 
     Elm327Reply execute(std::string_view command);
+    // The same with a reply timeout for this one command (the handshake's protocol search).
+    Elm327Reply execute(std::string_view command, std::int64_t replyTimeoutMilliseconds);
 
     [[nodiscard]] std::uint64_t commandsSent() const;
     [[nodiscard]] std::uint64_t refusedCommandCount() const;
@@ -74,7 +76,7 @@ public:
 
 private:
     void drainStaleBytes();
-    Elm327Reply readReply(std::string_view command);
+    Elm327Reply readReply(std::string_view command, std::int64_t replyTimeoutMilliseconds);
 
     ByteTransport* m_transport;
     const Clock* m_clock;

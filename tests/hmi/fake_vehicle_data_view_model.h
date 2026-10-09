@@ -18,6 +18,7 @@ public:
     Q_INVOKABLE void simulateStale(int signalIndex, double value);
     Q_INVOKABLE void simulateNeverReceived(int signalIndex);
     Q_INVOKABLE void simulateConnection(const QString& stateName, const QString& triggerName);
+    Q_INVOKABLE void simulateLinkDetail(const QString& detailName);
 };
 
 } // namespace lexus_head_unit::testing

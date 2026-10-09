@@ -19,6 +19,9 @@ QtObject {
     readonly property int primaryValueMinimumPixelSize: mm(4)
     readonly property int labelPixelSize: mm(2.5)
     readonly property int unitPixelSize: mm(3)
+    // The link detail on the status strips (DN-042): read at a glance in the car, so larger than
+    // a label; 4.5 mm em size keeps the longest text on one line beside the other strip items.
+    readonly property int detailPixelSize: mm(4.5)
     // 10 mm so that the strip can carry a navigation touch target.
     readonly property int statusStripHeight: mm(10)
     readonly property int gutter: mm(2)
@@ -36,4 +39,16 @@ QtObject {
     readonly property color connecting: "#c9a227"
     readonly property color error: "#e5534b"
     readonly property color disconnected: "#6b7580"
+
+    // The colour of a link detail (DN-042): green when live, amber while looking for the adapter
+    // or the vehicle, red when a live link was lost, grey before the start.
+    function detailColour(detailName) {
+        switch (detailName) {
+        case "Live": return connected
+        case "SearchingForAdapter": return connecting
+        case "AdapterWithoutVehicle": return connecting
+        case "LinkLostRetrying": return error
+        default: return disconnected
+        }
+    }
 }

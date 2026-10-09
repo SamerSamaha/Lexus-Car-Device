@@ -38,6 +38,7 @@ public:
 public slots:
     void onSample(lexus_head_unit::SignalSample sample);
     void onConnectionChanged(lexus_head_unit::ConnectionTransition transition);
+    void onLinkDetailChanged(lexus_head_unit::LinkDetail detail);
 
 private:
     std::array<SignalTileModel*, signalCount> m_tiles{};

@@ -1,7 +1,8 @@
-// Verifies: REQ-017, REQ-002, REQ-021
+// Verifies: REQ-017, REQ-002, REQ-021, REQ-023
 
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -293,6 +294,40 @@ TEST_F(VehicleDataDBusTest, TransitionsReachClientsAndALateClientGetsTheCurrentS
     EXPECT_EQ(late->transitions.back().timestampMilliseconds, 20);
 }
 
+TEST_F(VehicleDataDBusTest, LinkDetailReachesClientsAndALateClientGetsTheCurrentDetail) {
+    const auto early = connectedClient(QStringLiteral("detail-early"));
+    std::vector<lexus_head_unit::LinkDetail> received;
+    QObject::connect(&early->client,
+                     &VehicleDataClient::linkDetailChanged,
+                     [&received](lexus_head_unit::LinkDetail detail) {
+                         received.push_back(detail);
+                     });
+    m_service->publishLinkDetail(lexus_head_unit::LinkDetail::SearchingForAdapter);
+    m_service->publishLinkDetail(lexus_head_unit::LinkDetail::AdapterWithoutVehicle);
+    // A repeat of the current detail is not published again.
+    m_service->publishLinkDetail(lexus_head_unit::LinkDetail::AdapterWithoutVehicle);
+    ASSERT_TRUE(waitFor([&early]() {
+        return early->client.linkDetail() == lexus_head_unit::LinkDetail::AdapterWithoutVehicle;
+    }));
+    EXPECT_EQ(received,
+              (std::vector<lexus_head_unit::LinkDetail>{
+                  lexus_head_unit::LinkDetail::SearchingForAdapter,
+                  lexus_head_unit::LinkDetail::AdapterWithoutVehicle}));
+
+    const auto late = connectedClient(QStringLiteral("detail-late"));
+    EXPECT_TRUE(waitFor([&late]() {
+        return late->client.linkDetail() == lexus_head_unit::LinkDetail::AdapterWithoutVehicle;
+    }));
+    EXPECT_EQ(early->client.malformedMessages(), 0U);
+
+    // The service leaving the bus reads as a lost link on the client.
+    m_service.reset();
+    QDBusConnection::disconnectFromBus(QStringLiteral("service"));
+    EXPECT_TRUE(waitFor([&early]() {
+        return early->client.linkDetail() == lexus_head_unit::LinkDetail::LinkLostRetrying;
+    }));
+}
+
 TEST_F(VehicleDataDBusTest, ServiceGoneMeansStaleAndErrorAndServiceBackMeansCompleteAgain) {
     const auto watcher = connectedClient(QStringLiteral("watcher"));
     m_service->publishTransition(ConnectionTransition{ConnectionState::Connecting,
@@ -444,7 +479,7 @@ TEST_F(VehicleDataDBusTest, LiveIntrospectionMatchesTheCommittedInterfaceFile) {
     const QString live = reply.arguments().value(0).toString();
     const QSet<QString> expected =
         membersOf(committed, lexus_head_unit::dbus_names::interfaceName());
-    EXPECT_EQ(expected.size(), 8);
+    EXPECT_EQ(expected.size(), 10);
     EXPECT_EQ(membersOf(live, lexus_head_unit::dbus_names::interfaceName()), expected);
 }
 

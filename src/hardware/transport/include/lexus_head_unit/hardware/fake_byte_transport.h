@@ -24,6 +24,8 @@ public:
     [[nodiscard]] const std::vector<std::string>& writtenCommands() const;
     [[nodiscard]] std::size_t totalBytesWritten() const;
     [[nodiscard]] std::size_t pendingByteCount() const;
+    // The timeout the last read() was given (tests of per-command timeouts, DN-042).
+    [[nodiscard]] std::int64_t lastReadTimeoutMilliseconds() const;
 
     bool open() override;
     void close() override;
@@ -41,6 +43,7 @@ private:
     std::deque<std::uint8_t> m_pendingBytes;
     std::vector<std::string> m_writtenCommands;
     std::size_t m_totalBytesWritten = 0;
+    std::int64_t m_lastReadTimeoutMilliseconds = -1;
 };
 
 } // namespace lexus_head_unit

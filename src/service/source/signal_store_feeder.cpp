@@ -4,6 +4,7 @@
 
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/derived_signal_engine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/signal_sample.h"
 #include "lexus_head_unit/service/signal_store.h"
 #include "lexus_head_unit/service/vehicle_data_source.h"
@@ -16,6 +17,10 @@ namespace lexus_head_unit {
 
 std::int64_t VehicleDataSource::idleHintMilliseconds() const {
     return 0;
+}
+
+LinkDetail VehicleDataSource::linkDetail() const {
+    return linkDetailForState(connectionState());
 }
 
 SignalStoreFeeder::SignalStoreFeeder(SignalStore& store) : m_store(&store) {}

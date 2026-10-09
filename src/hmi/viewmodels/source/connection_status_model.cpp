@@ -1,6 +1,7 @@
 #include "lexus_head_unit/hmi/connection_status_model.h"
 
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 
 #include <QObject>
 #include <QString>
@@ -45,10 +46,31 @@ quint64 ConnectionStatusModel::transitionCount() const {
     return m_transitionCount;
 }
 
+LinkDetail ConnectionStatusModel::linkDetail() const {
+    return m_linkDetail;
+}
+
+QString ConnectionStatusModel::detailText() const {
+    return textOf(displayText(m_linkDetail));
+}
+
+QString ConnectionStatusModel::detailName() const {
+    return textOf(toString(m_linkDetail));
+}
+
 void ConnectionStatusModel::applyTransition(const ConnectionTransition& transition) {
     m_state = transition.to;
     m_lastCauseText = textOf(toString(transition.trigger));
+    m_linkDetail = linkDetailAfter(transition, m_linkDetail);
     ++m_transitionCount;
+    emit changed();
+}
+
+void ConnectionStatusModel::applyLinkDetail(LinkDetail detail) {
+    if (detail == m_linkDetail) {
+        return;
+    }
+    m_linkDetail = detail;
     emit changed();
 }
 

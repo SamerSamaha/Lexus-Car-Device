@@ -10,6 +10,7 @@
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/reconnect_backoff.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -107,6 +108,7 @@ void Elm327ObdSource::stop() {
     }
     m_transport->close();
     m_listener = nullptr;
+    m_linkDetail = LinkDetail::Idle;
 }
 
 ConnectionState Elm327ObdSource::connectionState() const {
@@ -175,13 +177,12 @@ const Elm327SourceConfiguration& Elm327ObdSource::configuration() const {
 
 void Elm327ObdSource::attemptConnection() {
     ++m_connectionAttempts;
-    if (!m_transport->open()) {
-        raise(ConnectionTrigger::HandshakeFailed);
-        scheduleRetry();
-        return;
-    }
-    if (!runSetupCommands() || !discoverSupportedPids()) {
+    // An adapter that cannot be opened or does not answer its setup commands is missing; one
+    // that answers them but gets no supported-PID bitmap is in a car that is switched off.
+    const bool adapterAnswered = m_transport->open() && runSetupCommands();
+    if (!adapterAnswered || !discoverSupportedPids()) {
         m_transport->close();
+        m_linkDetail = adapterAnswered ? LinkDetail::AdapterWithoutVehicle : adapterMissingDetail();
         raise(ConnectionTrigger::HandshakeFailed);
         scheduleRetry();
         return;
@@ -190,6 +191,9 @@ void Elm327ObdSource::attemptConnection() {
     m_pollIndex = 0;
     m_backoff.reset();
     noteAdapterReply();
+    m_lastDataReplyAtMilliseconds = m_clock->nowMilliseconds();
+    m_linkDetail = LinkDetail::Live;
+    m_hasBeenLive = true;
     raise(ConnectionTrigger::HandshakeSucceeded);
 }
 
@@ -227,7 +231,8 @@ bool Elm327ObdSource::discoverSupportedPids() {
         if (!request.has_value()) {
             break;
         }
-        const Elm327Reply reply = m_protocol.execute(*request);
+        const Elm327Reply reply =
+            m_protocol.execute(*request, m_configuration.discoveryTimeoutMilliseconds);
         if (isLinkFailure(reply.kind)) {
             return false;
         }
@@ -318,10 +323,15 @@ void Elm327ObdSource::pollNextPid() {
     }
     noteAdapterReply();
     if (reply.kind == Elm327ReplyKind::Data) {
+        m_lastDataReplyAtMilliseconds = m_clock->nowMilliseconds();
         handleDataReply(reply, pid);
         return;
     }
     ++m_counters.malformedInputs;
+    const std::int64_t quietFor = m_clock->nowMilliseconds() - m_lastDataReplyAtMilliseconds;
+    if (quietFor >= m_configuration.vehicleSilenceTimeoutMilliseconds) {
+        vehicleWentQuiet();
+    }
 }
 
 void Elm327ObdSource::handleDataReply(const Elm327Reply& reply, ObdPid pid) {
@@ -351,8 +361,26 @@ void Elm327ObdSource::noteAdapterReply() {
 
 void Elm327ObdSource::linkLost() {
     m_transport->close();
+    m_linkDetail = LinkDetail::LinkLostRetrying;
     raise(ConnectionTrigger::LinkLost);
     scheduleRetry();
+}
+
+// The adapter answers but the vehicle does not (DN-042): without this the source would stay
+// Connected with every signal Stale for as long as the ignition is off.
+void Elm327ObdSource::vehicleWentQuiet() {
+    m_transport->close();
+    m_linkDetail = LinkDetail::AdapterWithoutVehicle;
+    raise(ConnectionTrigger::LinkLost);
+    scheduleRetry();
+}
+
+LinkDetail Elm327ObdSource::adapterMissingDetail() const {
+    return m_hasBeenLive ? LinkDetail::LinkLostRetrying : LinkDetail::SearchingForAdapter;
+}
+
+LinkDetail Elm327ObdSource::linkDetail() const {
+    return m_linkDetail;
 }
 
 void Elm327ObdSource::scheduleRetry() {

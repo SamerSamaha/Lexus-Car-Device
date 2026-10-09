@@ -1,10 +1,11 @@
-// Verifies: REQ-004, REQ-008, REQ-010, REQ-002
+// Verifies: REQ-004, REQ-008, REQ-010, REQ-002, REQ-023
 
 #include "lexus_head_unit/hardware/elm327_obd_source.h"
 #include "lexus_head_unit/hardware/elm327_source_configuration.h"
 #include "lexus_head_unit/hardware/fake_byte_transport.h"
 #include "lexus_head_unit/hardware/obd_pid_decoder.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
+#include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/manual_clock.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -26,6 +27,7 @@ using lexus_head_unit::ConnectionTrigger;
 using lexus_head_unit::Elm327ObdSource;
 using lexus_head_unit::Elm327SourceConfiguration;
 using lexus_head_unit::FakeByteTransport;
+using lexus_head_unit::LinkDetail;
 using lexus_head_unit::ManualClock;
 using lexus_head_unit::ObdPid;
 using lexus_head_unit::SignalId;
@@ -365,8 +367,138 @@ TEST_F(Elm327ObdSourceTest, IdleHintsFollowTheState) {
     EXPECT_TRUE(m_listener.samples.empty());
 }
 
+// Every Mode 01 request is answered, but by the adapter alone: the ignition is off.
+void switchIgnitionOff(FakeByteTransport& transport) {
+    for (const char* request : {"0100",
+                                "0120",
+                                "0140",
+                                "010D",
+                                "010C",
+                                "0105",
+                                "0104",
+                                "0111",
+                                "010F",
+                                "0142",
+                                "012F",
+                                "0110"}) {
+        transport.replaceReply(request, "UNABLE TO CONNECT\r\r>");
+    }
+}
+
+// The vehicle answers again: the replies of scriptHealthyAdapter, replacing the queued ones.
+void switchIgnitionOn(FakeByteTransport& transport) {
+    transport.replaceReply("0100", "4100BE3FA813\r\r>");
+    transport.replaceReply("0120", "41208007A001\r\r>");
+    transport.replaceReply("0140", "4140FED00400\r\r>");
+    transport.replaceReply("010D", "410D3C\r\r>");
+}
+
+TEST_F(Elm327ObdSourceTest, LinkDetailIsSearchingWhenTheAdapterCannotBeOpened) {
+    scriptHealthyAdapter(m_transport);
+    m_transport.setOpenable(false);
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Idle);
+    source.start(m_listener);
+    EXPECT_EQ(source.connectionState(), ConnectionState::Error);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::SearchingForAdapter);
+}
+
+TEST_F(Elm327ObdSourceTest, LinkDetailIsSearchingWhenTheAdapterDoesNotAnswerItsSetup) {
+    scriptHealthyAdapter(m_transport);
+    m_transport.replaceReply("ATZ", "");
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::SearchingForAdapter);
+}
+
+TEST_F(Elm327ObdSourceTest, LinkDetailIsAdapterWithoutVehicleWhenTheIgnitionIsOff) {
+    scriptHealthyAdapter(m_transport);
+    switchIgnitionOff(m_transport);
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener);
+    EXPECT_EQ(source.connectionState(), ConnectionState::Error);
+    EXPECT_EQ(m_listener.transitions.back().trigger, ConnectionTrigger::HandshakeFailed);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::AdapterWithoutVehicle);
+    EXPECT_FALSE(m_transport.isOpen());
+}
+
+TEST_F(Elm327ObdSourceTest, LinkDetailIsLiveAfterTheHandshakeAndRetryingAfterALostLink) {
+    scriptHealthyAdapter(m_transport);
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Live);
+    m_transport.close();
+    source.runOnce();
+    EXPECT_EQ(source.linkDetail(), LinkDetail::LinkLostRetrying);
+    // Still missing on the retry: retrying, not searching, because the link was live before.
+    m_transport.setOpenable(false);
+    m_clock.setMilliseconds(source.nextAttemptAtMilliseconds());
+    source.runOnce();
+    EXPECT_EQ(source.connectionState(), ConnectionState::Error);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::LinkLostRetrying);
+    m_transport.setOpenable(true);
+    m_clock.setMilliseconds(source.nextAttemptAtMilliseconds());
+    source.runOnce();
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Live);
+    source.stop();
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Idle);
+}
+
+TEST_F(Elm327ObdSourceTest, IgnitionOffWhileLiveDropsTheLinkAfterTheVehicleSilenceTimeout) {
+    scriptHealthyAdapter(m_transport);
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener); // live at 100000
+    switchIgnitionOff(m_transport);
+    m_clock.setMilliseconds(104999);
+    source.runOnce(); // the adapter answers, the vehicle has been quiet for 4999 ms
+    EXPECT_EQ(source.connectionState(), ConnectionState::Connected);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Live);
+    m_clock.setMilliseconds(105000);
+    source.runOnce(); // 5000 ms without a data reply
+    EXPECT_EQ(source.connectionState(), ConnectionState::Error);
+    EXPECT_EQ(m_listener.transitions.back().trigger, ConnectionTrigger::LinkLost);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::AdapterWithoutVehicle);
+    EXPECT_FALSE(m_transport.isOpen());
+
+    // The retry still finds no vehicle; then the ignition comes back on.
+    m_clock.setMilliseconds(source.nextAttemptAtMilliseconds());
+    source.runOnce();
+    EXPECT_EQ(source.linkDetail(), LinkDetail::AdapterWithoutVehicle);
+    switchIgnitionOn(m_transport);
+    m_clock.setMilliseconds(source.nextAttemptAtMilliseconds());
+    source.runOnce();
+    EXPECT_EQ(source.connectionState(), ConnectionState::Connected);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Live);
+}
+
+TEST_F(Elm327ObdSourceTest, DataRepliesKeepTheVehicleSilenceTimerFromFiring) {
+    scriptHealthyAdapter(m_transport);
+    m_transport.replaceReply("010C", "NO DATA\r\r>");
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener);
+    for (int cycle = 0; cycle < 40; ++cycle) {
+        m_clock.advanceMilliseconds(500);
+        source.runOnce();
+    }
+    EXPECT_EQ(source.connectionState(), ConnectionState::Connected);
+    EXPECT_EQ(source.linkDetail(), LinkDetail::Live);
+}
+
+TEST_F(Elm327ObdSourceTest, SupportedPidRequestsGetTheDiscoveryTimeoutAndPollsTheReplyTimeout) {
+    scriptHealthyAdapter(m_transport);
+    m_configuration.discoveryTimeoutMilliseconds = 7000;
+    Elm327ObdSource source(m_transport, m_clock, configuration());
+    source.start(m_listener);
+    ASSERT_EQ(m_transport.writtenCommands().back(), "0140");
+    EXPECT_EQ(m_transport.lastReadTimeoutMilliseconds(), 7000);
+    source.runOnce();
+    EXPECT_EQ(m_transport.lastReadTimeoutMilliseconds(), 1000);
+}
+
 TEST_F(Elm327ObdSourceTest, DefaultConfigurationMatchesTheRequirements) {
     const Elm327SourceConfiguration defaults;
+    EXPECT_EQ(defaults.discoveryTimeoutMilliseconds, 10000);
+    EXPECT_EQ(defaults.vehicleSilenceTimeoutMilliseconds, 5000);
     EXPECT_EQ(defaults.replyTimeoutMilliseconds, 1000);
     EXPECT_EQ(defaults.linkLossTimeoutMilliseconds, 2000);
     EXPECT_EQ(defaults.backoffScheduleMilliseconds,

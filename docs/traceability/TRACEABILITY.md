@@ -30,16 +30,17 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-020 | `decodeGetThrottled` and `PowerFlags` (service library); `PowerStatusReader` (`vcgencmd` through `QProcess`, and a fake), `PowerStatusModel`, `ShutdownController` and the hub status strip (DN-025) | LHU-025 | `tests/unit/service/power_status_test.cpp` (every bit, the logger's 0x50005 example, malformed outputs); `tests/unit/hmi/power_status_model_test.cpp` (each flag set and cleared, unavailable, skipped polls; two-tap shutdown, expiry, failure); `tests/hmi_hub/tst_hub_power.qml` (each current flag on the strip within 5 s and cleared, the 10 mm shutdown button needing two taps); 10 shutdown cycles on the Pi in `docs/test/results/` (checklist step 3.8) | Desk part tagged and merged (LHU-025); the shutdown cycles are a Pi step |
 | REQ-021 | `obdMessages`, `decodeTroubleCodes`, `decodeVehicleIdentification`, `troubleCodeDescription` (`src/hardware/obd/`); `requestDiagnostics()` on `Elm327ObdSource` and `FakeSource`; `RequestDiagnostics`, `GetDiagnostics`, `DiagnosticsChanged` on `VehicleData1`; `DiagnosticsViewModel`; `DiagnosticsScreen.qml` (DN-030) | LHU-030 | `tests/unit/obd/obd_diagnostics_test.cpp` (0, 1, 2 and 6 codes across P, C, B and U; multi-frame with and without spaces; two ECUs; the older format; `NO DATA`; the identification; every text category); `tests/unit/elm327/elm327_diagnostics_test.cpp` (a request sends `03` and `0902` once each; no request, no diagnostics traffic); `tests/integration/diagnostics_against_emulator_test.cpp` (six stored codes in a multi-frame reply and the identification, 0 forbidden requests); `tests/integration/vehicle_data_dbus_test.cpp` (request reaches the source, report reaches two clients and a late one); `tests/unit/hmi/diagnostics_view_model_test.cpp`; `tests/hmi/tst_diagnostics_screen.qml` (codes with texts, identification, power flags, 10 mm Read codes button, Home); the real adapter in `docs/release/PI_BRINGUP_CHECKLIST.md` step 3.10 | Desk part tagged and merged (LHU-030); the read on the car is a car step (A15) |
 | REQ-022 | `DerivedSignalEngine` and `DerivedSignalConstants` (service library), owned by `SignalStoreFeeder`; mass air flow (PID 0x10) as a ninth measured signal; the eight derived `SignalId` values; `tripTiles` on `VehicleDataViewModel` and the trip screen (DN-031) | LHU-031 | `tests/unit/service/derived_signal_engine_test.cpp` (10 g/s at 100 km/h equals 3.2872 L/100 km within 0.1 %; a constant 50 km/h trace over 600 s equals 8.333 km within 0.1 %; speed threshold and age; trip average from 0.1 km; the four RPM bands and their boundaries; warm-up; gaps; a new trip after 10 minutes; the feeder path); `tests/integration/trip_replay_test.cpp` (a session recorded against the emulator and replayed twice gives identical totals, compared exactly); `tests/integration/pid_discovery_test.cpp` (air flow polled and Valid); `tests/hmi/tst_trip_screen.qml` (eight tiles, names, units, one decimal, the 10 mm Trip button, Home); whether the car supports PID 0x10 and how the trip distance compares with the car's trip meter is checklist step 3.11 | Desk part tagged and merged (LHU-031); the car comparison is a car step (A16) |
+| REQ-023 | `LinkDetail` (service library); `VehicleDataSource::linkDetail()` with the state mapping as default; `Elm327ObdSource` (adapter half and vehicle half of the handshake, the vehicle-silence timer, the discovery timeout); `GetLinkDetail` and `LinkDetailChanged` on `VehicleData1`; `ConnectionStatusModel.detailText`; the headline of `StatusStrip.qml` and `HubStatusStrip.qml` (DN-042) | LHU-042 | `tests/unit/service/link_detail_test.cpp`; `tests/unit/elm327/elm327_obd_source_test.cpp` (each detail, ignition off while live at 4,999 and 5,000 ms, the discovery timeout); `tests/scenarios/link_detail_scenarios_test.cpp` (the four situations against the emulator in real time); `tests/integration/vehicle_data_dbus_test.cpp` (changes in order, late client, service gone); `tests/unit/hmi/view_models_test.cpp`; `tests/hmi/tst_home_screen.qml` and `tests/hmi_hub/tst_hub_power.qml` (text, colour, size); in the car, checklist step 3.13 | Desk part tagged and merged (LHU-042); the car check is step 3.13 (A18, A19) |
 
 ## Coverage summary
 
 | | Count |
 |---|---|
-| Requirements | 22 |
-| With a named design element | 22 |
-| With a named ticket | 22 |
-| With a named test or measurement | 22 |
-| With a test that exists and is tagged | 17 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022) |
+| Requirements | 23 |
+| With a named design element | 23 |
+| With a named ticket | 23 |
+| With a named test or measurement | 23 |
+| With a test that exists and is tagged | 18 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022, REQ-023) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
@@ -72,4 +73,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-032 | REQ-009, REQ-013, REQ-014 |
 | LHU-034 | none directly; the on-car procedure exercises REQ-004, REQ-006, REQ-007, REQ-008, REQ-019, REQ-020 |
 | LHU-039 | REQ-012, REQ-006 |
+| LHU-042 | REQ-023 |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |
