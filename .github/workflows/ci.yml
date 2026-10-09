@@ -41,6 +41,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Test-only Python environment (cantools oracle, REQ-005)
+        run: sh tools/setup_test_venv.sh
+
       - name: Print tool versions
         run: |
           g++ --version

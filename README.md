@@ -70,7 +70,7 @@ PATH=~/build/lexus-car-device/debug/src/app:$PATH ~/build/lexus-car-device/debug
 ~/build/lexus-car-device/debug/src/hub/app/lexus-hub --send status    # or: --send "launch vehicle_data", --send return
 ```
 
-Other presets: `sanitizers` (AddressSanitizer and UndefinedBehaviorSanitizer; what CI runs), `release`, and `static-analysis` (clang++ with clang-tidy, any warning fails the build). Formatting is `clang-format --dry-run --Werror`. Packages on Debian 13: `build-essential cmake ninja-build clang clang-tidy clang-format libgtest-dev libgmock-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-window qml6-module-qttest`.
+Other presets: `sanitizers` (AddressSanitizer and UndefinedBehaviorSanitizer; what CI runs), `release`, and `static-analysis` (clang++ with clang-tidy, any warning fails the build). Formatting is `clang-format --dry-run --Werror`. The DBC decoder's oracle test needs `cantools` in a test-only virtual environment: run `tools/setup_test_venv.sh` once (nothing is installed system-wide). Packages on Debian 13: `build-essential cmake ninja-build clang clang-tidy clang-format libgtest-dev libgmock-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-window qml6-module-qttest`.
 
 CI runs three required checks on every pull request: **Build and unit tests**, **Static analysis** and **Privacy check** (no vehicle identification number or Bluetooth address in the tree). Nothing merges without them.
 

@@ -80,6 +80,14 @@ The same line, with the comment marker of the language, is used in Python and QM
 | Raspberry Pi 5 | Everything plus T3 and the measurements | T6 |
 | Car | T6 and the thermal and power log | — |
 
+### Test-only Python environment
+
+Some tests need Python packages that are not part of the product. They are installed only into a virtual environment, never system-wide and never on the Pi. `tools/requirements/test.txt` pins them; `tools/setup_test_venv.sh` creates the environment (default `~/.venvs/lexus-car-device`) and installs them; CMake finds its interpreter as `LEXUS_HEAD_UNIT_TEST_PYTHON`, and CI runs the same script before configuring. Debian 13's `python3` has no `ensurepip`, so the script makes the environment without pip and installs pip into it from PyPA's `get-pip.py`; no Debian package is added. A missing environment makes the test that needs it fail, never skip.
+
+| Package | Version | Used by | Approved |
+|---|---|---|---|
+| `cantools` (with its dependencies `bitstruct`, `python-can`, `textparser`, `argparse_addons`, `crccheck`) | 44.2.1 | `tools/dbc_oracle.py`, the independent oracle of the DBC decoder (REQ-005, LHU-027) | 2026-10-08, by the repository owner |
+
 ## 7. Deliberately not tested, and why
 
 - **Real CAN frames from the GS350.** The DBC describes an invented vehicle and is labelled so. Decoding the real car's broadcast frames is not planned before v1.0.0.
