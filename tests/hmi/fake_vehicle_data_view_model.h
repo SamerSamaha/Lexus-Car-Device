@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lexus_head_unit/hmi/display_units.h"
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 
 #include <QObject>
@@ -13,6 +14,7 @@ class FakeVehicleDataViewModel : public VehicleDataViewModel {
 
 public:
     explicit FakeVehicleDataViewModel(QObject* parent = nullptr);
+    explicit FakeVehicleDataViewModel(DisplayUnits units, QObject* parent = nullptr);
 
     Q_INVOKABLE void simulateValid(int signalIndex, double value);
     Q_INVOKABLE void simulateStale(int signalIndex, double value);

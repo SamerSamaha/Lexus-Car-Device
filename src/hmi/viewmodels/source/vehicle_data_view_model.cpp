@@ -14,13 +14,24 @@
 namespace lexus_head_unit {
 
 VehicleDataViewModel::VehicleDataViewModel(QObject* parent)
+    : VehicleDataViewModel(DisplayUnits::Metric, parent) {}
+
+VehicleDataViewModel::VehicleDataViewModel(DisplayUnits units, QObject* parent)
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    : QObject(parent), m_connection(new ConnectionStatusModel(this)) {
+    : QObject(parent), m_connection(new ConnectionStatusModel(this)), m_units(units) {
     for (const SignalId signalId : allSignalIds) {
         // Qt parent ownership: the tile is deleted with this object.
         // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-        m_tiles.at(indexOf(signalId)) = new SignalTileModel(signalId, this);
+        m_tiles.at(indexOf(signalId)) = new SignalTileModel(signalId, units, this);
     }
+}
+
+DisplayUnits VehicleDataViewModel::displayUnits() const {
+    return m_units;
+}
+
+bool VehicleDataViewModel::usUnits() const {
+    return m_units == DisplayUnits::UsCustomary;
 }
 
 QList<QObject*> VehicleDataViewModel::tiles() const {

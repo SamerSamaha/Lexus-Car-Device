@@ -449,6 +449,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | Ticket | Work | Build | Gate | Total | REQ |
 |---|---|---|---|---|---|
 | LHU-049 | Screen recording with sound from a hub tile, remembered across boots, one file per session, copy to the laptop; the VIN masked to its last 4 characters; the address hidden while recording. **Done 2026-10-11** (DN-049, light); the recording on the Pi is step 3.16 | 3 | 0.75 light | 3.75 | 026 |
+| LHU-050 | US units on screen (mph, miles, °F, mpg), US by default in car mode, `display.units` in car.conf; data and recordings stay metric. **Done 2026-10-11** (DN-050, light) | 1.5 | 0.75 light | 2.25 | 027 |
 
 ### Roadmap (not scheduled)
 

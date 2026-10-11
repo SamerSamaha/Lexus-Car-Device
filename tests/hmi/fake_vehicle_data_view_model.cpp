@@ -1,5 +1,6 @@
 #include "fake_vehicle_data_view_model.h"
 
+#include "lexus_head_unit/hmi/display_units.h"
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/link_detail.h"
@@ -46,6 +47,9 @@ ConnectionTrigger triggerNamed(const QString& name) {
 
 FakeVehicleDataViewModel::FakeVehicleDataViewModel(QObject* parent)
     : VehicleDataViewModel(parent) {}
+
+FakeVehicleDataViewModel::FakeVehicleDataViewModel(DisplayUnits units, QObject* parent)
+    : VehicleDataViewModel(units, parent) {}
 
 void FakeVehicleDataViewModel::simulateValid(int signalIndex, double value) {
     onSample(sampleFor(signalIndex, value, SignalStatus::Valid));

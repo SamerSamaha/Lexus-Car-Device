@@ -25,6 +25,8 @@ public slots:
         m_power.startPolling(100);
         QQmlContext* context = engine->rootContext();
         context->setContextProperty(QStringLiteral("vehicleData"), &m_viewModel);
+        // The view model as car mode builds it (DN-050): US units on screen.
+        context->setContextProperty(QStringLiteral("vehicleDataUs"), &m_usViewModel);
         context->setContextProperty(QStringLiteral("diagnosticsContext"), &m_diagnostics);
         context->setContextProperty(QStringLiteral("diagnosticsDriver"), &m_driver);
         context->setContextProperty(QStringLiteral("powerContext"), &m_power);
@@ -36,6 +38,8 @@ public slots:
 
 private:
     lexus_head_unit::testing::FakeVehicleDataViewModel m_viewModel;
+    lexus_head_unit::testing::FakeVehicleDataViewModel m_usViewModel{
+        lexus_head_unit::DisplayUnits::UsCustomary};
     lexus_head_unit::DiagnosticsViewModel m_diagnostics;
     lexus_head_unit::testing::FakeDiagnosticsDriver m_driver{m_diagnostics};
     lexus_head_unit::testing::FakePowerStatusReader m_powerReader;
