@@ -88,4 +88,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-049 | REQ-026, REQ-021 |
 | LHU-050 | REQ-027 |
 | LHU-051 | REQ-028, REQ-004, REQ-012 |
+| LHU-052 | none; documentation of the first car day |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |

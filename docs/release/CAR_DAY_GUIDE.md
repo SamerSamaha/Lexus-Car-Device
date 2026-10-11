@@ -9,7 +9,7 @@ Rules that do not change in the car:
 - The unit only reads from the car. The only requests are the allowlisted Mode 01, 03 and 09 reads; nothing can clear codes or write anything.
 - Nobody looks at or touches the screen while the car moves. Everything that needs a tap is done parked.
 - The adapter is unplugged from the port at the end of the day. It is powered by the car, and it pairs with a fixed PIN.
-- Until the mounting is decided (OQ-14), the unit rests on the passenger seat and the car stays parked. A drive happens only with the unit held as decided and a passenger filming.
+- There is no mounting requirement (OQ-14 closed by the owner, 2026-10-11). Recommended while the car moves: the unit rests in a footwell or a cupholder, away from bare metal, and a passenger films.
 
 Numbers in this guide come from a measurement or say "not yet measured". Statements about the car and the adapter that have not been checked are assumptions; each one is listed in `docs/release/PI_BRINGUP_CHECKLIST.md`, section 2.
 
@@ -100,7 +100,7 @@ The address of the Pi is shown at the bottom of the hub, as `SSH lexus@<address>
 | Step | Do | The screen should show |
 |---|---|---|
 | 1 | Car parked, engine off. Unit on the passenger seat, display up | — |
-| 2 | Find the diagnostic port: on most Lexus models it is under the dashboard on the driver's side, below and left of the steering column (assumption A23, not yet checked on this car). It is a 16-pin trapezoid socket | — |
+| 2 | Find the diagnostic port: on most Lexus models it is under the dashboard on the driver's side, below and left of the steering column (assumption A23, confirmed on 2026-10-11). It is a 16-pin trapezoid socket | — |
 | 3 | Plug the vLinker in fully. Its light comes on: the port powers it even with the ignition off | — |
 | 4 | Ignition to ON: with the brake pedal released, press the start button twice (once is accessory, twice is ON on Lexus push-button start), or start the engine | — |
 | 5 | Plug the power bank's USB-C cable into the Pi | Rainbow screen, then the boot text, then the hub. Time to the hub: not yet measured (REQ-013 target 15 s, provisional) |
@@ -159,7 +159,7 @@ Film with the phone. Never touch the screen while the car moves; the driver neve
 | 3 | Vehicle data grid | Tap Vehicle data, hold 10 s, blip the throttle once to about 2,000 rpm so speed and RPM visibly react | Parked, engine idling, foot on the brake, in P |
 | 4 | Trip screen | Tap Trip after a short drive (shot 6) to show distance, economy, warm-up and RPM bands | Parked, after the drive |
 | 5 | Diagnostics | Tap Diagnostics and Read codes. **Do not film the identification line**: it shows the VIN. Frame the code list only, or cover the line | Parked |
-| 6 | Short drive | A passenger films the screen and, if they like, the tachometer, for under 10 minutes on quiet roads. Nobody touches the screen. Only after OQ-14 is decided | Driving |
+| 6 | Short drive | A passenger films the screen and, if they like, the tachometer, for under 10 minutes on quiet roads. Nobody touches the screen | Driving |
 | 7 | Demo mode at the desk | Optional, for a clean screen recording without glare: demo mode on the Pi at home, filmed or recorded | At home |
 
 Before anything goes on GitHub, watch every clip for the VIN and the licence plate, and blur them. Bluetooth addresses do not appear on any screen of the unit.
@@ -195,6 +195,5 @@ Before anything goes on GitHub, watch every clip for the VIN and the licence pla
 
 ## What this guide does not cover
 
-- How the unit is held for a drive (OQ-14). It must be decided before shot 6.
 - Audio to the car stereo (LHU-024, `docs/test/MANUAL_ON_CAR_PROCEDURE.md`).
 - The measurement runs (boot time, latency, memory): checklist step 3.9.

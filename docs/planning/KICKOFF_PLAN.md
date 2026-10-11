@@ -423,7 +423,7 @@ Hours are estimates, unverified until the first code tickets give a velocity. "B
 | LHU-031 | Trip analytics as derived signals. **Done 2026-10-09** (DN-031), 3.5 h actual (estimated); the comparison on the car is checklist step 3.11 | 7 | 1.75 full | 8.75 | 022 |
 | LHU-032 | Whole-system measurements: boot, latency, memory per process; one optimisation pass. **Instruments done 2026-10-09** (latency probe, first-frame marker, three scripts); the runs, the target re-set and the optimisation pass need the Pi; 2.0 h actual (estimated) | 6 | exempt | 6 | 009, 013, 014 |
 | LHU-033 | arm64 release build in CI. **Done 2026-10-09**: the job "arm64 release build" uploads `lexus-head-unit-arm64`; 1.0 h actual (estimated) | 2 | exempt | 2 | — |
-| LHU-034 | Manual on-car test procedure and first drives; mounting decided (OQ-14). **Procedure written 2026-10-09** (parked run, drive run, results template); the runs and the mounting decision need the car and the owner; 0.5 h actual (estimated) | 3 | exempt | 3 | — |
+| LHU-034 | Manual on-car test procedure and first drives. **Procedure written 2026-10-09** (parked run, drive run, results template); mounting is not a requirement (OQ-14 closed 2026-10-11); the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; 0.5 h actual (estimated) | 3 | exempt | 3 | — |
 | LHU-035 | Release v1.0.0: documentation, demo video, license (OQ-25) | 4 | exempt | 4 | — |
 | **Total** | | | | **48.75** | |
 
@@ -451,6 +451,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | LHU-049 | Screen recording with sound from a hub tile, remembered across boots, one file per session, copy to the laptop; the VIN masked to its last 4 characters; the address hidden while recording. **Done 2026-10-11** (DN-049, light); the recording on the Pi is step 3.16 | 3 | 0.75 light | 3.75 | 026 |
 | LHU-050 | US units on screen (mph, miles, °F, mpg), US by default in car mode, `display.units` in car.conf; data and recordings stay metric. **Done 2026-10-11** (DN-050, light) | 1.5 | 0.75 light | 2.25 | 027 |
 | LHU-051 | Display fixes from the car: no pointer, the cause in words, tile titles and hub names never cut, mass air flow in place of the unsupported fuel level tile. **Done 2026-10-11** (DN-051, light) | 1.5 | 0.75 light | 2.25 | 028 |
+| LHU-052 | Documentation of the first car day: results file, assumptions verified, mounting no longer a requirement (OQ-14 closed). **Done 2026-10-11** | 0.5 | exempt | 0.5 | — |
 
 ### Roadmap (not scheduled)
 
@@ -478,7 +479,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | 12 | vcan unavailable in CI | vcan tier on Pi only; decode logic covered by fakes | Unchanged |
 | 13 | Repository in a Windows folder with a space in its path, built from WSL | Build directory inside WSL; LF forced; Windows git only | Unchanged |
 | 14 | Public from day one: private details, the VIN or Bluetooth addresses become permanently visible | No-reply commit identity; privacy CI check; ignored `local_recordings/`; adapter addressed by name at run time | Unchanged |
-| 15 | Bare board with no case in a car | OQ-14, decided in LHU-034 before the first drive | Unchanged |
+| 15 | Bare board with no case in a car | OQ-14 closed by the owner on 2026-10-11: no fixed mount; kept away from bare metal while moving (safety statement, section 3) | **Closed** |
 | 16 | **Returning to the hub from a fullscreen browser under Wayland** may need compositor cooperation that Qt does not expose directly | LHU-020 spike before DN-021; fallbacks: compositor overlay bar, the system panel, browser app mode without kiosk | **New** |
 | 17 | **Browser memory on 2 GB**: the system browser with video may take 400 to 800 MB and squeeze the service and the hub | Per-process budgets (REQ-014); browser cache in RAM; measured in LHU-023 and LHU-032; a fail becomes a bug | **New** |
 | 18 | **One Bluetooth radio for OBD polling and audio**: dropouts or link loss | Measured with logged causes (REQ-019, LHU-024); if it fails, audio is dropped before the vehicle path is touched | **New** |
