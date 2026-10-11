@@ -29,6 +29,9 @@ public slots:
         context->setContextProperty(QStringLiteral("diagnosticsDriver"), &m_driver);
         context->setContextProperty(QStringLiteral("powerContext"), &m_power);
         context->setContextProperty(QStringLiteral("powerReaderContext"), &m_powerReader);
+        // What the application sets with --hub-button; read by Main.qml (tst_main_window).
+        context->setContextProperty(QStringLiteral("vehicleDataContext"), &m_viewModel);
+        context->setContextProperty(QStringLiteral("hubButtonShownContext"), true);
     }
 
 private:

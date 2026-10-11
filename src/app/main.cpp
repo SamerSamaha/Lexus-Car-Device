@@ -241,7 +241,7 @@ int main(int argumentCount, char** argumentValues) {
     engine.rootContext()->setContextProperty(QStringLiteral("vehicleDataContext"), &viewModel);
     engine.rootContext()->setContextProperty(QStringLiteral("diagnosticsContext"), &diagnostics);
     engine.rootContext()->setContextProperty(QStringLiteral("powerContext"), &power);
-    engine.rootContext()->setContextProperty(QStringLiteral("hubButtonShown"),
+    engine.rootContext()->setContextProperty(QStringLiteral("hubButtonShownContext"),
                                              parser.isSet(hubButtonOption));
     QObject::connect(
         &engine,
