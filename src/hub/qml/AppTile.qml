@@ -22,7 +22,9 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: nameText.top
         anchors.bottomMargin: Sizes.gutter
-        width: Sizes.mm(12)
+        // 12 mm, or less when two lines of name leave less room in a short tile.
+        width: Math.max(Sizes.mm(6), Math.min(Sizes.mm(12),
+                                              nameText.y - Sizes.gutter * 2))
         height: width
         fillMode: Image.PreserveAspectFit
         visible: tile.iconSource !== ""
@@ -49,7 +51,13 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.margins: Sizes.gutter
         horizontalAlignment: Text.AlignHCenter
-        elide: Text.ElideRight
+        // Two lines, then smaller, before anything is cut (LHU-051).
+        wrapMode: Text.WordWrap
+        maximumLineCount: 2
+        fontSizeMode: Text.HorizontalFit
+        minimumPixelSize: Sizes.labelPixelSize
+        height: Math.ceil(font.pixelSize * 2.3)
+        verticalAlignment: Text.AlignBottom
         text: tile.appName
         color: Sizes.label
         font.pixelSize: Sizes.unitPixelSize

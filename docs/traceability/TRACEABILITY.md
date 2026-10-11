@@ -35,16 +35,17 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-025 | `deploy/car/install_car_mode.sh`; `tools/car/` (`car_config.py`, `car_session.py`, `car_mode.py`, `pair_adapter.py`, `export_sessions.py`, `self_check.py`); `deploy/bind_obd_adapter.sh --config`; the units in `deploy/car/systemd/`; `deploy/car/hub_car.conf`; `deploy/car/lexus-hub-session`; the writeback limits and the polkit rule (DN-044) | LHU-044 | `tools/test_car_mode.py` (26 tests: config, sessions per mode, mode switching, pairing against a fake `bluetoothctl`, export and scrub, self-check, install dry run, binding script); `tools/test_log_thermal_power.py` (SIGTERM ends the log); `tests/installed/run_outside_build_tree.sh` (both programs start from an empty folder, as installed); on the Pi, checklist step 3.15 | Desk part tagged and merged (LHU-044); the install and the boots on the Pi are step 3.15 |
 | REQ-026 | `tools/car/screen_record.py` (`lexus-screen-record`) and `lexus-screen-recorder.service`; `lexus-hub-session` starting it; `RecordingStatusModel` (hub view models) behind `lexus-hub --recording-status`; the REC indicator of `HubStatusStrip.qml` and the hidden address line of `HubScreen.qml`; `DiagnosticsViewModel::maskedIdentification`; `tools/fetch_from_pi.py` (DN-049) | LHU-049 | `tools/test_screen_recording.py` (recorder against a fake process, the unit and the registry tile, the laptop copy); `tests/unit/hmi/car_status_models_test.cpp` (status file); `tests/hmi_hub/tst_hub_car.qml` and `tests/hmi_hub/tst_hub_main_window.qml` (REC and the address line, also through `Main.qml`); `tests/unit/hmi/diagnostics_view_model_test.cpp` and `tests/hmi/tst_diagnostics_screen.qml` (the VIN masked to its last 4 characters); on the Pi, checklist step 3.16 | Desk part tagged and merged (LHU-049); the recording on the Pi is step 3.16 (A24 to A26) |
 | REQ-027 | `DisplayUnits`, `displayValue`, `displayUnitText`, `chooseDisplayUnits` (view models); `SignalTileModel` and `VehicleDataViewModel` built with the units; `lexus-head-unit --units` and `--car-config`; `[display] units` in `deploy/car/car.conf.example` (DN-050) | LHU-050 | `tests/unit/hmi/display_units_test.cpp` (factors, texts, the choice, tiles with metric samples); `tests/hmi/tst_us_units.qml` (both grids in US units); `tests/installed/units_from_the_command_line.sh` (the executable's choice in five cases); on the Pi, checklist step 3.17 | Tagged and merged (LHU-050); read on the touchscreen in step 3.17 |
+| REQ-028 | `ConnectionStatusModel::causeText`; `SignalTileModel::tileTitle`; the bounded title of `SignalTile.qml`; the wrapping name of `AppTile.qml`; `gridSignalIds` (mass air flow in place of fuel level); `--hide-pointer` on `lexus-hub` and `lexus-head-unit` (DN-051) | LHU-051 | `tests/unit/hmi/view_models_test.cpp`; `tests/hmi/tst_vehicle_data_screen.qml`, `tests/hmi/tst_trip_screen.qml`, `tests/hmi/tst_home_screen.qml`; `tests/hmi_hub/tst_app_tile.qml`; `tests/installed/command_line_options.sh`; on the Pi, checklist step 3.17 | Tagged and merged (LHU-051); seen on the touchscreen in step 3.17 |
 
 ## Coverage summary
 
 | | Count |
 |---|---|
-| Requirements | 27 |
-| With a named design element | 27 |
-| With a named ticket | 27 |
-| With a named test or measurement | 27 |
-| With a test that exists and is tagged | 22 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027) |
+| Requirements | 28 |
+| With a named design element | 28 |
+| With a named ticket | 28 |
+| With a named test or measurement | 28 |
+| With a test that exists and is tagged | 23 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-028) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
@@ -86,4 +87,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-048 | REQ-024 |
 | LHU-049 | REQ-026, REQ-021 |
 | LHU-050 | REQ-027 |
+| LHU-051 | REQ-028, REQ-004, REQ-012 |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |

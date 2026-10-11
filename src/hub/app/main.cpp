@@ -16,6 +16,7 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QDBusConnection>
 #include <QGuiApplication>
 #include <QObject>
@@ -135,7 +136,14 @@ int runHub(int argumentCount, char** argumentValues) {
     parser.addOption(fullscreenOption);
     parser.addOption(firstFrameOption);
     parser.addOption(recordingStatusOption);
+    const QCommandLineOption hidePointerOption(
+        QStringLiteral("hide-pointer"),
+        QStringLiteral("no mouse pointer over the window (a touch screen in the car)"));
+    parser.addOption(hidePointerOption);
     parser.process(application);
+    if (parser.isSet(hidePointerOption)) {
+        QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+    }
 
     KeyValueConfiguration configuration;
     const std::string registryPath = parser.value(registryOption).toStdString();

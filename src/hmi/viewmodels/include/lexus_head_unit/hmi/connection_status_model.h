@@ -24,7 +24,10 @@ public:
 
     [[nodiscard]] ConnectionState state() const;
     [[nodiscard]] QString stateText() const;
+    // The last cause in words ("adapter answered"), not the trigger's identifier (LHU-051).
     [[nodiscard]] QString lastCauseText() const;
+
+    static QString causeText(ConnectionTrigger trigger);
     [[nodiscard]] bool isConnected() const;
     [[nodiscard]] bool isError() const;
     [[nodiscard]] quint64 transitionCount() const;

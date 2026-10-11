@@ -31,6 +31,7 @@ Rules:
 | Car mode: install, boot to the hub without input, pairing, session folders, export, demo modes | LHU-044 | Install script, tools, units and self-check built and tested at the desk, the install as a dry run (LHU-044); step 3.15 not yet done |
 | Car day guide for the owner, README demo section | LHU-045 | Written (`docs/release/CAR_DAY_GUIDE.md`); the README lists every demo clip as pending until real media exists |
 | Screen recording with sound from the hub tile; VIN masked; address hidden while recording | LHU-049 | Recorder, unit, hub indicator and masking built and tested at the desk (LHU-049); step 3.16 not yet done |
+| Display fixes: pointer, cause text, titles, hub names, mass air flow tile | LHU-051 | Built and tested at the desk (LHU-051); step 3.17 not yet done |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
@@ -305,11 +306,14 @@ Record in `docs/test/results/<date>_screen_recording.md` (never the VIN, never a
 
 Results: not yet done.
 
-### 3.17 The screens in the car (LHU-050)
+### 3.17 The screens in the car (LHU-050, LHU-051)
 
 1. After the install, open Vehicle data and Trip: speed in mph, coolant and intake in °F, trip distance in mi, fuel economy in mpg. `journalctl --user -b | grep 'units us'` or the app's output names the units.
 2. Set `units = metric` under `[display]` in `~/.config/lexus-head-unit/car.conf`, tap Hub and Vehicle data again: km/h, degC, km, L/100 km. Set it back to `us`.
 3. Compare the mph on screen with the car's speedometer at a steady speed (a passenger reads both; the driver does not touch or read the screen while moving).
+4. No mouse pointer anywhere on the hub or the vehicle-data app after a tap (LHU-051).
+5. The strip reads "Connected adapter answered" (not "HandshakeSucceeded"); every grid and trip title is whole; the hub tiles read "Replay last drive" and "Screen recording" in full.
+6. The eighth grid tile is Air flow in g/s and changes with the engine speed.
 
 Record in `docs/test/results/<date>_screens_in_the_car.md`.
 
