@@ -38,7 +38,9 @@ public:
 
     // Live arms the policy and ends any quiet time or countdown. AdapterWithoutVehicle (the
     // ignition is off), LinkLostRetrying (the adapter went to sleep) and Idle (the service
-    // stopped) count as quiet; SearchingForAdapter never follows Live and is ignored.
+    // stopped) count as quiet. SearchingForAdapter comes only from a service run that has not
+    // reached an adapter yet (a restart, a switch from demo to car mode): it disarms, back to
+    // WaitingForLive, so the end of a demo is not taken for the car being switched off (LHU-048).
     void onLinkDetail(LinkDetail detail, std::int64_t nowMilliseconds);
     // Advances the phase to the time given and returns it.
     IgnitionOffShutdownPhase update(std::int64_t nowMilliseconds);

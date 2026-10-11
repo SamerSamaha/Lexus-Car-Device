@@ -438,6 +438,7 @@ The unit runs in the car on its own: the Pi on the power bank, the adapter in th
 | LHU-045 | Car day guide and the README demo section. **Done 2026-10-09**: `docs/release/CAR_DAY_GUIDE.md`; every demo entry in the README is marked pending until the car day | 2 | exempt | 2 | — |
 | LHU-046 | Bug found by the first install on the Pi (2026-10-11): the hub and the vehicle-data app exited at start outside the build folder (QML modules under a resource prefix that is not an import path), and the self-check crashed on the root-only polkit folder. Fixed, with a test that runs both programs from an empty folder | 1 | exempt | 1 | — |
 | LHU-047 | Bug found in the first touchscreen test on the Pi (2026-10-11): the Hub button never appeared in the vehicle-data app, because `Main.qml` passed the option under the same name as the property of `Screens`, which QML resolved to that property itself. The context property is now `hubButtonShownContext`, with a test of the whole window | 0.5 | exempt | 0.5 | — |
+| LHU-048 | Bug found on the Pi (2026-10-11): after demo mode had been live, switching to car mode at the desk made the hub shut the Pi down 360 s later. A service restart (SearchingForAdapter) now disarms the ignition-off policy; DN-043 updated | 0.5 | exempt | 0.5 | — |
 | **Total** | | | | **17.25** | |
 
 ### Roadmap (not scheduled)

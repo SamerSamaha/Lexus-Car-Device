@@ -26,7 +26,7 @@ In the car the unit runs from a power bank with no laptop, keyboard or desktop p
 | `lexus-head-unit --hub-button` | a "Hub" button on Home that quits the app with exit code 0 | The hub registry's restart policy is `on-failure`, so a clean exit is not restarted and the hub is in front again (REQ-016) |
 | `deploy/hub.conf` | `hub.ignition_off_shutdown_ms` (300000; 0 disables), `hub.shutdown_countdown_ms` (60000) | |
 
-Which details count as "not live": AdapterWithoutVehicle (the car is off), LinkLostRetrying (the adapter went to sleep or lost power after the car was switched off) and Idle (the service stopped). SearchingForAdapter never follows Live from the ELM327 source.
+Which details count as "not live": AdapterWithoutVehicle (the car is off), LinkLostRetrying (the adapter went to sleep or lost power after the car was switched off) and Idle (the service stopped). SearchingForAdapter never follows Live within one run of the ELM327 source; it comes only from a new run of the service. **Changed by LHU-048 (2026-10-11):** it now disarms the policy (back to waiting for Live). Found on the Pi: demo mode went Live, the switch to car mode restarted the service, and the hub shut the Pi down 360 s later (300 s quiet plus the 60 s countdown), taking the end of the demo for the car being switched off. Cost: if the service restarts after the car was switched off, the automatic shutdown does not follow; the two-tap power button still does.
 
 ## Failure cases
 
