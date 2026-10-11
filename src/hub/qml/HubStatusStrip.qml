@@ -66,7 +66,7 @@ Rectangle {
     Text {
         objectName: "hubStatusText"
         anchors.left: connectionText.visible ? connectionText.right : connectionDetailText.right
-        anchors.right: recordingIndicator.left
+        anchors.right: closeAppButton.visible ? closeAppButton.left : recordingIndicator.left
         anchors.leftMargin: Sizes.gutter * 2
         anchors.rightMargin: Sizes.gutter * 2
         anchors.verticalCenter: parent.verticalCenter
@@ -79,6 +79,37 @@ Rectangle {
             : strip.hub.lastExitText
         color: strip.showsError ? Sizes.error : Sizes.label
         font.pixelSize: Sizes.labelPixelSize
+    }
+
+    // Stops the app in front (LHU-055): for an app whose window has gone while its process runs
+    // on, such as the mirroring receiver after the phone stops mirroring. A 10 mm target.
+    Rectangle {
+        id: closeAppButton
+        objectName: "closeAppButton"
+        visible: strip.hub.appRunning
+        anchors.right: recordingIndicator.left
+        anchors.rightMargin: Sizes.gutter * 2
+        anchors.verticalCenter: parent.verticalCenter
+        width: Math.max(Sizes.touchTarget * 2, closeLabel.implicitWidth + Sizes.gutter * 2)
+        height: Sizes.touchTarget
+        radius: Sizes.tileRadius
+        color: closeArea.pressed ? Sizes.tileBorder : Sizes.background
+        border.color: Sizes.tileBorder
+
+        Text {
+            id: closeLabel
+            anchors.centerIn: parent
+            text: "Close"
+            color: Sizes.liveValue
+            font.pixelSize: Sizes.unitPixelSize
+            font.bold: true
+        }
+
+        MouseArea {
+            id: closeArea
+            anchors.fill: parent
+            onClicked: strip.hub.requestReturn()
+        }
     }
 
     Row {

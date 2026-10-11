@@ -89,10 +89,11 @@ step "1. Packages (installed only if missing)"
 # python3 runs the car-mode tools, the thermal logger and the emulator. wf-recorder records
 # the screen and the sound output for the demo videos (LHU-049). openssl makes the phone
 # link's certificates (LHU-053). The QtLocation and QtPositioning QML modules and the location
-# plugins (OpenStreetMap) are the map app (LHU-054).
+# plugins (OpenStreetMap) are the map app (LHU-054). chromium runs the web apps (LHU-055).
 packages="libqt6core6t64 libqt6gui6 libqt6dbus6 libqt6network6 libqt6qml6 libqt6quick6
           qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder
-          openssl qml6-module-qtlocation qml6-module-qtpositioning qt6-location-plugins"
+          openssl qml6-module-qtlocation qml6-module-qtpositioning qt6-location-plugins
+          chromium"
 if [ "$build" -eq 1 ]; then
     # Building here: compiler, CMake and Ninja, the Qt development files, GoogleTest for the
     # test targets the build includes, and dbus-daemon for the D-Bus tests.
@@ -156,6 +157,13 @@ for pair in "car_session.py:lexus-car-session" "car_mode.py:lexus-mode" \
 done
 run sudo ln -sfn "$repository/deploy/bind_obd_adapter.sh" /usr/local/bin/lexus-bind-adapter
 run sudo ln -sfn "$repository/deploy/car/lexus-hub-session" /usr/local/bin/lexus-hub-session
+run sudo ln -sfn "$repository/deploy/car/lexus-browser" /usr/local/bin/lexus-browser
+# The Hub button extension of the car browser (LHU-055), where lexus-browser loads it from.
+run sudo mkdir -p /usr/local/share/lexus-head-unit/browser-return
+for file in manifest.json background.js content.js; do
+    install_root_file "/usr/local/share/lexus-head-unit/browser-return/$file" 644 \
+        < "$repository/deploy/car/browser_return/$file" || true
+done
 
 step "4. The car-mode file and the session folder"
 config="$HOME/.config/lexus-head-unit/car.conf"

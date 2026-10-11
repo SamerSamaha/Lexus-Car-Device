@@ -1,4 +1,4 @@
-// Verifies: REQ-016
+// Verifies: REQ-016, REQ-031
 
 import QtQuick
 import QtTest
@@ -80,5 +80,18 @@ TestCase {
         tryCompare(hub, "appRunning", false, 1000)
         compare(findChild(screen, "appGrid").enabled, true)
         compare(findChild(screen, "hubStatusText").text, "App 1 stopped")
+    }
+
+    function test_while_an_app_runs_a_10_mm_close_button_stops_it() {
+        var screen = createScreen()
+        var close = findChild(screen, "closeAppButton")
+        compare(close.visible, false)
+        mouseClick(tileAt(screen, 0))
+        compare(hub.appRunning, true)
+        tryCompare(close, "visible", true, 1000)
+        verify(close.width >= Sizes.mm(10) && close.height >= Sizes.mm(10), "10 mm target")
+        mouseClick(close)
+        tryCompare(hub, "appRunning", false, 1000)
+        compare(close.visible, false)
     }
 }

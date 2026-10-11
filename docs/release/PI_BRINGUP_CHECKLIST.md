@@ -34,6 +34,7 @@ Rules:
 | Display fixes: pointer, cause text, titles, hub names, mass air flow tile | LHU-051 | Built and tested at the desk (LHU-051); step 3.17 not yet done |
 | Phone position from Safari on the iPhone | LHU-053 | Server, certificates, signals and the D-Bus path built and tested at the desk (LHU-053); step 3.18 not yet done |
 | Map app with the phone's position, hidden near home while recording | LHU-054 | Model, screen and program built and tested at the desk without the QtLocation module (LHU-054); step 3.19 not yet done |
+| Web apps in the car with the Hub button; Spotify web player or not | LHU-055 | Wrapper, extension, registry and the hub's Close control built and tested at the desk (LHU-055); step 3.20 not yet done |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no scripted run done; the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; mounting is not a requirement (OQ-14 closed 2026-10-11) |
 
@@ -72,6 +73,8 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A29 | Safari keeps reporting the position about once a second while the page is in front and the phone is unlocked (with a screen wake lock where offered), and stops in the background | LHU-053 | Step 3.18, items 4 and 5 | Not yet verified |
 | A30 | The Qt osm plugin from Debian 13 loads standard tiles from tile.openstreetmap.org with the custom host parameter, and a demo drive stays within the tile usage policy (a user agent naming the project, the attribution on screen, a cache); the cover appears within about 1 s of a recording starting | LHU-054 | Step 3.19, items 1, 2 and 4 | Not yet verified |
 | A31 | The QtLocation map draws smoothly enough on the Pi 5 under labwc beside the service and the recorder (no measured target) | LHU-054 | Step 3.19, item 3 | Not yet verified |
+| A32 | Chromium from Raspberry Pi OS (Trixie) loads an unpacked extension from `--load-extension` (with `--disable-features=DisableLoadExtensionCommandLineSwitch`), and closing its one window with its own profile ends the process the hub started | LHU-055 | Step 3.20, items 2 and 3 | Not yet verified |
+| A33 | The extension's Hub button stays visible over YouTube, including a video in full screen, and a tap on it is not taken by the page | LHU-055 | Step 3.20, item 3 | Not yet verified |
 | A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | **Verified 2026-10-11**: the adapter was plugged into the port and the car answered |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): one stored code read (P0420); the 17-character identification read |
 
@@ -348,6 +351,18 @@ Results: not yet done.
 5. Tap Hub: the hub is back.
 
 Record in `docs/test/results/<date>_map.md` without any coordinate or screenshot of the area around home.
+
+Results: not yet done.
+
+### 3.20 Web apps in the car (LHU-055)
+
+1. After the install (it installs `chromium` if missing, the extension and `lexus-browser`), on the hotspot: tap YouTube. One window fills the screen with a round Hub button at the top left. Log in once if wanted (parked).
+2. Play a video: picture and sound (the Pi's default output; with the car stereo paired, the car, step 3.21). Tap Hub: the hub is back within 2 s, its strip no longer shows YouTube running (A32).
+3. Play a video in full screen: the Hub button is still there and still works (A33). If no button shows at all, tap the hub's Close button instead and record it: A32 failed.
+4. Tap Spotify. Record whether the web player plays a song or says the browser is not supported, and whether `/usr/lib/chromium/libwidevinecdm.so` or a `WidevineCdm` folder exists (OQ-27). If it does not play, the fallback is the Spotify Connect receiver of DN-055, which needs the owner's decision (outside Debian).
+5. With screen recording on, repeat item 2: the recording has the video's sound.
+
+Record in `docs/test/results/<date>_web_apps_in_the_car.md`.
 
 Results: not yet done.
 

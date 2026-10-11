@@ -81,3 +81,4 @@ In this order:
 | [DN-051](DN-051-display-fixes.md) Display fixes from the first car day (light) | LHU-051 | Implemented |
 | [DN-053](DN-053-phone-position.md) The phone's position over the phone link | LHU-053 | Implemented |
 | [DN-054](DN-054-map.md) The map app with the phone's position (light) | LHU-054 | Implemented |
+| [DN-055](DN-055-web-apps-in-the-car.md) Web apps in the car with a way back to the hub (light) | LHU-055 | Implemented |
