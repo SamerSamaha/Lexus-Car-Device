@@ -1,4 +1,4 @@
-// Verifies: REQ-012, REQ-006
+// Verifies: REQ-012, REQ-028, REQ-006
 
 import QtQuick
 import QtTest
@@ -13,11 +13,12 @@ TestCase {
     when: windowShown
 
     readonly property var viewModel: vehicleData
-    readonly property var expectedNames: ["Vehicle speed", "Engine speed", "Coolant temperature",
-                                          "Engine load", "Throttle position",
-                                          "Intake air temperature", "Control module voltage",
-                                          "Fuel level"]
-    readonly property var expectedUnits: ["km/h", "rpm", "degC", "%", "%", "degC", "V", "%"]
+    readonly property var expectedNames: ["Speed", "Engine speed", "Coolant", "Engine load",
+                                          "Throttle", "Intake air", "Voltage", "Air flow"]
+    readonly property var expectedUnits: ["km/h", "rpm", "degC", "%", "%", "degC", "V", "g/s"]
+    // SignalId numbers of the grid tiles: mass air flow (8) replaced fuel level (7), LHU-051.
+    readonly property var gridSignalIndexes: [0, 1, 2, 3, 4, 5, 6, 8]
+    readonly property var oneDecimalTiles: [6, 7]
 
     Component {
         id: screenComponent
@@ -50,6 +51,16 @@ TestCase {
         verify(findChild(screen, "tile8") === null, "no ninth tile")
     }
 
+    function test_every_title_fits_its_tile_on_one_line() {
+        var screen = createScreen()
+        for (var index = 0; index < 8; ++index) {
+            var name = findChild(tile(screen, index), "nameText")
+            verify(name.paintedWidth <= name.width + 1,
+                   "title of tile " + index + " fits: " + name.paintedWidth + " of " + name.width)
+            compare(name.lineCount, 1)
+        }
+    }
+
     function test_every_signal_shows_valid_stale_and_never_received() {
         var screen = createScreen()
         for (var index = 0; index < 8; ++index) {
@@ -57,17 +68,20 @@ TestCase {
             var valueText = findChild(item, "valueText")
             var badge = findChild(item, "staleBadge")
 
-            vehicleData.simulateValid(index, 10 + index)
-            compare(valueText.text, index === 6 ? "16.0" : String(10 + index))
+            var signal = gridSignalIndexes[index]
+            var expected = oneDecimalTiles.indexOf(index) >= 0 ? (10 + signal).toFixed(1)
+                                                               : String(10 + signal)
+            vehicleData.simulateValid(signal, 10 + signal)
+            compare(valueText.text, expected)
             compare(valueText.color, Sizes.liveValue)
             compare(badge.visible, false)
 
-            vehicleData.simulateStale(index, 10 + index)
-            compare(valueText.text, index === 6 ? "16.0" : String(10 + index))
+            vehicleData.simulateStale(signal, 10 + signal)
+            compare(valueText.text, expected)
             verify(valueText.color !== Sizes.liveValue, "stale tile " + index + " is not live")
             compare(badge.visible, true)
 
-            vehicleData.simulateNeverReceived(index)
+            vehicleData.simulateNeverReceived(signal)
             compare(valueText.text, "--")
             verify(valueText.color !== Sizes.liveValue, "never received tile " + index + " is not live")
             compare(badge.visible, false)

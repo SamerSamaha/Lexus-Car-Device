@@ -22,6 +22,24 @@ QString textOf(std::string_view text) {
 
 ConnectionStatusModel::ConnectionStatusModel(QObject* parent) : QObject(parent) {}
 
+QString ConnectionStatusModel::causeText(ConnectionTrigger trigger) {
+    switch (trigger) {
+    case ConnectionTrigger::StartRequested:
+        return QStringLiteral("starting");
+    case ConnectionTrigger::HandshakeSucceeded:
+        return QStringLiteral("adapter answered");
+    case ConnectionTrigger::HandshakeFailed:
+        return QStringLiteral("adapter did not answer");
+    case ConnectionTrigger::LinkLost:
+        return QStringLiteral("link lost");
+    case ConnectionTrigger::BackoffElapsed:
+        return QStringLiteral("trying again");
+    case ConnectionTrigger::StopRequested:
+        return QStringLiteral("stopped");
+    }
+    return textOf(toString(trigger));
+}
+
 ConnectionState ConnectionStatusModel::state() const {
     return m_state;
 }
@@ -60,7 +78,7 @@ QString ConnectionStatusModel::detailName() const {
 
 void ConnectionStatusModel::applyTransition(const ConnectionTransition& transition) {
     m_state = transition.to;
-    m_lastCauseText = textOf(toString(transition.trigger));
+    m_lastCauseText = causeText(transition.trigger);
     m_linkDetail = linkDetailAfter(transition, m_linkDetail);
     ++m_transitionCount;
     emit changed();

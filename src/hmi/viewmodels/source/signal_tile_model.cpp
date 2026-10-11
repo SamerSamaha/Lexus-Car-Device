@@ -31,7 +31,7 @@ SignalTileModel::SignalTileModel(SignalId signalId, DisplayUnits units, QObject*
       m_signalId(signalId),
       m_unit(definitionOf(signalId).unit),
       m_units(units),
-      m_name(textOf(definitionOf(signalId).name)),
+      m_name(tileTitle(signalId)),
       m_unitText(displayUnitText(m_unit, units)),
       m_valueText(QStringLiteral("--")) {}
 
@@ -78,6 +78,46 @@ void SignalTileModel::applySample(const SignalSample& sample) {
         m_valueText = formatValue(sample.value, m_unit, m_units);
     }
     emit changed();
+}
+
+QString SignalTileModel::tileTitle(SignalId signalId) {
+    switch (signalId) {
+    case SignalId::VehicleSpeed:
+        return QStringLiteral("Speed");
+    case SignalId::EngineRpm:
+        return QStringLiteral("Engine speed");
+    case SignalId::CoolantTemperature:
+        return QStringLiteral("Coolant");
+    case SignalId::EngineLoad:
+        return QStringLiteral("Engine load");
+    case SignalId::ThrottlePosition:
+        return QStringLiteral("Throttle");
+    case SignalId::IntakeAirTemperature:
+        return QStringLiteral("Intake air");
+    case SignalId::ControlModuleVoltage:
+        return QStringLiteral("Voltage");
+    case SignalId::FuelLevel:
+        return QStringLiteral("Fuel level");
+    case SignalId::MassAirFlow:
+        return QStringLiteral("Air flow");
+    case SignalId::InstantFuelEconomy:
+        return QStringLiteral("Economy now");
+    case SignalId::TripFuelEconomy:
+        return QStringLiteral("Trip economy");
+    case SignalId::TripDistance:
+        return QStringLiteral("Trip distance");
+    case SignalId::TimeBelow1000Rpm:
+        return QStringLiteral("Below 1000 rpm");
+    case SignalId::Time1000To2499Rpm:
+        return QStringLiteral("1000-2499 rpm");
+    case SignalId::Time2500To3999Rpm:
+        return QStringLiteral("2500-3999 rpm");
+    case SignalId::TimeFrom4000Rpm:
+        return QStringLiteral("4000 rpm and up");
+    case SignalId::CoolantWarmUpTime:
+        return QStringLiteral("Warm-up time");
+    }
+    return textOf(definitionOf(signalId).name);
 }
 
 QString SignalTileModel::formatValue(double value, Unit unit) {

@@ -17,6 +17,7 @@
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
+#include <QCursor>
 #include <QDBusConnection>
 #include <QDir>
 #include <QGuiApplication>
@@ -217,7 +218,15 @@ int main(int argumentCount, char** argumentValues) {
         QDir::homePath() + QStringLiteral("/.config/lexus-head-unit/car.conf"));
     parser.addOption(unitsOption);
     parser.addOption(carConfigOption);
+    const QCommandLineOption hidePointerOption(
+        QStringLiteral("hide-pointer"),
+        QStringLiteral("no mouse pointer over the window (a touch screen in the car)"));
+    parser.addOption(hidePointerOption);
     parser.process(application);
+    if (parser.isSet(hidePointerOption)) {
+        QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+        std::cerr << "lexus-head-unit: pointer hidden\n";
+    }
 
     KeyValueConfiguration configuration;
     const std::string configurationPath = parser.value(configOption).toStdString();

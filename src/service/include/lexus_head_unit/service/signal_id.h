@@ -67,7 +67,10 @@ constexpr std::array<SignalId, measuredSignalCount> measuredSignalIds = {
     SignalId::MassAirFlow,
 };
 
-// The eight tiles of the vehicle-data grid (REQ-004, DN-039).
+// The eight tiles of the vehicle-data grid (REQ-004, DN-039). The last tile was fuel level
+// until the first car day: the 2013 GS350 does not support PID 0x2F, so it showed "--"; mass
+// air flow (PID 0x10), which the car reports, took its place (LHU-051). Fuel level stays a
+// signal and is still polled on a vehicle that supports it.
 constexpr std::size_t gridSignalCount = 8;
 constexpr std::array<SignalId, gridSignalCount> gridSignalIds = {
     SignalId::VehicleSpeed,
@@ -77,7 +80,7 @@ constexpr std::array<SignalId, gridSignalCount> gridSignalIds = {
     SignalId::ThrottlePosition,
     SignalId::IntakeAirTemperature,
     SignalId::ControlModuleVoltage,
-    SignalId::FuelLevel,
+    SignalId::MassAirFlow,
 };
 
 // Computed by the DerivedSignalEngine (DN-031); the eight tiles of the trip screen.

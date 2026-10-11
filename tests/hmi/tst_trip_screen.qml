@@ -1,4 +1,4 @@
-// Verifies: REQ-022
+// Verifies: REQ-022, REQ-028
 
 import QtQuick
 import QtTest
@@ -15,10 +15,9 @@ TestCase {
     readonly property var viewModel: vehicleData
     // SignalId numbers of the eight derived signals, in the order of the trip grid.
     readonly property var tripSignalIndexes: [9, 10, 11, 16, 12, 13, 14, 15]
-    readonly property var expectedNames: ["Fuel economy", "Trip fuel economy", "Trip distance",
-                                          "Coolant warm-up time", "Time below 1000 rpm",
-                                          "Time 1000 to 2499 rpm", "Time 2500 to 3999 rpm",
-                                          "Time from 4000 rpm"]
+    readonly property var expectedNames: ["Economy now", "Trip economy", "Trip distance",
+                                          "Warm-up time", "Below 1000 rpm", "1000-2499 rpm",
+                                          "2500-3999 rpm", "4000 rpm and up"]
     readonly property var expectedUnits: ["L/100 km", "L/100 km", "km", "min", "min", "min",
                                           "min", "min"]
 

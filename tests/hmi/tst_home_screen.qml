@@ -1,4 +1,4 @@
-// Verifies: REQ-012, REQ-006, REQ-007, REQ-023, REQ-024
+// Verifies: REQ-012, REQ-006, REQ-007, REQ-023, REQ-024, REQ-028
 
 import QtQuick
 import QtTest
@@ -48,7 +48,7 @@ TestCase {
         var rpm = tileOf(home, "rpmTile")
         compare(findChild(speed, "valueText").text, "63")
         compare(findChild(speed, "unitText").text, "km/h")
-        compare(findChild(speed, "nameText").text, "Vehicle speed")
+        compare(findChild(speed, "nameText").text, "Speed")
         compare(findChild(rpm, "valueText").text, "1726")
         compare(findChild(rpm, "unitText").text, "rpm")
         compare(findChild(speed, "valueText").color, Sizes.liveValue)
@@ -101,7 +101,8 @@ TestCase {
         tryCompare(stateText, "text", "Connecting", 500)
         vehicleData.simulateConnection("Connected", "HandshakeSucceeded")
         tryCompare(stateText, "text", "Connected", 500)
-        compare(findChild(strip, "causeText").text, "HandshakeSucceeded")
+        // In words, not the trigger's name (LHU-051).
+        compare(findChild(strip, "causeText").text, "adapter answered")
         compare(findChild(strip, "stateDot").color, Sizes.connected)
         vehicleData.simulateConnection("Error", "LinkLost")
         tryCompare(stateText, "text", "Error", 500)

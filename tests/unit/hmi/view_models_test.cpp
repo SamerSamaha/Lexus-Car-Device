@@ -1,4 +1,4 @@
-// Verifies: REQ-012, REQ-007, REQ-011
+// Verifies: REQ-012, REQ-007, REQ-011, REQ-028
 
 #include "lexus_head_unit/hmi/connection_status_model.h"
 #include "lexus_head_unit/hmi/signal_tile_model.h"
@@ -16,7 +16,9 @@
 #include <QSignalSpy>
 #include <QString>
 
+#include <algorithm>
 #include <cstddef>
+#include <string_view>
 #include <thread>
 
 // Qt declares its macros and enumerations in internal headers; the public ones are included.
@@ -47,7 +49,8 @@ SignalSample sample(SignalId signalId, double value, Unit unit, SignalStatus sta
 
 TEST(SignalTileModelTest, StartsNeverReceivedWithTheDefinitionNameAndUnit) {
     const SignalTileModel tile(SignalId::CoolantTemperature);
-    EXPECT_EQ(tile.name(), QStringLiteral("Coolant temperature"));
+    // The short tile title (LHU-051); the definition keeps "Coolant temperature".
+    EXPECT_EQ(tile.name(), QStringLiteral("Coolant"));
     EXPECT_EQ(tile.unitText(), QStringLiteral("degC"));
     EXPECT_EQ(tile.valueText(), QStringLiteral("--"));
     EXPECT_EQ(tile.statusText(), QStringLiteral("NeverReceived"));
@@ -110,7 +113,7 @@ TEST(ConnectionStatusModelTest, StartsDisconnectedAndFollowsTransitions) {
     transition.to = ConnectionState::Connected;
     model.applyTransition(transition);
     EXPECT_EQ(model.stateText(), QStringLiteral("Connected"));
-    EXPECT_EQ(model.lastCauseText(), QStringLiteral("HandshakeSucceeded"));
+    EXPECT_EQ(model.lastCauseText(), QStringLiteral("adapter answered"));
     EXPECT_TRUE(model.isConnected());
 
     transition.from = ConnectionState::Connected;
@@ -164,7 +167,9 @@ bool tileIsInPlace(const VehicleDataViewModel& viewModel, SignalId signalId) {
         return false;
     }
     const QList<QObject*> tiles = viewModel.tiles();
-    const int position = static_cast<int>(lexus_head_unit::indexOf(signalId));
+    const auto* found = std::find(
+        lexus_head_unit::gridSignalIds.begin(), lexus_head_unit::gridSignalIds.end(), signalId);
+    const auto position = static_cast<int>(found - lexus_head_unit::gridSignalIds.begin());
     return position < tiles.size() && tiles.at(position) == tile;
 }
 
@@ -176,7 +181,7 @@ TEST(VehicleDataViewModelTest, HasOneTilePerSignalInEnumerationOrder) {
         inPlace += tileIsInPlace(viewModel, signalId) ? 1U : 0U;
     }
     EXPECT_EQ(inPlace, 8U);
-    EXPECT_EQ(viewModel.vehicleSpeed()->name(), QStringLiteral("Vehicle speed"));
+    EXPECT_EQ(viewModel.vehicleSpeed()->name(), QStringLiteral("Speed"));
     EXPECT_EQ(viewModel.engineRpm()->unitText(), QStringLiteral("rpm"));
     EXPECT_NE(viewModel.connection(), nullptr);
 }
@@ -224,6 +229,46 @@ TEST(VehicleDataViewModelTest, SamplesAndTransitionsFromAnotherThreadArriveThrou
     EXPECT_EQ(viewModel.engineRpm()->valueText(), QStringLiteral("850"));
     EXPECT_TRUE(viewModel.engineRpm()->isValid());
     EXPECT_TRUE(viewModel.connection()->isConnected());
+}
+
+// A phrase in words: not empty, lower case, and not the trigger's identifier.
+bool isCauseInWords(ConnectionTrigger trigger) {
+    const QString text = ConnectionStatusModel::causeText(trigger);
+    const std::string_view identifier = lexus_head_unit::toString(trigger);
+    const QString identifierText =
+        QString::fromUtf8(identifier.data(), static_cast<qsizetype>(identifier.size()));
+    return !text.isEmpty() && text == text.toLower() && text != identifierText;
+}
+
+TEST(VehicleDataViewModelTest, TheLastGridTileIsMassAirFlowNotFuelLevel) {
+    // Since the first car day (LHU-051): the GS350 does not support fuel level (PID 0x2F).
+    const VehicleDataViewModel viewModel;
+    const auto* last = qobject_cast<SignalTileModel*>(viewModel.tiles().at(7));
+    ASSERT_NE(last, nullptr);
+    EXPECT_EQ(last->signalId(), SignalId::MassAirFlow);
+}
+
+TEST(ConnectionStatusModelTest, EveryCauseIsShownInWords) {
+    std::size_t inWords = 0;
+    for (const ConnectionTrigger trigger : lexus_head_unit::allConnectionTriggers) {
+        inWords += isCauseInWords(trigger) ? 1U : 0U;
+    }
+    EXPECT_EQ(inWords, lexus_head_unit::connectionTriggerCount);
+    EXPECT_EQ(ConnectionStatusModel::causeText(ConnectionTrigger::HandshakeFailed),
+              QStringLiteral("adapter did not answer"));
+    EXPECT_EQ(ConnectionStatusModel::causeText(ConnectionTrigger::LinkLost),
+              QStringLiteral("link lost"));
+}
+
+TEST(SignalTileModelTest, EveryTileTitleIsShortEnoughForOneLine) {
+    // 15 characters fit a 4 x 2 tile at the label size; checked on screen in the HMI tests too.
+    constexpr qsizetype longestTitle = 15;
+    std::size_t fitting = 0;
+    for (const SignalId signalId : lexus_head_unit::allSignalIds) {
+        const QString title = SignalTileModel::tileTitle(signalId);
+        fitting += (!title.isEmpty() && title.size() <= longestTitle) ? 1U : 0U;
+    }
+    EXPECT_EQ(fitting, lexus_head_unit::signalCount);
 }
 
 } // namespace

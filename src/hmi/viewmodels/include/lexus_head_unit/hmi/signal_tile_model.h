@@ -43,6 +43,10 @@ public:
     // miles per gallon above the cap.
     static QString formatValue(double value, Unit unit, DisplayUnits units);
 
+    // The title on the tile: short enough for one line of a 4 x 2 tile at the label size
+    // (LHU-051). The signal's full name stays in its definition.
+    static QString tileTitle(SignalId signalId);
+
 signals:
     void changed();
 

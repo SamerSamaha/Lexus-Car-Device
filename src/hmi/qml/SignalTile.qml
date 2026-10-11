@@ -22,10 +22,15 @@ Rectangle {
         objectName: "nameText"
         anchors.top: parent.top
         anchors.left: parent.left
+        anchors.right: parent.right
         anchors.margins: Sizes.gutter
         text: tile.model.name
         color: Sizes.label
         font.pixelSize: Sizes.labelPixelSize
+        // Shrinks to fit the tile instead of running under the next one (LHU-051).
+        fontSizeMode: Text.HorizontalFit
+        minimumPixelSize: Sizes.mm(2)
+        elide: Text.ElideNone
     }
 
     Text {
