@@ -69,6 +69,13 @@ constexpr SignalDefinitionTable defaultTable = {{
      "Coolant warm-up time",
      Unit::Minutes,
      defaultStalenessTimeoutMilliseconds},
+    // The phone reports about once a second; a fix older than 5 s is stale (DN-053).
+    {SignalId::Latitude, "Latitude", Unit::Degrees, phoneStalenessTimeoutMilliseconds},
+    {SignalId::Longitude, "Longitude", Unit::Degrees, phoneStalenessTimeoutMilliseconds},
+    {SignalId::PositionAccuracy,
+     "Position accuracy",
+     Unit::Metres,
+     phoneStalenessTimeoutMilliseconds},
 }};
 
 } // namespace

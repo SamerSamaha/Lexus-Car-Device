@@ -60,7 +60,9 @@ private:
 };
 
 // The Pi's addresses for SSH from a phone on the hotspot (DN-043): "SSH lexus@<address>", or
-// "No network". The provider returns the IPv4 addresses; refresh() re-reads them.
+// "No network". With a phone link port (DN-053) the page's address follows:
+// "SSH lexus@<address>   Phone https://<address>:8443". The provider returns the IPv4
+// addresses; refresh() re-reads them.
 class NetworkAddressModel : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString addressText READ addressText NOTIFY changed)
@@ -68,7 +70,10 @@ class NetworkAddressModel : public QObject {
 public:
     using AddressProvider = std::function<QStringList()>;
 
-    NetworkAddressModel(QString userName, AddressProvider provider, QObject* parent = nullptr);
+    NetworkAddressModel(QString userName,
+                        AddressProvider provider,
+                        QObject* parent = nullptr,
+                        quint16 phoneLinkPort = 0);
 
     [[nodiscard]] QString addressText() const;
     void startRefreshing(int intervalMilliseconds);
@@ -83,6 +88,7 @@ signals:
 private:
     QString m_userName;
     AddressProvider m_provider;
+    quint16 m_phoneLinkPort = 0;
     QTimer m_timer;
     QString m_addressText;
 };

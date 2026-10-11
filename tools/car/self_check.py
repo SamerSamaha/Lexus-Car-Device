@@ -76,6 +76,7 @@ class Paths:
     vm_directory: Path = Path("/proc/sys/vm")
     polkit_rule: Path = Path("/etc/polkit-1/rules.d/50-lexus-obd-bind.rules")
     hub_registry: Path = Path.home() / "Lexus-Car-Device" / "deploy" / "car" / "hub_car.conf"
+    phone_link: Path = Path.home() / ".config" / "lexus-head-unit" / "phone-link"
 
 
 @dataclass
@@ -257,6 +258,19 @@ def check_data(report: Report, paths: Paths, runner: Runner) -> None:
                f"no connection named '{name}' (docs/release/CAR_DAY_GUIDE.md, at home)")
 
 
+def check_phone_link(report: Report, paths: Paths, runner: Runner) -> None:
+    """The phone link's certificates (LHU-053): present, and the server one not ending within
+    30 days (the install script renews it)."""
+    folder = paths.phone_link
+    if not (folder / "server.crt").is_file() or not (folder / "ca.crt").is_file():
+        report.add(FAIL, "phone link certificates", f"missing in {folder}: run the install script")
+        return
+    code, _ = runner(["openssl", "x509", "-in", str(folder / "server.crt"), "-noout",
+                      "-checkend", "2592000"])
+    report.add(PASS if code == 0 else FAIL, "phone link certificates",
+               "valid for 30 days or more" if code == 0 else "ends within 30 days: run the install script")
+
+
 def check_recorder(report: Report, paths: Paths) -> None:
     """wf-recorder present and the recording setting (LHU-049); recording itself needs the
     Wayland session, so it is checked on the touchscreen, not here."""
@@ -308,6 +322,7 @@ def main(argument_list: Optional[Sequence[str]] = None, runner: Runner = run_com
     check_power_safety(report, paths, runner)
     check_data(report, paths, runner)
     check_recorder(report, paths)
+    check_phone_link(report, paths, runner)
     if arguments.with_demo:
         check_demo(report, paths, runner)
     print(f"self-check: {report.count(PASS)} PASS, {report.count(FAIL)} FAIL, "

@@ -9,6 +9,8 @@
 namespace lexus_head_unit {
 
 constexpr std::int64_t defaultStalenessTimeoutMilliseconds = 1000;
+// The phone reports its position about once a second (DN-053).
+constexpr std::int64_t phoneStalenessTimeoutMilliseconds = 5000;
 
 struct SignalDefinition {
     SignalId id = SignalId::VehicleSpeed;

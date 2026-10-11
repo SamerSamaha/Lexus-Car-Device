@@ -86,8 +86,12 @@ void IgnitionOffShutdownModel::tick() {
 
 NetworkAddressModel::NetworkAddressModel(QString userName,
                                          AddressProvider provider,
-                                         QObject* parent)
-    : QObject(parent), m_userName(std::move(userName)), m_provider(std::move(provider)) {
+                                         QObject* parent,
+                                         quint16 phoneLinkPort)
+    : QObject(parent),
+      m_userName(std::move(userName)),
+      m_provider(std::move(provider)),
+      m_phoneLinkPort(phoneLinkPort) {
     connect(&m_timer, &QTimer::timeout, this, &NetworkAddressModel::refresh);
     refresh();
 }
@@ -109,6 +113,11 @@ void NetworkAddressModel::refresh() {
             targets << m_userName + QLatin1Char('@') + address;
         }
         text = QStringLiteral("SSH ") + targets.join(QStringLiteral(", "));
+        if (m_phoneLinkPort != 0) {
+            text += QStringLiteral("   Phone https://%1:%2")
+                        .arg(addresses.first())
+                        .arg(m_phoneLinkPort);
+        }
     }
     if (text != m_addressText) {
         m_addressText = text;

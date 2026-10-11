@@ -136,6 +136,11 @@ int runHub(int argumentCount, char** argumentValues) {
     parser.addOption(fullscreenOption);
     parser.addOption(firstFrameOption);
     parser.addOption(recordingStatusOption);
+    const QCommandLineOption phoneLinkPortOption(
+        QStringLiteral("phone-link-port"),
+        QStringLiteral("show the phone link's address with this port on the address line"),
+        QStringLiteral("port"));
+    parser.addOption(phoneLinkPortOption);
     const QCommandLineOption hidePointerOption(
         QStringLiteral("hide-pointer"),
         QStringLiteral("no mouse pointer over the window (a touch screen in the car)"));
@@ -219,7 +224,9 @@ int runHub(int argumentCount, char** argumentValues) {
                      &lexus_head_unit::IgnitionOffShutdownModel::applyLinkDetail);
     lexus_head_unit::NetworkAddressModel network(
         qEnvironmentVariable("USER", QStringLiteral("lexus")),
-        lexus_head_unit::NetworkAddressModel::interfaceAddresses());
+        lexus_head_unit::NetworkAddressModel::interfaceAddresses(),
+        nullptr,
+        static_cast<quint16>(parser.value(phoneLinkPortOption).toUInt()));
 
     lexus_head_unit::RecordingStatusModel recording(parser.value(recordingStatusOption));
 

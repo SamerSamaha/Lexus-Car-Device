@@ -87,9 +87,11 @@ step "1. Packages (installed only if missing)"
 # Runtime for the three executables: Qt base, D-Bus, network, QML and Qt Quick with the two
 # QML modules the screens import. bluez provides bluetoothctl and rfcomm (the adapter link);
 # python3 runs the car-mode tools, the thermal logger and the emulator. wf-recorder records
-# the screen and the sound output for the demo videos (LHU-049).
+# the screen and the sound output for the demo videos (LHU-049). openssl makes the phone
+# link's certificates (LHU-053).
 packages="libqt6core6t64 libqt6gui6 libqt6dbus6 libqt6network6 libqt6qml6 libqt6quick6
-          qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder"
+          qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder
+          openssl"
 if [ "$build" -eq 1 ]; then
     # Building here: compiler, CMake and Ninja, the Qt development files, GoogleTest for the
     # test targets the build includes, and dbus-daemon for the D-Bus tests.
@@ -161,6 +163,9 @@ else
     run install -D -m 600 "$repository/deploy/car/car.conf.example" "$config"
 fi
 run chmod 600 "$config"
+# The phone link's private authority and server certificate (LHU-053); the authority is kept on
+# every later run, because the phone trusts it.
+run sh "$repository/deploy/car/phone_link_certificates.sh" "$HOME/.config/lexus-head-unit/phone-link"
 run mkdir -p "$HOME/lexus-data/sessions" "$HOME/lexus-data/export" "$HOME/lexus-data/screen"
 if id -nG "$user_name" | tr ' ' '\n' | grep -qx dialout; then
     note "$user_name may open /dev/rfcomm0 (dialout)"

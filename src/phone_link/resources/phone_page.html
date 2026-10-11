@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lexus Head Unit phone link</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 24px 16px; background: #101418; color: #f4f6f8;
+         font: 18px -apple-system, system-ui, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  button { width: 100%; min-height: 64px; font-size: 22px; font-weight: 600; border: 0;
+           border-radius: 12px; background: #3fb950; color: #101418; }
+  button.stop { background: #e5534b; color: #f4f6f8; }
+  #state { margin: 20px 0 8px; font-size: 22px; font-weight: 600; }
+  #detail { color: #aab4bf; min-height: 3em; }
+  .help { color: #aab4bf; font-size: 15px; margin-top: 28px; }
+  a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<h1>Lexus Head Unit: phone position</h1>
+<button id="toggle" type="button">Share position</button>
+<div id="state">Not sharing</div>
+<div id="detail">Keep this page open while driving; Safari stops sharing when it is in the background or the phone locks.</div>
+<div class="help">
+  <p>First time only: <a href="/ca.crt">install the head unit's certificate</a>, then in Settings,
+  General, About, Certificate Trust Settings, turn on full trust for "Lexus Head Unit local CA".
+  Allow location for Safari websites when asked.</p>
+  <p>The position goes only to the head unit on this hotspot. It is shown on the map and never
+  written to a file.</p>
+</div>
+<script>
+"use strict";
+(function () {
+  var toggle = document.getElementById("toggle");
+  var state = document.getElementById("state");
+  var detail = document.getElementById("detail");
+  var watchId = null;
+  var wakeLock = null;
+  var lastSent = 0;
+  var sent = 0;
+  var failed = 0;
+  var minimumIntervalMilliseconds = 900;
+
+  function show(stateText, detailText) {
+    state.textContent = stateText;
+    if (detailText !== undefined) { detail.textContent = detailText; }
+  }
+
+  function keepAwake() {
+    if (!("wakeLock" in navigator) || document.visibilityState !== "visible") { return; }
+    navigator.wakeLock.request("screen").then(function (lock) { wakeLock = lock; })
+      .catch(function () { wakeLock = null; });
+  }
+
+  function send(position) {
+    var now = Date.now();
+    if (now - lastSent < minimumIntervalMilliseconds) { return; }
+    lastSent = now;
+    var report = { latitude: position.coords.latitude, longitude: position.coords.longitude,
+                   accuracy: position.coords.accuracy };
+    fetch("/position", { method: "POST", cache: "no-store",
+                         headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify(report) })
+      .then(function (reply) {
+        if (reply.status === 204) { sent += 1; } else { failed += 1; }
+        show("Sharing: " + sent + " sent" + (failed ? ", " + failed + " refused" : ""),
+             "Accuracy " + Math.round(report.accuracy) + " m");
+      })
+      .catch(function () {
+        failed += 1;
+        show("Sharing: the head unit did not answer", "Is the phone still on the hotspot?");
+      });
+  }
+
+  function fail(error) {
+    var advice = error.code === 1
+      ? "Location is off for Safari websites: Settings, Privacy and Security, Location Services, Safari Websites, While Using the App."
+      : error.message;
+    show("No position", advice);
+  }
+
+  function start() {
+    if (!window.isSecureContext) {
+      show("Not a secure page", "Open the https address shown on the head unit.");
+      return;
+    }
+    if (!("geolocation" in navigator)) {
+      show("This browser cannot share a position");
+      return;
+    }
+    watchId = navigator.geolocation.watchPosition(send, fail,
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    keepAwake();
+    toggle.textContent = "Stop sharing";
+    toggle.className = "stop";
+    show("Waiting for the first position");
+  }
+
+  function stop() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); }
+    watchId = null;
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    toggle.textContent = "Share position";
+    toggle.className = "";
+    show("Not sharing");
+  }
+
+  toggle.addEventListener("click", function () { if (watchId === null) { start(); } else { stop(); } });
+  document.addEventListener("visibilitychange", function () {
+    if (watchId !== null && document.visibilityState === "visible") { keepAwake(); }
+  });
+})();
+</script>
+</body>
+</html>

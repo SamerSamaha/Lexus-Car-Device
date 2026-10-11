@@ -11,7 +11,7 @@ systemctl --user start lexus-screen-recorder.service
 registry="${LEXUS_HUB_REGISTRY:-$HOME/Lexus-Car-Device/deploy/car/hub_car.conf}"
 runtime="/run/user/$(id -u)"
 while true; do
-    lexus-hub --registry "$registry" --fullscreen --hide-pointer \
+    lexus-hub --registry "$registry" --fullscreen --hide-pointer --phone-link-port 8443 \
         --recording-status "$runtime/lexus-screen-recording" \
         --first-frame-mark "$runtime/lexus-first-frame.txt"
     sleep 1

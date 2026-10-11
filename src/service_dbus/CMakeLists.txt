@@ -32,6 +32,7 @@ qt_add_executable(lexus_head_unit_vehicle_data_service_app
 target_link_libraries(lexus_head_unit_vehicle_data_service_app
     PRIVATE
         lexus_head_unit_service_dbus
+        lexus_head_unit_phone_link
         lexus_head_unit_source_wiring
         lexus_head_unit_process_support
         lexus_head_unit_service

@@ -1,4 +1,4 @@
-// Verifies: REQ-017, REQ-002, REQ-021, REQ-023
+// Verifies: REQ-017, REQ-002, REQ-021, REQ-023, REQ-029
 
 #include "lexus_head_unit/service/connection_state_machine.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
@@ -18,8 +18,11 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QSet>
+#include <QSslConfiguration>
+#include <QSslSocket>
 #include <QString>
 #include <QStringList>
+#include <QTemporaryDir>
 #include <QXmlStreamReader>
 
 #include <gtest/gtest.h>
@@ -535,6 +538,134 @@ TEST(VehicleDataServiceProcessTest, ServiceExecutablePublishesEverySignalAndRefu
                watcher.client.connectionState() == ConnectionState::Error;
     }));
     bus.disconnectAll();
+}
+
+// End to end (DN-053): a position posted to the service's phone link over TLS arrives at a
+// D-Bus client as the three phone signals, and turns Stale after 5 s without a report.
+bool postPosition(quint16 port, const QByteArray& body) {
+    QSslSocket socket;
+    QSslConfiguration configuration = socket.sslConfiguration();
+    configuration.setPeerVerifyMode(QSslSocket::VerifyNone);
+    socket.setSslConfiguration(configuration);
+    socket.connectToHostEncrypted(QStringLiteral("127.0.0.1"), port);
+    if (!socket.waitForEncrypted(5000)) {
+        return false;
+    }
+    socket.write("POST /position HTTP/1.1\r\nHost: pi\r\nContent-Length: " +
+                 QByteArray::number(body.size()) + "\r\n\r\n" + body);
+    QByteArray reply;
+    while (socket.waitForReadyRead(5000)) {
+        reply += socket.readAll();
+    }
+    return reply.startsWith("HTTP/1.1 204");
+}
+
+bool opensslAvailable() {
+    QProcess probe;
+    probe.start(QStringLiteral("openssl"), {QStringLiteral("version")});
+    return probe.waitForFinished(5000) && probe.exitCode() == 0;
+}
+
+// The certificates from the product script and a service configuration that switches the
+// phone link on; the configuration's path, or empty when a step failed.
+QString phoneLinkConfiguration(const QTemporaryDir& folder, quint16 port) {
+    QProcess certificates;
+    certificates.start(
+        QStringLiteral("sh"),
+        {QStringLiteral(LEXUS_HEAD_UNIT_REPOSITORY_ROOT "/deploy/car/phone_link_certificates.sh"),
+         folder.path()});
+    if (!certificates.waitForFinished(20000) || certificates.exitCode() != 0) {
+        return {};
+    }
+    QFile configuration(folder.filePath(QStringLiteral("head_unit.conf")));
+    if (!configuration.open(QIODevice::WriteOnly)) {
+        return {};
+    }
+    configuration.write(
+        "[phone_link]\nport = " + QByteArray::number(port) +
+        "\ncertificate = " + folder.filePath(QStringLiteral("server.crt")).toUtf8() +
+        "\nkey = " + folder.filePath(QStringLiteral("server.key")).toUtf8() +
+        "\nca_certificate = " + folder.filePath(QStringLiteral("ca.crt")).toUtf8() + "\n");
+    return configuration.fileName();
+}
+
+// The service may still be starting (slower under the sanitizers): tries for up to 10 s, each a
+// whole TLS exchange.
+bool postUntilAccepted(quint16 port, const QByteArray& body) {
+    return waitFor(
+        [port, &body]() {
+            return postPosition(port, body);
+        },
+        10000);
+}
+
+bool startService(QProcess& service, const QString& configuration, const QString& busAddress) {
+    service.setProcessChannelMode(QProcess::ForwardedErrorChannel);
+    service.start(QStringLiteral(LEXUS_HEAD_UNIT_SERVICE_PATH),
+                  {QStringLiteral("--source"),
+                   QStringLiteral("fake"),
+                   QStringLiteral("--config"),
+                   configuration,
+                   QStringLiteral("--bus-address"),
+                   busAddress});
+    return service.waitForStarted();
+}
+
+bool clientHoldsThePostedPosition(const VehicleDataClient& client) {
+    const SignalSample latitude = client.latest(SignalId::Latitude);
+    return latitude.status == SignalStatus::Valid && latitude.value == 42.25 &&
+           client.latest(SignalId::Longitude).value == -83.5 &&
+           client.latest(SignalId::PositionAccuracy).value == 8.0;
+}
+
+bool waitForThePostedPosition(const VehicleDataClient& client) {
+    return waitFor(
+        [&client]() {
+            return clientHoldsThePostedPosition(client);
+        },
+        2000);
+}
+
+bool waitForAStalePosition(const VehicleDataClient& client) {
+    return waitFor(
+        [&client]() {
+            return client.latest(SignalId::Latitude).status == SignalStatus::Stale;
+        },
+        7000);
+}
+
+// The service executable with the phone link switched on, on a private bus.
+class PhoneLinkProcessTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        if (!opensslAvailable()) {
+            GTEST_SKIP() << "openssl is not installed";
+        }
+        m_configuration = phoneLinkConfiguration(m_folder, m_port);
+        ASSERT_FALSE(m_configuration.isEmpty());
+        ASSERT_FALSE(m_bus.address().isEmpty());
+        ASSERT_TRUE(startService(m_service, m_configuration, m_bus.address()));
+    }
+
+    void TearDown() override {
+        if (m_service.state() != QProcess::NotRunning) {
+            EXPECT_EQ(terminateAndGetExitCode(m_service), 0);
+        }
+        m_bus.disconnectAll();
+    }
+
+    QTemporaryDir m_folder;
+    quint16 m_port = static_cast<quint16>(20000 + (QCoreApplication::applicationPid() % 20000));
+    QString m_configuration;
+    PrivateBus m_bus;
+    QProcess m_service;
+};
+
+TEST_F(PhoneLinkProcessTest, APhonePositionIsPublishedLikeAVehicleSignalAndGoesStale) {
+    const RecordingClient watcher(m_bus.connect(QStringLiteral("phone-watcher")));
+    ASSERT_TRUE(postUntilAccepted(m_port, R"({"latitude":42.25,"longitude":-83.5,"accuracy":8})"));
+    EXPECT_TRUE(waitForThePostedPosition(watcher.client));
+    EXPECT_TRUE(waitForAStalePosition(watcher.client)) << "stale after 5 s without a report";
 }
 
 } // namespace

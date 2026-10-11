@@ -40,6 +40,12 @@ std::string_view toString(SignalId signalId) {
         return "TimeFrom4000Rpm";
     case SignalId::CoolantWarmUpTime:
         return "CoolantWarmUpTime";
+    case SignalId::Latitude:
+        return "Latitude";
+    case SignalId::Longitude:
+        return "Longitude";
+    case SignalId::PositionAccuracy:
+        return "PositionAccuracy";
     }
     return "UnknownSignal";
 }
@@ -64,6 +70,10 @@ std::string_view toString(Unit unit) {
         return "km";
     case Unit::Minutes:
         return "min";
+    case Unit::Degrees:
+        return "deg";
+    case Unit::Metres:
+        return "m";
     }
     return "?";
 }

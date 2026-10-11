@@ -452,6 +452,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | LHU-050 | US units on screen (mph, miles, °F, mpg), US by default in car mode, `display.units` in car.conf; data and recordings stay metric. **Done 2026-10-11** (DN-050, light) | 1.5 | 0.75 light | 2.25 | 027 |
 | LHU-051 | Display fixes from the car: no pointer, the cause in words, tile titles and hub names never cut, mass air flow in place of the unsupported fuel level tile. **Done 2026-10-11** (DN-051, light) | 1.5 | 0.75 light | 2.25 | 028 |
 | LHU-052 | Documentation of the first car day: results file, assumptions verified, mounting no longer a requirement (OQ-14 closed). **Done 2026-10-11** | 0.5 | exempt | 0.5 | — |
+| LHU-053 | The phone's position: an HTTPS page served by the vehicle-data service, the position published as three signals over D-Bus, a private certificate authority for the iPhone, the address on the hub. **Done 2026-10-11** (DN-053, full); the iPhone part is step 3.18 | 5 | 1.75 full | 6.75 | 029 |
 
 ### Roadmap (not scheduled)
 

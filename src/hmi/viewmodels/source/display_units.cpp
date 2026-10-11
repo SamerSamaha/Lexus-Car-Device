@@ -90,6 +90,10 @@ std::optional<double> displayValue(double metricValue, Unit unit, DisplayUnits u
 }
 
 int displayDecimals(Unit unit) {
+    constexpr int degreesDecimals = 5;
+    if (unit == Unit::Degrees) {
+        return degreesDecimals;
+    }
     const bool oneDecimal = unit == Unit::Volts || unit == Unit::GramsPerSecond ||
                             unit == Unit::LitresPer100Kilometres || unit == Unit::Kilometres ||
                             unit == Unit::Minutes;

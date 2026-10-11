@@ -34,7 +34,7 @@ jobs:
             build-essential ca-certificates cmake dbus-daemon git ninja-build \
             libgmock-dev libgtest-dev python3 \
             qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
-            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core openssl
 
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -94,7 +94,7 @@ jobs:
             build-essential ca-certificates clang clang-format clang-tidy cmake git \
             ninja-build libgmock-dev libgtest-dev python3 \
             qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
-            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core openssl
 
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -134,7 +134,7 @@ jobs:
             build-essential ca-certificates cmake dbus-daemon git ninja-build \
             libgmock-dev libgtest-dev python3 \
             qt6-base-dev qt6-declarative-dev qml6-module-qtquick \
-            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core
+            qml6-module-qtquick-window qml6-module-qttest fonts-dejavu-core openssl
 
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -197,7 +197,7 @@ jobs:
       - name: Install git and Python
         run: |
           apt-get update
-          apt-get install --yes --no-install-recommends ca-certificates git python3
+          apt-get install --yes --no-install-recommends ca-certificates git python3 openssl
 
       - name: Check out the repository
         uses: actions/checkout@v7

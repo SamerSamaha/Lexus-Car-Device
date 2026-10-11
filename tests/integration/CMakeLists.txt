@@ -96,6 +96,7 @@ if(LEXUS_HEAD_UNIT_BUILD_HMI)
         PRIVATE
             LEXUS_HEAD_UNIT_SERVICE_PATH="$<TARGET_FILE:lexus_head_unit_vehicle_data_service_app>"
             LEXUS_HEAD_UNIT_INTERFACE_XML="${CMAKE_SOURCE_DIR}/src/service_dbus/interface/io.github.samersamaha.LexusHeadUnit.VehicleData1.xml"
+            LEXUS_HEAD_UNIT_REPOSITORY_ROOT="${CMAKE_SOURCE_DIR}"
     )
     add_dependencies(lexus_head_unit_dbus_integration_tests
         lexus_head_unit_vehicle_data_service_app
@@ -107,6 +108,7 @@ if(LEXUS_HEAD_UNIT_BUILD_HMI)
             lexus_head_unit_build_settings
             Qt6::Core
             Qt6::DBus
+            Qt6::Network
             GTest::gtest
     )
 
