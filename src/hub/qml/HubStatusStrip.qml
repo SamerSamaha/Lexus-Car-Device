@@ -2,8 +2,9 @@ import QtQuick
 
 // The hub's status strip (DN-021, DN-025, DN-042): the link detail in large text and the
 // vehicle connection from the vehicle-data service, the hub's own state (shutdown prompt, the app in front, the last exit, a registry
-// error), the firmware power flags, and the shutdown button (a 10 mm touch target).
-// connection, power and shutdown may be null; their parts are then hidden.
+// error), the REC indicator while the screen is recorded (REQ-026), the firmware power flags,
+// and the shutdown button (a 10 mm touch target). connection, power, shutdown and recording may
+// be null; their parts are then hidden.
 Rectangle {
     id: strip
 
@@ -11,6 +12,7 @@ Rectangle {
     property var connection: null
     property var power: null
     property var shutdown: null
+    property var recording: null
     readonly property bool showsError: !hub.appRunning && hub.registryErrorText !== ""
     readonly property bool powerProblem: power !== null && (!power.available || power.underVoltage
                                          || power.frequencyCapped || power.throttled
@@ -64,7 +66,7 @@ Rectangle {
     Text {
         objectName: "hubStatusText"
         anchors.left: connectionText.visible ? connectionText.right : connectionDetailText.right
-        anchors.right: powerDot.left
+        anchors.right: recordingIndicator.left
         anchors.leftMargin: Sizes.gutter * 2
         anchors.rightMargin: Sizes.gutter * 2
         anchors.verticalCenter: parent.verticalCenter
@@ -77,6 +79,33 @@ Rectangle {
             : strip.hub.lastExitText
         color: strip.showsError ? Sizes.error : Sizes.label
         font.pixelSize: Sizes.labelPixelSize
+    }
+
+    Row {
+        id: recordingIndicator
+        objectName: "recordingIndicator"
+        visible: strip.recording !== null && strip.recording.recording
+        anchors.right: powerDot.left
+        anchors.rightMargin: visible ? Sizes.gutter * 2 : 0
+        anchors.verticalCenter: parent.verticalCenter
+        width: visible ? implicitWidth : 0
+        spacing: Sizes.gutter / 2
+
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: Sizes.mm(3)
+            height: width
+            radius: width / 2
+            color: Sizes.error
+        }
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "REC"
+            color: Sizes.error
+            font.pixelSize: Sizes.labelPixelSize
+            font.bold: true
+        }
     }
 
     // Amber when any flag has been set since boot, even if it has cleared.

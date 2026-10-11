@@ -1,6 +1,6 @@
 # Lexus Head Unit — project plan
 
-**Revision 9, 2026-10-09.**
+**Revision 10, 2026-10-11.**
 - Revision 1: kickoff plan.
 - Revision 2: hardware as purchased, public repository, review and protection model (D-011 to D-018).
 - Revision 3: approvals D-019 to D-027 applied; desk environment installed and verified.
@@ -10,6 +10,7 @@
 - Revision 7: ticket statuses brought up to date (LHU-019 and LHU-040 done, LHU-041 added); design notes for the build-out written by the implementer and reviewed after merge (D-049); `docs/release/PI_BRINGUP_CHECKLIST.md` created as the single list of steps that need the Pi or the car.
 - Revision 8: v0.1.0 Core released at the desk (LHU-014); the three tickets that need the Pi or the car (LHU-016, LHU-017, LHU-018) are carried into the v0.2.0 milestone; LHU-015 closed.
 - Revision 9: v0.2.0 Platform released at the desk (LHU-026): LHU-021, 022, 025 done, LHU-023 and 024 done at the desk, LHU-027, 028, 029 done ahead of v1.0.0; the six tickets that need the Pi or the car (LHU-016, 017, 018, 020, 023, 024) are carried into the v1.0.0 milestone; `cantools` approved as a test-only dependency (2026-10-08).
+- Revision 10: first car day (2026-10-11); car-mode bug fixes LHU-046 to LHU-048; the demo feature set (LHU-049 onward, REQ-026 onward) for the portfolio video.
 
 The canonical copy of this file is `docs/planning/KICKOFF_PLAN.md` in the repository. Ticket LHU-004 split it into the other `docs/` files; those files are the detailed references and this file is the plan.
 
@@ -440,6 +441,14 @@ The unit runs in the car on its own: the Pi on the power bank, the adapter in th
 | LHU-047 | Bug found in the first touchscreen test on the Pi (2026-10-11): the Hub button never appeared in the vehicle-data app, because `Main.qml` passed the option under the same name as the property of `Screens`, which QML resolved to that property itself. The context property is now `hubButtonShownContext`, with a test of the whole window | 0.5 | exempt | 0.5 | — |
 | LHU-048 | Bug found on the Pi (2026-10-11): after demo mode had been live, switching to car mode at the desk made the hub shut the Pi down 360 s later. A service restart (SearchingForAdapter) now disarms the ignition-off policy; DN-043 updated | 0.5 | exempt | 0.5 | — |
 | **Total** | | | | **17.25** | |
+
+### Demo feature set (added 2026-10-11)
+
+After the first car day, for the portfolio demo video: the unit is recorded in the car, shown in US units, and gains the phone link, a map, media and phone mirroring. Requirements REQ-026 onward; the owner's decisions are recorded with the tickets.
+
+| Ticket | Work | Build | Gate | Total | REQ |
+|---|---|---|---|---|---|
+| LHU-049 | Screen recording with sound from a hub tile, remembered across boots, one file per session, copy to the laptop; the VIN masked to its last 4 characters; the address hidden while recording. **Done 2026-10-11** (DN-049, light); the recording on the Pi is step 3.16 | 3 | 0.75 light | 3.75 | 026 |
 
 ### Roadmap (not scheduled)
 

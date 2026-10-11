@@ -87,4 +87,32 @@ private:
     QString m_addressText;
 };
 
+// Whether the screen is being recorded (LHU-049, REQ-026): lexus-screen-record writes the path
+// of the file it is writing into a status file while it records and removes it when it stops.
+// The hub shows a REC indicator and hides the network address while it is recording. An empty
+// status path means recording is never reported (the desk).
+class RecordingStatusModel : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(bool recording READ recording NOTIFY changed)
+    Q_PROPERTY(QString fileName READ fileName NOTIFY changed)
+
+public:
+    explicit RecordingStatusModel(QString statusPath, QObject* parent = nullptr);
+
+    [[nodiscard]] bool recording() const;
+    // The name of the file being written, without its folder; empty when not recording.
+    [[nodiscard]] QString fileName() const;
+    void startPolling(int intervalMilliseconds);
+    Q_INVOKABLE void refresh();
+
+signals:
+    void changed();
+
+private:
+    QString m_statusPath;
+    QTimer m_timer;
+    bool m_recording = false;
+    QString m_fileName;
+};
+
 } // namespace lexus_head_unit

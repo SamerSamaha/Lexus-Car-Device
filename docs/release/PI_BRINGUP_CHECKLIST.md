@@ -30,6 +30,7 @@ Rules:
 | Shutdown after the ignition goes off, address line, Hub button | LHU-043 | Policy, countdown, address and button built and tested at the desk (LHU-043); step 3.14 not yet done |
 | Car mode: install, boot to the hub without input, pairing, session folders, export, demo modes | LHU-044 | Install script, tools, units and self-check built and tested at the desk, the install as a dry run (LHU-044); step 3.15 not yet done |
 | Car day guide for the owner, README demo section | LHU-045 | Written (`docs/release/CAR_DAY_GUIDE.md`); the README lists every demo clip as pending until real media exists |
+| Screen recording with sound from the hub tile; VIN masked; address hidden while recording | LHU-049 | Recorder, unit, hub indicator and masking built and tested at the desk (LHU-049); step 3.16 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
 
 ## 2. Assumptions to verify on hardware
@@ -59,6 +60,9 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A20 | The vLinker MC+ pairs on its classic side with the PIN 1234, or without a PIN (secure simple pairing); `lexus-pair-adapter` answers either | LHU-044 | Step 3.15, item 4 | Not yet verified |
 | A21 | Under the Raspberry Pi OS desktop, labwc runs `~/.config/labwc/autostart` at login, so `lexus-hub-session` starts the hub; whether the system autostart (panel, desktop) also runs does not matter, because the hub is full screen and kanshi is started either way | LHU-044 | Step 3.15, item 3 | Not yet verified |
 | A22 | `raspi-config nonint do_boot_behaviour B4` sets automatic login to the desktop on this image (LightDM, `autologin-user` in `/etc/lightdm/lightdm.conf`) | LHU-044 | Step 3.15, items 2 and 3 | Not yet verified |
+| A24 | `wf-recorder` 0.5.0 from Debian 13 accepts `--file`, `--codec libx264`, `--codec-param`, `--framerate`, `--overwrite`, `--output DSI-2` and `--audio=<device>` and records the rotated touchscreen output under labwc | LHU-049 | Step 3.16, item 2 | Not yet verified |
+| A25 | Under PipeWire on Raspberry Pi OS, the PulseAudio device name `@DEFAULT_MONITOR@` captures what the Pi plays on its default output | LHU-049 | Step 3.16, item 3 | Not yet verified |
+| A26 | A software H.264 encode at 1280 x 720 and 30 frames per second (`preset=ultrafast`) keeps up on the Pi 5 beside the hub, the app and the OBD polling, without lowering the OBD request rate by more than 20% | LHU-049 | Step 3.16, item 5 | Not yet measured |
 | A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | Not yet verified |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
 
@@ -284,6 +288,19 @@ At home first, then in the car; `docs/release/CAR_DAY_GUIDE.md` is the same in t
 8. Demo modes: tap Demo mode, Replay last drive, Car mode on the hub; each gives a new session folder with the mode in its name.
 
 Record in `docs/test/results/<date>_car_mode_install.md`.
+
+Results: not yet done.
+
+### 3.16 Screen recording (LHU-049)
+
+1. After `git pull` and the install script (it adds `wf-recorder`, `lexus-screen-record` and the user unit), reboot. The self-check lists "screen recorder installed" as PASS.
+2. Tap Screen recording on the hub. Within 2 s the strip shows REC and the address line disappears. `lexus-screen-record status` over SSH names the file. Tap it again: REC goes, the address comes back (A24).
+3. Switch recording on, open the vehicle-data app, play a sound on the Pi (`speaker-test -t sine -l 1` over SSH), wait 30 s, switch it off. Copy the file with `python tools/fetch_from_pi.py` on the laptop and play it: picture of every screen shown, and the sound (A25).
+4. With recording on, reboot: a new numbered file starts without a tap; the setting is still on.
+5. In the car, parked, Live: 5 minutes with recording on, then 5 minutes off; `lexus-export-sessions` and the session summary give the OBD request rate of each half (A26). Record the SoC temperature from the thermal log too.
+6. Open Diagnostics, read the codes: the vehicle identification shows bullets and the last 4 characters only.
+
+Record in `docs/test/results/<date>_screen_recording.md` (never the VIN, never a frame that shows it).
 
 Results: not yet done.
 

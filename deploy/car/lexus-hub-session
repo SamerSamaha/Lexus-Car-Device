@@ -5,8 +5,14 @@
 # the desktop's own autostart did not run (assumption A21).
 pgrep -x kanshi > /dev/null 2>&1 || (kanshi > /dev/null 2>&1 &)
 systemctl --user start lexus-vehicle-data-service.service
+# The screen recorder (LHU-049) needs the Wayland display; it records only when car.conf says on.
+systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR > /dev/null 2>&1
+systemctl --user start lexus-screen-recorder.service
 registry="${LEXUS_HUB_REGISTRY:-$HOME/Lexus-Car-Device/deploy/car/hub_car.conf}"
+runtime="/run/user/$(id -u)"
 while true; do
-    lexus-hub --registry "$registry" --fullscreen --first-frame-mark "/run/user/$(id -u)/lexus-first-frame.txt"
+    lexus-hub --registry "$registry" --fullscreen \
+        --recording-status "$runtime/lexus-screen-recording" \
+        --first-frame-mark "$runtime/lexus-first-frame.txt"
     sleep 1
 done

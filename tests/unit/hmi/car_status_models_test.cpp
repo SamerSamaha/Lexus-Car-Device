@@ -1,4 +1,4 @@
-// Verifies: REQ-024, REQ-020
+// Verifies: REQ-024, REQ-020, REQ-026
 
 #include "lexus_head_unit/hub/car_status_models.h"
 #include "lexus_head_unit/hub/ignition_off_shutdown_policy.h"
@@ -6,9 +6,11 @@
 #include "lexus_head_unit/service/link_detail.h"
 #include "lexus_head_unit/service/manual_clock.h"
 
+#include <QFile>
 #include <QSignalSpy>
 #include <QString>
 #include <QStringList>
+#include <QTemporaryDir>
 
 #include <gtest/gtest.h>
 
@@ -21,6 +23,7 @@ using lexus_head_unit::IgnitionOffShutdownSettings;
 using lexus_head_unit::LinkDetail;
 using lexus_head_unit::ManualClock;
 using lexus_head_unit::NetworkAddressModel;
+using lexus_head_unit::RecordingStatusModel;
 using lexus_head_unit::ShutdownController;
 
 class IgnitionOffShutdownModelTest : public ::testing::Test {
@@ -101,6 +104,34 @@ TEST(NetworkAddressModelTest, OneSeveralOrNoAddresses) {
 TEST(NetworkAddressModelTest, TheProductProviderNeverListsLoopback) {
     const QStringList addresses = NetworkAddressModel::interfaceAddresses()();
     EXPECT_FALSE(addresses.contains(QStringLiteral("127.0.0.1")));
+}
+
+TEST(RecordingStatusModelTest, TheStatusFileSaysWhetherAndWhatIsRecorded) {
+    const QTemporaryDir folder;
+    const QString statusPath = folder.filePath(QStringLiteral("lexus-screen-recording"));
+    RecordingStatusModel model(statusPath);
+    EXPECT_FALSE(model.recording());
+    EXPECT_TRUE(model.fileName().isEmpty());
+    const QSignalSpy spy(&model, &RecordingStatusModel::changed);
+    QFile status(statusPath);
+    ASSERT_TRUE(status.open(QIODevice::WriteOnly));
+    status.write("/home/lexus/lexus-data/screen/screen-0003-2026-10-11T12-00-00.mkv");
+    status.close();
+    model.refresh();
+    model.refresh();
+    EXPECT_TRUE(model.recording());
+    EXPECT_EQ(model.fileName(), QStringLiteral("screen-0003-2026-10-11T12-00-00.mkv"));
+    ASSERT_TRUE(QFile::remove(statusPath));
+    model.refresh();
+    EXPECT_FALSE(model.recording());
+    EXPECT_TRUE(model.fileName().isEmpty());
+    EXPECT_EQ(spy.count(), 2);
+}
+
+TEST(RecordingStatusModelTest, AnEmptyStatusPathNeverReportsRecording) {
+    RecordingStatusModel model{QString()};
+    model.refresh();
+    EXPECT_FALSE(model.recording());
 }
 
 } // namespace

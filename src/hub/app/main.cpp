@@ -50,6 +50,7 @@ constexpr int pollIntervalMilliseconds = 100;
 constexpr std::int64_t defaultPowerPollMilliseconds = 2000;
 constexpr int countdownTickMilliseconds = 250;
 constexpr int addressRefreshMilliseconds = 10000;
+constexpr int recordingPollMilliseconds = 1000;
 constexpr int sendTimeoutMilliseconds = 3000;
 constexpr std::int64_t shutdownWaitMilliseconds = 3000;
 constexpr int exitCodeCommandFailed = 1;
@@ -127,8 +128,13 @@ int runHub(int argumentCount, char** argumentValues) {
         QStringLiteral("first-frame-mark"),
         QStringLiteral("write the time since boot of the first frame to this file (REQ-013)"),
         QStringLiteral("path"));
+    const QCommandLineOption recordingStatusOption(
+        QStringLiteral("recording-status"),
+        QStringLiteral("status file of lexus-screen-record: REC shown, address hidden (REQ-026)"),
+        QStringLiteral("path"));
     parser.addOption(fullscreenOption);
     parser.addOption(firstFrameOption);
+    parser.addOption(recordingStatusOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -207,6 +213,8 @@ int runHub(int argumentCount, char** argumentValues) {
         qEnvironmentVariable("USER", QStringLiteral("lexus")),
         lexus_head_unit::NetworkAddressModel::interfaceAddresses());
 
+    lexus_head_unit::RecordingStatusModel recording(parser.value(recordingStatusOption));
+
     // Declared before the engine so that it outlives the window whose render thread uses it.
     lexus_head_unit::FirstFrameMarker firstFrame(parser.value(firstFrameOption).toStdString());
 
@@ -218,6 +226,7 @@ int runHub(int argumentCount, char** argumentValues) {
     engine.rootContext()->setContextProperty(QStringLiteral("ignitionShutdownContext"),
                                              &ignitionShutdown);
     engine.rootContext()->setContextProperty(QStringLiteral("networkContext"), &network);
+    engine.rootContext()->setContextProperty(QStringLiteral("recordingContext"), &recording);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
@@ -253,6 +262,7 @@ int runHub(int argumentCount, char** argumentValues) {
     hub.startPolling(pollIntervalMilliseconds);
     ignitionShutdown.startTicking(countdownTickMilliseconds);
     network.startRefreshing(addressRefreshMilliseconds);
+    recording.startPolling(recordingPollMilliseconds);
     power.startPolling(static_cast<int>(
         configuration.integerValue("hub.power_poll_ms", defaultPowerPollMilliseconds)));
     std::cerr << "lexus-hub: " << registry.entries().size() << " apps, control socket "

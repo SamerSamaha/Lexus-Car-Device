@@ -76,3 +76,4 @@ In this order:
 | [DN-042](DN-042-link-detail.md) Link detail for the car: searching, no vehicle, live, link lost | LHU-042 | Implemented |
 | [DN-043](DN-043-hub-in-the-car.md) Hub in the car: shutdown after the ignition goes off, address line, way back (light) | LHU-043 | Implemented |
 | [DN-044](DN-044-car-mode-install.md) Car mode install: boot to the hub, adapter binding, pairing, sessions, demo modes (light) | LHU-044 | Implemented |
+| [DN-049](DN-049-screen-recording.md) Screen recording with sound, and masking of private data on screen (light) | LHU-049 | Implemented |

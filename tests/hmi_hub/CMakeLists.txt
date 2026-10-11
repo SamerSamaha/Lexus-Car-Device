@@ -2,6 +2,7 @@ qt_add_executable(lexus_head_unit_hub_hmi_tests
     car_test_driver.h
     fake_power_status_reader.h
     hub_hmi_test_main.cpp
+    recording_test_driver.h
 )
 
 lexus_head_unit_add_hub_qml_module(lexus_head_unit_hub_hmi_tests)

@@ -1,4 +1,4 @@
-// Verifies: REQ-024
+// Verifies: REQ-024, REQ-026
 
 import QtQuick
 import QtTest
@@ -16,6 +16,8 @@ TestCase {
     readonly property var ignitionShutdown: ignitionShutdownContext
     readonly property var network: networkContext
     readonly property var driver: carDriverContext
+    readonly property var recording: recordingContext
+    readonly property var recordingDriver: recordingDriverContext
 
     Component {
         id: screenComponent
@@ -25,11 +27,13 @@ TestCase {
             hub: testCase.hub
             ignitionShutdown: testCase.ignitionShutdown
             network: testCase.network
+            recording: testCase.recording
         }
     }
 
     function createScreen() {
         driver.reset()
+        recordingDriver.stop()
         var screen = createTemporaryObject(screenComponent, testCase)
         verify(screen !== null, "screen created")
         return screen
@@ -59,5 +63,22 @@ TestCase {
         compare(address.text, "SSH lexus@172.20.10.2")
         var grid = findChild(screen, "appGrid")
         verify(grid.y + grid.height <= address.y, "the grid ends above the address line")
+    }
+
+    function test_while_recording_the_strip_shows_rec_and_the_address_is_hidden() {
+        var screen = createScreen()
+        var indicator = findChild(screen, "recordingIndicator")
+        var address = findChild(screen, "addressText")
+        compare(indicator.visible, false)
+        compare(address.visible, true)
+        recordingDriver.start("screen-0001-2026-10-11T10-00-00.mkv")
+        compare(recording.recording, true)
+        compare(recording.fileName, "screen-0001-2026-10-11T10-00-00.mkv")
+        tryCompare(indicator, "visible", true, 2000)
+        compare(address.visible, false)
+        verify(indicator.width > 0, "the indicator takes space on the strip")
+        recordingDriver.stop()
+        tryCompare(indicator, "visible", false, 2000)
+        compare(address.visible, true)
     }
 }
