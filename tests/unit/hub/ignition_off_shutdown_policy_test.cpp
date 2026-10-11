@@ -45,6 +45,28 @@ TEST(IgnitionOffShutdownPolicyTest, CountdownStartsAtTheQuietTimeAndShutdownIsDu
     EXPECT_EQ(policy.phase(), IgnitionOffShutdownPhase::Done);
 }
 
+TEST(IgnitionOffShutdownPolicyTest, AServiceRestartAfterLiveDisarmsThePolicy) {
+    // Demo mode live, then the switch to car mode at the desk: the old service stops (Idle) and
+    // the new one searches for an adapter. Seen on the Pi on 2026-10-11 as a shutdown 360 s later.
+    IgnitionOffShutdownPolicy policy = livePolicyAt(0);
+    policy.onLinkDetail(LinkDetail::Idle, 1000);
+    policy.onLinkDetail(LinkDetail::SearchingForAdapter, 1100);
+    EXPECT_EQ(policy.update(1100 + (10 * quiet)), IgnitionOffShutdownPhase::WaitingForLive);
+    // Live from the car arms it again as before.
+    policy.onLinkDetail(LinkDetail::Live, 2000000);
+    policy.onLinkDetail(LinkDetail::AdapterWithoutVehicle, 2001000);
+    EXPECT_EQ(policy.update(2001000 + quiet), IgnitionOffShutdownPhase::CountingDown);
+}
+
+TEST(IgnitionOffShutdownPolicyTest, ARestartDuringTheCountdownEndsIt) {
+    IgnitionOffShutdownPolicy policy = livePolicyAt(0);
+    policy.onLinkDetail(LinkDetail::LinkLostRetrying, 1000);
+    EXPECT_EQ(policy.update(1000 + quiet), IgnitionOffShutdownPhase::CountingDown);
+    policy.onLinkDetail(LinkDetail::SearchingForAdapter, 1000 + quiet + 10);
+    EXPECT_EQ(policy.millisecondsRemaining(1000 + quiet + 20), 0);
+    EXPECT_EQ(policy.update(1000 + quiet + countdown), IgnitionOffShutdownPhase::WaitingForLive);
+}
+
 TEST(IgnitionOffShutdownPolicyTest, LiveDataDuringTheQuietTimeOrTheCountdownStartsAgain) {
     IgnitionOffShutdownPolicy policy = livePolicyAt(0);
     policy.onLinkDetail(LinkDetail::AdapterWithoutVehicle, 0);

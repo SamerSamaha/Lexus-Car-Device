@@ -30,6 +30,7 @@ void IgnitionOffShutdownPolicy::onLinkDetail(LinkDetail detail, std::int64_t now
         }
         return;
     case LinkDetail::SearchingForAdapter:
+        m_phase = IgnitionOffShutdownPhase::WaitingForLive;
         return;
     }
 }

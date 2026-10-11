@@ -81,4 +81,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-045 | none directly; the car day guide documents REQ-023 to REQ-025 for the owner |
 | LHU-046 | REQ-025 |
 | LHU-047 | REQ-024 |
+| LHU-048 | REQ-024 |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |
