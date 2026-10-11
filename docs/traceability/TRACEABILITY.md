@@ -40,16 +40,17 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-030 | `MapViewModel`, `isPositionMasked`, `distanceMetres` (`src/hmi/map/`); `MapScreen.qml`, `MapView.qml` (QtLocation, osm plugin), `Main.qml` of `LexusMap`; `lexus-map` (`src/map_app/`); `[privacy]` in car.conf; the Map tile of `deploy/car/hub_car.conf` (DN-054) | LHU-054 | `tests/unit/hmi/map_view_model_test.cpp`; `tests/hmi_map/tst_map_screen.qml`, `tests/hmi_map/tst_map_main_window.qml`; `tests/installed/run_outside_build_tree.sh`, `tests/installed/command_line_options.sh`; on the Pi, checklist step 3.19 | Desk part tagged and merged (LHU-054); the map with tiles and the mask at home are step 3.19 (A30, A31) |
 | REQ-031 | `deploy/car/lexus-browser`; the return extension `deploy/car/browser_return/`; `browser_command` and the YouTube and Spotify entries of `deploy/car/hub_car.conf`; the Close control of `HubStatusStrip.qml` (DN-055) | LHU-055 | `tools/test_browser_apps.py`; `tests/hmi_hub/tst_hub_screen.qml` (the Close control); on the Pi, checklist step 3.20 | Desk part tagged and merged (LHU-055); the browser on the Pi is step 3.20 (A32, A33, OQ-27) |
 | REQ-032 | `tools/car/car_audio.py` (`lexus-car-audio`) on the pairing session of `pair_adapter.py`; the Car audio tile of `deploy/car/hub_car.conf`; `[audio]` in car.conf; PipeWire's Bluetooth output (DN-056) | LHU-056 | `tools/test_car_audio.py`; in the car, checklist step 3.21 | Desk part tagged and merged (LHU-056); the stereo in the car is step 3.21 (A34, OQ-28) |
+| REQ-033 | `deploy/car/lexus-mirroring` (uxplay from Debian); the Phone mirroring tile of `deploy/car/hub_car.conf`; the hub's Close control (DN-057) | LHU-057 | `tools/test_phone_mirroring.py`; `tests/hmi_hub/tst_hub_screen.qml` (the Close control, REQ-031); on the Pi with the iPhone, checklist step 3.22 | Desk part tagged and merged (LHU-057); the mirroring is step 3.22 (A35, A36) |
 
 ## Coverage summary
 
 | | Count |
 |---|---|
-| Requirements | 32 |
-| With a named design element | 32 |
-| With a named ticket | 32 |
-| With a named test or measurement | 32 |
-| With a test that exists and is tagged | 28 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-019, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-028, REQ-029, REQ-030, REQ-031, REQ-032) |
+| Requirements | 33 |
+| With a named design element | 33 |
+| With a named ticket | 33 |
+| With a named test or measurement | 33 |
+| With a test that exists and is tagged | 29 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-019, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-028, REQ-029, REQ-030, REQ-031, REQ-032, REQ-033) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
@@ -97,4 +98,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-054 | REQ-030, REQ-029, REQ-026 |
 | LHU-055 | REQ-031, REQ-016, REQ-018 |
 | LHU-056 | REQ-032, REQ-019 |
+| LHU-057 | REQ-033, REQ-031 |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |

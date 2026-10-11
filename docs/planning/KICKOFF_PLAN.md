@@ -456,6 +456,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | LHU-054 | The map app: the phone's position on OpenStreetMap (QtLocation from Debian), live or stale, a Hub control, the position and the map hidden near home while recording. **Done 2026-10-11** (DN-054, light); the map on the Pi is step 3.19 | 3 | 0.75 light | 3.75 | 030 |
 | LHU-055 | Web apps in the car: YouTube and Spotify full screen in Chromium with a Hub button on every page (an extension that closes the window), a Close control on the hub strip; Spotify Connect described as the fallback. **Done 2026-10-11** (DN-055, light); the browser on the Pi is step 3.20 | 2 | 0.75 light | 2.75 | 031 |
 | LHU-056 | Bluetooth audio to the car stereo from a hub tile: pair once, then connect and make it the default output; LHU-024's coexistence session runs on it. **Done 2026-10-11** at the desk (DN-056, light); the stereo is step 3.21 | 1.5 | 0.75 light | 2.25 | 032, 019 |
+| LHU-057 | iPhone screen mirroring (AirPlay with uxplay from Debian) as a hub tile labelled as mirroring, for Waze and the rest of the phone; the phone's sound on the car stereo. **Done 2026-10-11** at the desk (DN-057, light); the mirroring is step 3.22 | 1 | 0.75 light | 1.75 | 033 |
 
 ### Roadmap (not scheduled)
 

@@ -83,3 +83,4 @@ In this order:
 | [DN-054](DN-054-map.md) The map app with the phone's position (light) | LHU-054 | Implemented |
 | [DN-055](DN-055-web-apps-in-the-car.md) Web apps in the car with a way back to the hub (light) | LHU-055 | Implemented |
 | [DN-056](DN-056-car-audio.md) Bluetooth audio to the car stereo (light) | LHU-056 | Implemented |
+| [DN-057](DN-057-phone-mirroring.md) iPhone screen mirroring (light) | LHU-057 | Implemented |
