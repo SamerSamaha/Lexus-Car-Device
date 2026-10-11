@@ -55,7 +55,7 @@ Honesty about the limits:
 1. On-car tests start with the vehicle parked, following the written procedure in `docs/test/MANUAL_ON_CAR_PROCEDURE.md`. Results of every run are recorded.
 2. The screen is not touched while the vehicle is moving. The driver does not operate the device; a passenger does, or it is observed only.
 3. The adapter is unplugged from the OBD-II port when not testing.
-4. The Pi has no case (it mounts to the back of the display). Before the first on-car test, how the board is held so that it cannot short against metal or strain a connector is decided and recorded (open question OQ-14).
+4. The Pi has no case (it mounts to the back of the display). The owner closed the mounting question (OQ-14) on 2026-10-11 without a fixed mount. Recommended while the car moves: the unit rests in a footwell or a cupholder, away from bare metal and with no strain on the cables; where it rested is recorded with each run.
 5. Power comes from a USB-C power bank, not from the vehicle. The device cannot drain the vehicle's battery and the vehicle cannot power-cycle the device.
 6. Temperature, throttling and under-voltage of the Pi are logged every 5 seconds during every on-car session (LHU-015, LHU-016). An under-voltage or throttling event, or 80°C, is a failed run and becomes a bug with the log attached (D-013, D-025). An uncooled Pi 5 in a car cabin is a known risk; it is measured, not assumed safe.
 
@@ -78,7 +78,7 @@ This is not a hazard analysis in the sense of any standard. It is the list of wa
 | 1 | Software sends a command that changes vehicle state | Allowlist with a unit test over all modes; no Mode 04 code path; no CAN send method (section 2) |
 | 2 | Driver distraction from a screen in the cabin | Device is informational; not operated while driving; on-car tests parked first (section 3) |
 | 3 | Driver trusts a wrong or stale value | Every value carries a status; Stale is shown distinctly (REQ-006, REQ-012); the factory cluster remains the authority (section 1) |
-| 4 | Bare board shorts against vehicle metal or a connector is strained | Mounting decided and recorded before the first on-car test (OQ-14) |
+| 4 | Bare board shorts against vehicle metal or a connector is strained | No fixed mount (OQ-14 closed 2026-10-11); kept away from bare metal and cable strain, resting place recorded per run (section 3) |
 | 5 | Overheating of an uncooled Pi 5 in a cabin | Temperature logged every 5 s; 80°C is a fail; firmware throttles at 80°C to 85°C (D-025) |
 | 6 | Power bank sags or cuts out, corrupting the SD card | Under-voltage flag logged and treated as a fail; clean-shutdown handling and on-screen flags (REQ-020, LHU-025) |
 | 7 | Adapter left in the port, paired with a fixed PIN | Operating rule: unplug when not testing |

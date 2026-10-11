@@ -8,7 +8,7 @@ The parked run and the drive run below are LHU-034. The audio session (LHU-024) 
 
 | # | Check | Done |
 |---|---|---|
-| 1 | The unit is held as decided under OQ-14. Until OQ-14 is decided, only the parked run is allowed, with the unit resting on the passenger seat; no drive run takes place with a loose board in the cabin | |
+| 1 | Where the unit rests is recorded (no mounting requirement, OQ-14 closed 2026-10-11; recommended while moving: a footwell or a cupholder, away from bare metal) | |
 | 2 | The power bank (A1383) is charged; the Pi is powered from it; the thermal log is started (checklist step 3.1, label `car_parked_<n>` or `car_drive_<n>`) | |
 | 3 | The adapter is plugged into the diagnostic port only for the run and unplugged afterwards | |
 | 4 | The session log is on. In car mode (LHU-044) every start of the service writes one under `~/lexus-data/sessions/<number>-car/` with the recording and the thermal log; otherwise run the service with `--session-log %h/local_recordings/<date>_<run>.csv` | |
@@ -31,7 +31,7 @@ Parked, engine running, 15 minutes. Compare the screen with the car's own instru
 
 ## Drive run (LHU-034)
 
-Only after OQ-14 is decided and the parked run has passed. 20 to 40 minutes, mixed town and main road, driven normally. Nobody touches the screen while the car moves.
+Only after the parked run has passed. 20 to 40 minutes, mixed town and main road, driven normally. Nobody touches the screen while the car moves.
 
 | # | Do | Expect |
 |---|---|---|
@@ -53,7 +53,7 @@ Copy into `docs/test/results/<date>_<run>.md` for each run, filled in; a failed 
 |---|---|
 | Date, start and end time | |
 | Software commit (`git rev-parse --short HEAD` on the Pi) | |
-| How the unit was held (OQ-14) | |
+| Where the unit rested | |
 | Power source | power bank A1383 |
 | Thermal verdict and file (step 3.1) | |
 | Poll list (from the session log) | |

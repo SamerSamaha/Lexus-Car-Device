@@ -13,8 +13,8 @@ Rules:
 | Area | Ticket | State |
 |---|---|---|
 | Thermal and power log in every Pi session | LHU-015, LHU-016 | Script written and unit-tested (LHU-015); no session logged with it yet; two raw CSVs from 2026-10-05 exist on the Pi under `~/measurements/` |
-| Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | Not yet done |
-| The CI arm64 build runs on the Pi | LHU-033 | Built and tested on `aarch64` in CI, artifact uploaded (LHU-033); step 3.12 not yet done |
+| Adapter pairing and first parked session, adapter bound to `/dev/rfcomm0` and polled by the real source | LHU-017 | **Done 2026-10-11** in car mode (`docs/test/results/2026-10-11_first_car_day.md`); the request rate (step 3.2 item 5) not yet read from the session log |
+| The CI arm64 build runs on the Pi | LHU-033 | **Done 2026-10-11**: car mode runs from the CI artifact of 0f8cc5e (`docs/test/results/2026-10-11_first_car_day.md`) |
 | Clean-build measurement on the Pi | LHU-018 | Not yet done |
 | Home screen on the panel: fills the rotated screen, 4 mm digits, touch | LHU-013 | Not yet done |
 | Return to the hub from an app, hub visible after an app exits, URL app tracked | LHU-020, LHU-021 | Hub built and tested at the desk (LHU-021); step 3.5 not yet done |
@@ -33,7 +33,7 @@ Rules:
 | Screen recording with sound from the hub tile; VIN masked; address hidden while recording | LHU-049 | Recorder, unit, hub indicator and masking built and tested at the desk (LHU-049); step 3.16 not yet done |
 | Display fixes: pointer, cause text, titles, hub names, mass air flow tile | LHU-051 | Built and tested at the desk (LHU-051); step 3.17 not yet done |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
-| On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no run done; the drive run waits for the mounting decision (OQ-14) |
+| On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no scripted run done; the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; mounting is not a requirement (OQ-14 closed 2026-10-11) |
 
 ## 2. Assumptions to verify on hardware
 
@@ -41,32 +41,32 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 
 | # | Assumption | Made in | Verified by | Result |
 |---|---|---|---|---|
-| A1 | The 2013 GS350 answers the standard Mode 01 PIDs of REQ-004 (0x04, 0x05, 0x0C, 0x0D, 0x0F, 0x11, 0x2F, 0x42); which of them it supports is discovered at run time from the PID 0x00, 0x20 and 0x40 bitmaps | Plan, REQ-004 | Step 3.2 | Not yet verified |
-| A2 | The vLinker MC+ exposes the Serial Port service on its classic-Bluetooth side and an RFCOMM socket on channel 1 carries the ELM327 text protocol | Plan, OQ-5 | Step 3.2 | Not yet verified |
+| A1 | The 2013 GS350 answers the standard Mode 01 PIDs of REQ-004 (0x04, 0x05, 0x0C, 0x0D, 0x0F, 0x11, 0x2F, 0x42); which of them it supports is discovered at run time from the PID 0x00, 0x20 and 0x40 bitmaps | Plan, REQ-004 | Step 3.2 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): the car answers Mode 01; speed, rpm, coolant, load, throttle, intake air and voltage live; PID 0x2F (fuel level) not supported |
+| A2 | The vLinker MC+ exposes the Serial Port service on its classic-Bluetooth side and an RFCOMM socket on channel 1 carries the ELM327 text protocol | Plan, OQ-5 | Step 3.2 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): live data over the classic-Bluetooth serial link |
 | A3 | A clean build of the project on the Pi with 2 parallel jobs completes without being killed for memory and below 80 °C | D-022 | Step 3.3 | Not yet verified |
 | A4 | One worker loop calling `runOnce()` on the source and `check()` on the staleness monitor keeps up with the adapter's reply rate on the Pi (no source owns a thread) | DN-008 | Step 3.2 (request rate) and the LHU-032 latency measurement | Not yet verified |
-| A5 | `rfcomm bind` on the Pi gives a `/dev/rfcomm0` that the serial transport can open, write and `poll`-read like the emulator's pseudo-terminal, and that reads end-of-file when the adapter disappears | DN-012 | Step 3.2, items 6 and 7 | Not yet verified |
+| A5 | `rfcomm bind` on the Pi gives a `/dev/rfcomm0` that the serial transport can open, write and `poll`-read like the emulator's pseudo-terminal, and that reads end-of-file when the adapter disappears | DN-012 | Step 3.2, items 6 and 7 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): the bound `/dev/rfcomm0` carried live data; pulling the adapter gave "Link lost, retrying" and plugging it in reconnected |
 | A6 | The adapter answers fast enough that polling with `poll_interval_ms = 0` is acceptable to the car and the adapter; the actual request rate is unknown | DN-012 | Step 3.2, item 5; `poll_interval_ms` in `deploy/head_unit.conf` is the brake if not | Not yet verified |
 | A7 | The adapter's reply to one request arrives within 1 s (`reply_timeout_ms`), so that link loss is declared within 2 s only when the link is really gone | DN-012 | Step 3.2, item 5 (worst reply time over 100 requests) | Not yet verified |
 | A8 | A primary value drawn with a font pixel size of `mm(5.7)` has a cap height of about 4 mm on the panel (the font's cap height is assumed to be 0.7 of the em size) | DN-013 | Step 3.4 | Not yet verified |
-| A9 | The 1280 x 720 window fills the rotated panel under labwc and touch lands where the button is drawn | D-045, DN-013 | Step 3.4 | Not yet verified |
+| A9 | The 1280 x 720 window fills the rotated panel under labwc and touch lands where the button is drawn | D-045, DN-013 | Step 3.4 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): pairing and every screen worked by touch on the rotated panel |
 | A10 | Chromium started with its own `--user-data-dir` stays as the process the hub launched, rather than handing the URL to a running instance and exiting, so the hub can track a URL app | DN-021 | Step 3.5, item 5 | Not yet verified |
 | A11 | The Raspberry Pi OS panel stays visible above a maximised app window under labwc, and a launcher on it runs `lexus-hub --send return` from a tap | DN-021 | Step 3.5, items 3 and 4 | Not yet verified |
 | A12 | When an app's process group ends, labwc shows the hub's window (it is the window underneath) within 1 s, without the hub raising itself | DN-021 | Step 3.5, item 4 | Not yet verified |
 | A13 | Under the Raspberry Pi OS desktop, labwc activates `graphical-session.target` for the user and user units see `WAYLAND_DISPLAY`, so `lexus-hub.service` can show a window; the session bus at `/run/user/<uid>/bus` is the one the desktop apps use | DN-022 | Step 3.6 | Not yet verified |
 | A14 | `/tmp` on the Raspberry Pi OS desktop image is a `tmpfs`, so the browser profile and cache in `/tmp` live in RAM and do not wear the SD card | LHU-023 | `docs/test/MANUAL_WEB_APPS_PROCEDURE.md`, preparation step 3 | Not yet verified |
-| A17 | Executables built in the `debian:trixie` container run on Raspberry Pi OS (same Debian 13 base): every shared library resolves, and the Qt QML and Quick packages on the Pi are the versions the container used (6.8.2+dfsg-7) | LHU-033 | Step 3.12 | Not yet verified |
-| A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | Not yet verified |
+| A17 | Executables built in the `debian:trixie` container run on Raspberry Pi OS (same Debian 13 base): every shared library resolves, and the Qt QML and Quick packages on the Pi are the versions the container used (6.8.2+dfsg-7) | LHU-033 | Step 3.12 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): car mode installed from the CI arm64 artifact; self-check 23 PASS, 0 FAIL, 2 SKIP; every screen ran |
+| A16 | The GS350 supports PID 0x10 (mass air flow), and the stated constants (air-fuel ratio 14.7, petrol at 745 g/L) put the average economy within about 10 % of the car's own figure | DN-031 | Step 3.11 | **Partly verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): PID 0x10 supported and fuel economy shown; the comparison with the car's own figure (step 3.11) not yet done |
 | A18 | The vLinker finishes its protocol search and answers the first `0100` after `ATSP0` within 10 s (`elm327.discovery_timeout_ms`) | DN-042 | Step 3.13, item 2 (time from adapter connected to Live) | Not yet verified |
 | A19 | With the ignition off and the adapter powered, the adapter answers `0100` and the Mode 01 requests with an error text (`UNABLE TO CONNECT`, `NO DATA`, `CAN ERROR`) rather than not at all, so the strip reads "Adapter found, no vehicle"; if it stays silent the strip reads "Link lost, retrying" instead and the unit still recovers | DN-042 | Step 3.13, item 3 | Not yet verified |
-| A20 | The vLinker MC+ pairs on its classic side with the PIN 1234, or without a PIN (secure simple pairing); `lexus-pair-adapter` answers either | LHU-044 | Step 3.15, item 4 | Not yet verified |
-| A21 | Under the Raspberry Pi OS desktop, labwc runs `~/.config/labwc/autostart` at login, so `lexus-hub-session` starts the hub; whether the system autostart (panel, desktop) also runs does not matter, because the hub is full screen and kanshi is started either way | LHU-044 | Step 3.15, item 3 | Not yet verified |
-| A22 | `raspi-config nonint do_boot_behaviour B4` sets automatic login to the desktop on this image (LightDM, `autologin-user` in `/etc/lightdm/lightdm.conf`) | LHU-044 | Step 3.15, items 2 and 3 | Not yet verified |
+| A20 | The vLinker MC+ pairs on its classic side with the PIN 1234, or without a PIN (secure simple pairing); `lexus-pair-adapter` answers either | LHU-044 | Step 3.15, item 4 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): paired from the Pair adapter tile with PIN 1234 |
+| A21 | Under the Raspberry Pi OS desktop, labwc runs `~/.config/labwc/autostart` at login, so `lexus-hub-session` starts the hub; whether the system autostart (panel, desktop) also runs does not matter, because the hub is full screen and kanshi is started either way | LHU-044 | Step 3.15, item 3 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): power-on to the hub and Live with no input, about 10 to 15 s (estimate, not timed) |
+| A22 | `raspi-config nonint do_boot_behaviour B4` sets automatic login to the desktop on this image (LightDM, `autologin-user` in `/etc/lightdm/lightdm.conf`) | LHU-044 | Step 3.15, items 2 and 3 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): the desktop logged in by itself |
 | A24 | `wf-recorder` 0.5.0 from Debian 13 accepts `--file`, `--codec libx264`, `--codec-param`, `--framerate`, `--overwrite`, `--output DSI-2` and `--audio=<device>` and records the rotated touchscreen output under labwc | LHU-049 | Step 3.16, item 2 | Not yet verified |
 | A25 | Under PipeWire on Raspberry Pi OS, the PulseAudio device name `@DEFAULT_MONITOR@` captures what the Pi plays on its default output | LHU-049 | Step 3.16, item 3 | Not yet verified |
 | A26 | A software H.264 encode at 1280 x 720 and 30 frames per second (`preset=ultrafast`) keeps up on the Pi 5 beside the hub, the app and the OBD polling, without lowering the OBD request rate by more than 20% | LHU-049 | Step 3.16, item 5 | Not yet measured |
-| A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | Not yet verified |
-| A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | Not yet verified |
+| A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | **Verified 2026-10-11**: the adapter was plugged into the port and the car answered |
+| A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): one stored code read (P0420); the 17-character identification read |
 
 ## 3. Steps
 
@@ -104,7 +104,7 @@ ls -l /dev/rfcomm0
 
 7. Run the head unit against it with `elm327.device = /dev/rfcomm0` in `deploy/head_unit.conf` (the application arrives with LHU-013) and record: Connected reached (yes or no), the number of PIDs in the poll list, samples per second over one minute, and whether unplugging the adapter gives Error within 2 s and replugging gives Connected again (assumption A5).
 
-Results: not yet measured.
+Results: partly done 2026-10-11 (`docs/test/results/2026-10-11_first_car_day.md`): paired, bound and polled live in car mode; the request rate and the worst reply time not yet read from the session log.
 
 Record the first parked session too (LHU-029): add `--record local_recordings/<date>_first_parked.rec` to the command of step 7; afterwards, on the Pi, `--source replay` with `replay.file` pointing at it must show the same values. The recording stays in `local_recordings/`; only a copy scrubbed with `python3 tools/scrub_recording.py <file> --output <copy>` may leave it.
 
@@ -209,7 +209,7 @@ Parked, ignition on, adapter bound as in 3.2, the vehicle-data app running on th
 
 Record in `docs/test/results/<date>_diagnostics.md`: the code lists, "matches" or "does not match", whether the reply was multi-frame (from the raw request log, scrubbed as in LHU-029), and A15 confirmed or not.
 
-Results: not yet done.
+Results: partly done 2026-10-11 (`docs/test/results/2026-10-11_first_car_day.md`): one stored code (P0420) and the identification read; not yet compared with a phone OBD app.
 
 ### 3.11 Trip values against the car (LHU-031)
 
@@ -244,7 +244,7 @@ On the Pi:
 3. `~/lexus-head-unit-arm64/lexus-head-unit --source fake --fullscreen` shows the home screen with moving values; Trip and Diagnostics open.
 4. Record in `docs/test/results/<date>_ci_arm64_build_on_pi.md`: the run ID, the differences of item 1, the result of items 2 and 3. A17 is verified when items 2 and 3 pass.
 
-Results: not yet done.
+Results: done 2026-10-11 (`docs/test/results/2026-10-11_first_car_day.md`): car mode runs from the CI artifact of 0f8cc5e; self-check 23 PASS, 0 FAIL, 2 SKIP.
 
 ### 3.13 The four link situations in the car (LHU-042)
 
@@ -259,7 +259,7 @@ Parked, the unit running in car mode (the vehicle-data service as a user unit, t
 
 Record in `docs/test/results/<date>_link_detail_in_car.md`: each step's text, colour, time and readability.
 
-Results: not yet done.
+Results: partly done 2026-10-11 (`docs/test/results/2026-10-11_first_car_day.md`): Live parked and driving, "Link lost, retrying" with the adapter pulled, reconnected after; not timed, and the ignition-off case (A19) not yet seen.
 
 ### 3.14 Shutdown after the ignition goes off (LHU-043)
 
@@ -291,7 +291,7 @@ At home first, then in the car; `docs/release/CAR_DAY_GUIDE.md` is the same in t
 
 Record in `docs/test/results/<date>_car_mode_install.md`.
 
-Results: not yet done.
+Results: partly done 2026-10-11 (`docs/test/results/2026-10-11_first_car_day.md`): items 1, 4 and 5 (install with 0 FAIL, pairing by touch, power-on to Live with no input in about 10 to 15 s, estimated); the five timed cold boots, the pulled-cable session and the export not yet done.
 
 ### 3.16 Screen recording (LHU-049)
 
