@@ -80,3 +80,4 @@ In this order:
 | [DN-050](DN-050-display-units.md) US units on screen (light) | LHU-050 | Implemented |
 | [DN-051](DN-051-display-fixes.md) Display fixes from the first car day (light) | LHU-051 | Implemented |
 | [DN-053](DN-053-phone-position.md) The phone's position over the phone link | LHU-053 | Implemented |
+| [DN-054](DN-054-map.md) The map app with the phone's position (light) | LHU-054 | Implemented |

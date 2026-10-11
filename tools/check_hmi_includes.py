@@ -6,8 +6,9 @@ Under src/hmi/, and under src/hub/viewmodels/ and src/hub/qml/ when they exist:
   * the only lexus_head_unit/service/ headers allowed are the value types the view models
     display: signal_id.h, signal_sample.h, signal_definition.h, connection_state_machine.h,
     power_status.h, diagnostics_report.h, link_detail.h;
-  * QML files may import only Qt modules (QtQuick, QtQuick.*, QtQml, QtQml.*, QtTest) and the
-    project's own modules LexusHeadUnit and LexusHub.
+  * QML files may import only Qt modules (QtQuick, QtQuick.*, QtQml, QtQml.*, QtTest, and for
+    the map QtLocation and QtPositioning) and the project's own modules LexusHeadUnit, LexusHub
+    and LexusMap.
 
 Exit 0 clean, 1 finding, 2 could not run.
 """
@@ -40,7 +41,8 @@ ALLOWED_SERVICE_HEADERS = (
     # The link detail (DN-042): an enumeration and its texts, no service state.
     "lexus_head_unit/service/link_detail.h",
 )
-ALLOWED_QML_IMPORT_PREFIXES = ("QtQuick", "QtQml", "LexusHeadUnit", "LexusHub", "QtTest")
+ALLOWED_QML_IMPORT_PREFIXES = ("QtQuick", "QtQml", "LexusHeadUnit", "LexusHub", "QtTest",
+                               "QtLocation", "QtPositioning", "LexusMap")
 
 INCLUDE_PATTERN = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]')
 IMPORT_PATTERN = re.compile(r"^\s*import\s+([A-Za-z0-9_.]+|\"[^\"]*\")")

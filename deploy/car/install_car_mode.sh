@@ -88,10 +88,11 @@ step "1. Packages (installed only if missing)"
 # QML modules the screens import. bluez provides bluetoothctl and rfcomm (the adapter link);
 # python3 runs the car-mode tools, the thermal logger and the emulator. wf-recorder records
 # the screen and the sound output for the demo videos (LHU-049). openssl makes the phone
-# link's certificates (LHU-053).
+# link's certificates (LHU-053). The QtLocation and QtPositioning QML modules and the location
+# plugins (OpenStreetMap) are the map app (LHU-054).
 packages="libqt6core6t64 libqt6gui6 libqt6dbus6 libqt6network6 libqt6qml6 libqt6quick6
           qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder
-          openssl"
+          openssl qml6-module-qtlocation qml6-module-qtpositioning qt6-location-plugins"
 if [ "$build" -eq 1 ]; then
     # Building here: compiler, CMake and Ninja, the Qt development files, GoogleTest for the
     # test targets the build includes, and dbus-daemon for the D-Bus tests.
@@ -114,7 +115,7 @@ else
 fi
 
 step "2. Executables in /usr/local/bin"
-executables="lexus-hub lexus-head-unit lexus-vehicle-data-service"
+executables="lexus-hub lexus-head-unit lexus-vehicle-data-service lexus-map"
 source_folder=""
 if [ -n "$artifact" ]; then
     source_folder="$artifact"
@@ -132,7 +133,8 @@ elif [ "$build" -eq 1 ]; then
     source_folder="$build_folder/collected"
     run mkdir -p "$source_folder"
     run cp "$build_folder/src/hub/app/lexus-hub" "$build_folder/src/app/lexus-head-unit" \
-        "$build_folder/src/service_dbus/lexus-vehicle-data-service" "$source_folder/"
+        "$build_folder/src/service_dbus/lexus-vehicle-data-service" \
+        "$build_folder/src/map_app/lexus-map" "$source_folder/"
     origin="built on the Pi"
 fi
 if [ -n "$source_folder" ]; then

@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import car_config  # noqa: E402
 
 PASS, FAIL, SKIP = "PASS", "FAIL", "SKIP"
-EXECUTABLES = ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service")
+EXECUTABLES = ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service", "lexus-map")
 SCRIPTS = ("lexus-car-session", "lexus-mode", "lexus-pair-adapter", "lexus-export-sessions",
            "lexus-bind-adapter", "lexus-hub-session", "lexus-car-selfcheck",
            "lexus-screen-record")

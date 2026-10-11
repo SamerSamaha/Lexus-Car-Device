@@ -37,16 +37,17 @@ Design elements are named as in `docs/architecture/ARCHITECTURE.md`. Tests are n
 | REQ-027 | `DisplayUnits`, `displayValue`, `displayUnitText`, `chooseDisplayUnits` (view models); `SignalTileModel` and `VehicleDataViewModel` built with the units; `lexus-head-unit --units` and `--car-config`; `[display] units` in `deploy/car/car.conf.example` (DN-050) | LHU-050 | `tests/unit/hmi/display_units_test.cpp` (factors, texts, the choice, tiles with metric samples); `tests/hmi/tst_us_units.qml` (both grids in US units); `tests/installed/units_from_the_command_line.sh` (the executable's choice in five cases); on the Pi, checklist step 3.17 | Tagged and merged (LHU-050); read on the touchscreen in step 3.17 |
 | REQ-028 | `ConnectionStatusModel::causeText`; `SignalTileModel::tileTitle`; the bounded title of `SignalTile.qml`; the wrapping name of `AppTile.qml`; `gridSignalIds` (mass air flow in place of fuel level); `--hide-pointer` on `lexus-hub` and `lexus-head-unit` (DN-051) | LHU-051 | `tests/unit/hmi/view_models_test.cpp`; `tests/hmi/tst_vehicle_data_screen.qml`, `tests/hmi/tst_trip_screen.qml`, `tests/hmi/tst_home_screen.qml`; `tests/hmi_hub/tst_app_tile.qml`; `tests/installed/command_line_options.sh`; on the Pi, checklist step 3.17 | Tagged and merged (LHU-051); seen on the touchscreen in step 3.17 |
 | REQ-029 | `PhonePosition`, `parsePhonePosition`, `PhonePositionTracker`, `HttpRequestParser`, `PhoneLinkServer` (`src/phone_link/`); the phone page; signals `Latitude`, `Longitude`, `PositionAccuracy` and units `Degrees`, `Metres`; `[phone_link]` in the service configuration from `car_session.py`; `deploy/car/phone_link_certificates.sh`; the address on the hub (DN-053) | LHU-053 | `tests/unit/phone_link/phone_link_test.cpp`; `tests/unit/phone_link/phone_link_tls_test.cpp`; `tests/integration/vehicle_data_dbus_test.cpp` (the service executable end to end); `tests/unit/hmi/car_status_models_test.cpp` (the address line); `tools/test_phone_link.py`; on the iPhone, checklist step 3.18 | Desk part tagged and merged (LHU-053); the iPhone part is step 3.18 (A27 to A29) |
+| REQ-030 | `MapViewModel`, `isPositionMasked`, `distanceMetres` (`src/hmi/map/`); `MapScreen.qml`, `MapView.qml` (QtLocation, osm plugin), `Main.qml` of `LexusMap`; `lexus-map` (`src/map_app/`); `[privacy]` in car.conf; the Map tile of `deploy/car/hub_car.conf` (DN-054) | LHU-054 | `tests/unit/hmi/map_view_model_test.cpp`; `tests/hmi_map/tst_map_screen.qml`, `tests/hmi_map/tst_map_main_window.qml`; `tests/installed/run_outside_build_tree.sh`, `tests/installed/command_line_options.sh`; on the Pi, checklist step 3.19 | Desk part tagged and merged (LHU-054); the map with tiles and the mask at home are step 3.19 (A30, A31) |
 
 ## Coverage summary
 
 | | Count |
 |---|---|
-| Requirements | 29 |
-| With a named design element | 29 |
-| With a named ticket | 29 |
-| With a named test or measurement | 29 |
-| With a test that exists and is tagged | 24 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-028, REQ-029) |
+| Requirements | 30 |
+| With a named design element | 30 |
+| With a named ticket | 30 |
+| With a named test or measurement | 30 |
+| With a test that exists and is tagged | 25 (REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-010, REQ-011, REQ-012, REQ-015, REQ-016, REQ-017, REQ-020, REQ-021, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-028, REQ-029, REQ-030) |
 
 The last row is the number CI enforces through `tools/check_traceability.py`. It rises as tickets merge; a pull request that merges a test updates its row from Planned to the ticket that added it.
 
@@ -91,4 +92,5 @@ The last row is the number CI enforces through `tools/check_traceability.py`. It
 | LHU-051 | REQ-028, REQ-004, REQ-012 |
 | LHU-052 | none; documentation of the first car day |
 | LHU-053 | REQ-029, REQ-017 |
+| LHU-054 | REQ-030, REQ-029, REQ-026 |
 | LHU-036, LHU-037, LHU-038 (roadmap) | requirements written when scheduled |

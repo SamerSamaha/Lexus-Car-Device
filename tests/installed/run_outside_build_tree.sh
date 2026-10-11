@@ -1,5 +1,5 @@
 #!/bin/sh
-# Verifies: REQ-025
+# Verifies: REQ-025, REQ-030
 # Each program given is copied alone into an empty folder and started there, offscreen, the way
 # the installer puts it in /usr/local/bin on the Pi. It must still be running after 5 s: a QML
 # module that is only found through the build folder makes it exit at once (LHU-046).
