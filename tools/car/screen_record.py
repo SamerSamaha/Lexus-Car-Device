@@ -206,15 +206,15 @@ def main(argument_list: Optional[Sequence[str]] = None, runner: Runner = run_com
     parser.add_argument("--status-file", type=Path, default=None)
     arguments = parser.parse_args(argument_list)
     merged = settings(car_config.read(arguments.config))
-    status = arguments.status_file or status_path()
-    if arguments.command == "status":
-        return show_status(merged, status)
     if arguments.command == "on":
         return set_enabled(arguments.config, True, runner)
     if arguments.command == "off":
         return set_enabled(arguments.config, False, runner)
     if arguments.command == "toggle":
         return set_enabled(arguments.config, not is_on(merged["recording.enabled"]), runner)
+    status = arguments.status_file or status_path()
+    if arguments.command == "status":
+        return show_status(merged, status)
     if not is_on(merged["recording.enabled"]):
         print("lexus-screen-record: recording is off (lexus-screen-record on)")
         return 0
