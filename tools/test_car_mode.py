@@ -11,6 +11,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from unittest import mock
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -332,6 +333,30 @@ class SelfCheckTest(unittest.TestCase):
         self.assertEqual(self_check.autologin_user("[Seat:*]\n#autologin-user=x\nautologin-user=lexus\n"),
                          "lexus")
         self.assertIsNone(self_check.autologin_user("[Seat:*]\n"))
+
+    def test_a_rule_in_a_root_only_folder_is_checked_through_sudo(self):
+        rule = Path("/etc/polkit-1/rules.d/50-lexus-obd-bind.rules")
+
+        def sudo(allowed, present):
+            calls = []
+
+            def runner(command):
+                calls.append(command)
+                if command[2] == "true":
+                    return (0 if allowed else 1, "")
+                return (0 if present else 1, "")
+            return runner, calls
+
+        with mock.patch.object(Path, "is_file", side_effect=PermissionError(13, "denied")):
+            runner, calls = sudo(allowed=True, present=True)
+            self.assertTrue(self_check.root_file_present(rule, runner))
+            self.assertEqual(calls, [["sudo", "-n", "true"], ["sudo", "-n", "test", "-f", str(rule)]])
+            runner, _ = sudo(allowed=True, present=False)
+            self.assertFalse(self_check.root_file_present(rule, runner))
+            # sudo wants a password: unknown, never a crash and never a false FAIL.
+            runner, calls = sudo(allowed=False, present=True)
+            self.assertIsNone(self_check.root_file_present(rule, runner))
+            self.assertEqual(len(calls), 1)
 
     def test_a_report_with_a_failure_exits_one_and_counts_each_result(self):
         with tempfile.TemporaryDirectory() as folder:
