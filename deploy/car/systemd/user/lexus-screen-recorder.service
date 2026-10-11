@@ -11,6 +11,8 @@ ExecStart=/usr/local/bin/lexus-screen-record run
 # A crash of the recorder starts a new file 5 s later; a clean stop (off, or shutdown) does not.
 Restart=on-failure
 RestartSec=5
+# Exit code 3: wf-recorder is not installed; restarting would not help.
+RestartPreventExitStatus=3
 # SIGTERM makes the loop stop wf-recorder with SIGINT, which writes the end of the file.
 KillMode=mixed
 TimeoutStopSec=20

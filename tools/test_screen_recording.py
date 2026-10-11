@@ -158,12 +158,29 @@ class ScreenRecordTest(unittest.TestCase):
         self.assertFalse(self.status.exists())
 
     def test_a_recorder_that_dies_is_a_failure_for_systemd_to_restart(self):
+        def start(command):
+            Path(command[command.index("--file") + 1]).write_bytes(b"")
+            return FakeProcess(command, exit_after_polls=2)
+
         recorder = screen_record.Recorder(
-            self.merged(), self.status,
-            start_process=lambda command: FakeProcess(command, exit_after_polls=2),
+            self.merged(), self.status, start_process=start,
             free=lambda directory: 10000, sleep=lambda seconds: None, now=lambda: FIXED_TIME)
         self.assertEqual(self.quiet(recorder.run), 1)
         self.assertFalse(self.status.exists())
+        self.assertEqual(list((self.folder / "screen").iterdir()), [],
+                         "the empty file of a failed start is removed")
+
+    def test_a_missing_recorder_program_stops_the_restarts(self):
+        def start(command):
+            raise FileNotFoundError(command[0])
+
+        recorder = screen_record.Recorder(self.merged(), self.status, start_process=start,
+                                          free=lambda directory: 10000, now=lambda: FIXED_TIME)
+        self.assertEqual(self.quiet(recorder.run), screen_record.EXIT_RECORDER_MISSING)
+        self.assertFalse(self.status.exists())
+        unit = (REPOSITORY / "deploy" / "car" / "systemd" / "user" /
+                "lexus-screen-recorder.service").read_text(encoding="utf-8")
+        self.assertIn(f"RestartPreventExitStatus={screen_record.EXIT_RECORDER_MISSING}", unit)
 
     def test_status_reports_the_file_being_written(self):
         self.status.parent.mkdir(parents=True)

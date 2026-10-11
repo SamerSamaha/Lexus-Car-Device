@@ -43,6 +43,8 @@ DEFAULTS = {
 CHECK_INTERVAL_SECONDS = 1.0
 STOP_WAIT_SECONDS = 10.0
 BYTES_PER_MEGABYTE = 1 << 20
+# Exit code when the recorder program is missing: the unit does not restart for it.
+EXIT_RECORDER_MISSING = 3
 
 Runner = Callable[[List[str]], int]
 
@@ -135,7 +137,12 @@ class Recorder:
                   file=sys.stderr)
             return 0
         file = next_file(directory, self.now())
-        self.process = self.start_process(recorder_command(self.merged, file))
+        command = recorder_command(self.merged, file)
+        try:
+            self.process = self.start_process(command)
+        except OSError as error:
+            print(f"lexus-screen-record: cannot start {command[0]}: {error}", file=sys.stderr)
+            return EXIT_RECORDER_MISSING
         self.status.parent.mkdir(parents=True, exist_ok=True)
         self.status.write_text(str(file) + "\n", encoding="utf-8")
         print(f"lexus-screen-record: recording {file}", flush=True)
@@ -147,7 +154,11 @@ class Recorder:
                 code = self.process.poll()
                 if code is not None:
                     print(f"lexus-screen-record: the recorder exited with {code}", file=sys.stderr)
-                    return code if code != 0 else 1
+                    # A recorder that failed at once leaves an empty file; the restart would
+                    # otherwise add one every 5 s.
+                    if file.is_file() and file.stat().st_size == 0:
+                        file.unlink()
+                    return code if code not in (0, EXIT_RECORDER_MISSING) else 1
                 if self.free(directory) < minimum:
                     reason = f"less than {minimum} MB free"
                     break
