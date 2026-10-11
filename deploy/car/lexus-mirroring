@@ -1,0 +1,35 @@
+#!/bin/sh
+# Phone screen mirroring for car mode (LHU-057, DN-057): an AirPlay receiver, so the iPhone can
+# mirror Waze or any other app onto the touchscreen with Control Centre, Screen Mirroring,
+# "Lexus Head Unit". The touchscreen does not control the phone; this is a mirror.
+#
+#   lexus-mirroring            starts the receiver (the hub runs this as the app's command)
+#   lexus-mirroring --print    prints the command and starts nothing (tests)
+#
+# exec: uxplay is the process the hub started, so the hub tracks it. When the phone stops
+# mirroring, uxplay closes its window and waits for the next phone; the hub is visible again and
+# its Close button stops the receiver (LHU-055).
+#   -n "Lexus Head Unit" -nh   the name the iPhone lists, without the host name added
+#   -fs                        full screen
+#   -vs waylandsink            draw as a Wayland client under labwc (D-045, assumption A35)
+#   -avdec                     software H.264 decoding: the Pi 5 has no H.264 decoder in hardware
+# The sound of the phone plays on the Pi's default output (the car stereo, LHU-056).
+# LEXUS_MIRRORING_OPTIONS replaces the four lines above if the Pi needs other options.
+set -eu
+print=0
+if [ "${1:-}" = "--print" ]; then
+    print=1
+    shift
+fi
+receiver="${LEXUS_MIRRORING_RECEIVER:-uxplay}"
+if [ -n "${LEXUS_MIRRORING_OPTIONS:-}" ]; then
+    # shellcheck disable=SC2086
+    set -- "$receiver" -n "Lexus Head Unit" $LEXUS_MIRRORING_OPTIONS
+else
+    set -- "$receiver" -n "Lexus Head Unit" -nh -fs -vs waylandsink -avdec
+fi
+if [ "$print" -eq 1 ]; then
+    printf '%s\n' "$@"
+    exit 0
+fi
+exec "$@"
