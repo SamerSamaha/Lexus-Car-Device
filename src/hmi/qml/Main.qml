@@ -21,7 +21,9 @@ Window {
         vehicleData: window.vehicleData
         diagnostics: typeof diagnosticsContext !== "undefined" ? diagnosticsContext : null
         power: typeof powerContext !== "undefined" ? powerContext : null
-        hubButtonShown: typeof hubButtonShown !== "undefined" ? hubButtonShown : false
+        // The context property has its own name: inside Screens, a bare hubButtonShown is
+        // Screens' own property, so the option never arrived (LHU-047).
+        hubButtonShown: typeof hubButtonShownContext !== "undefined" ? hubButtonShownContext : false
         // DN-043: a clean exit; the hub restarts an app only on failure, so it is in front again.
         onHubRequested: Qt.quit()
     }
