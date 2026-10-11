@@ -1,4 +1,4 @@
-// Verifies: REQ-021
+// Verifies: REQ-021, REQ-026
 
 #include "lexus_head_unit/hmi/diagnostics_view_model.h"
 #include "lexus_head_unit/service/diagnostics_report.h"
@@ -27,6 +27,28 @@ DiagnosticsReport reportWith(int codeCount) {
     report.identificationRead = true;
     report.vehicleIdentification = "DEMO-NOT-A-VIN";
     return report;
+}
+
+// n bullets, the mask character of the identification.
+QString masked(int count) {
+    return {count, QChar(u'\u2022')};
+}
+
+TEST(DiagnosticsViewModelTest, OnlyTheLastFourCharactersOfTheIdentificationAreShown) {
+    // The hypothetical VIN allowlisted in tools/private_data_allowlist.txt; not a real vehicle.
+    EXPECT_EQ(DiagnosticsViewModel::maskedIdentification(QStringLiteral("1M8GDM9AXKP042788")),
+              masked(13) + QStringLiteral("2788"));
+    EXPECT_EQ(DiagnosticsViewModel::maskedIdentification(QStringLiteral("ABCDE")),
+              masked(1) + QStringLiteral("BCDE"));
+    EXPECT_EQ(DiagnosticsViewModel::maskedIdentification(QStringLiteral("ABCD")), masked(4));
+    EXPECT_EQ(DiagnosticsViewModel::maskedIdentification(QStringLiteral("AB")), masked(2));
+    EXPECT_EQ(DiagnosticsViewModel::maskedIdentification(QString()), QString());
+    DiagnosticsViewModel model;
+    DiagnosticsReport report = reportWith(0);
+    report.vehicleIdentification = "1M8GDM9AXKP042788";
+    model.onDiagnostics(report);
+    EXPECT_FALSE(model.identificationText().contains(QStringLiteral("1M8GDM9AXKP04")));
+    EXPECT_TRUE(model.identificationText().endsWith(QStringLiteral("2788")));
 }
 
 TEST(DiagnosticsViewModelTest, BeforeAnyReadEverythingSaysSo) {
@@ -62,7 +84,7 @@ TEST(DiagnosticsViewModelTest, CountsCodesTextsAndIdentification) {
     EXPECT_EQ(model.codes(), (QStringList{QStringLiteral("P0130"), QStringLiteral("P0131")}));
     EXPECT_EQ(model.descriptions(),
               (QStringList{QStringLiteral("Text 0"), QStringLiteral("Text 1")}));
-    EXPECT_EQ(model.identificationText(), QStringLiteral("DEMO-NOT-A-VIN"));
+    EXPECT_EQ(model.identificationText(), masked(10) + QStringLiteral("-VIN"));
     model.onDiagnostics(reportWith(1));
     EXPECT_EQ(model.summaryText(), QStringLiteral("1 stored trouble code"));
     model.onDiagnostics(reportWith(0));

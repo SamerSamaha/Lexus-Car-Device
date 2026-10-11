@@ -33,3 +33,20 @@ thermal_log = on
 [network]
 # The NetworkManager connection of the phone hotspot (docs/release/CAR_DAY_GUIDE.md).
 hotspot_connection = hotspot
+
+[recording]
+# Screen recording (LHU-049): on or off. The hub's "Screen recording" tile switches it; it stays
+# as set across boots. One .mkv per session (each boot, or each time it is switched on).
+enabled = off
+directory = ~/lexus-data/screen
+# The Wayland output of the touchscreen (kanshi names it DSI-2) and the sound captured with it:
+# the monitor of the default output, so the recording has the sound the Pi plays (A24, A25).
+output = DSI-2
+audio = on
+audio_device = @DEFAULT_MONITOR@
+framerate = 30
+# No new file is started, and a running one is ended, below this much free space.
+min_free_mb = 2048
+# A full recorder command line with {file} in place of the file name replaces the built-in
+# wf-recorder command when set (only if the Pi needs other options).
+command =

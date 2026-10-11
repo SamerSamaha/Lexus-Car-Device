@@ -4,6 +4,7 @@
 #include "car_test_driver.h"
 #include "fake_power_status_reader.h"
 #include "fake_process_launcher.h"
+#include "recording_test_driver.h"
 
 #include "lexus_head_unit/hmi/connection_status_model.h"
 #include "lexus_head_unit/hub/app_process_manager.h"
@@ -82,6 +83,14 @@ public slots:
             std::make_unique<lexus_head_unit::NetworkAddressModel>(QStringLiteral("lexus"), []() {
                 return QStringList{QStringLiteral("172.20.10.2")};
             });
+        // REQ-026: the REC indicator from a status file the driver writes.
+        m_recording =
+            std::make_unique<lexus_head_unit::RecordingStatusModel>(m_recordingDriver.statusPath());
+        m_recordingDriver.setModel(*m_recording);
+        engine->rootContext()->setContextProperty(QStringLiteral("recordingContext"),
+                                                  m_recording.get());
+        engine->rootContext()->setContextProperty(QStringLiteral("recordingDriverContext"),
+                                                  &m_recordingDriver);
         engine->rootContext()->setContextProperty(QStringLiteral("ignitionShutdownContext"),
                                                   m_ignitionShutdown.get());
         engine->rootContext()->setContextProperty(QStringLiteral("carDriverContext"),
@@ -113,6 +122,8 @@ private:
     std::unique_ptr<lexus_head_unit::IgnitionOffShutdownModel> m_ignitionShutdown;
     std::unique_ptr<lexus_head_unit::testing::CarTestDriver> m_carDriver;
     std::unique_ptr<lexus_head_unit::NetworkAddressModel> m_network;
+    lexus_head_unit::testing::RecordingTestDriver m_recordingDriver;
+    std::unique_ptr<lexus_head_unit::RecordingStatusModel> m_recording;
 };
 
 QUICK_TEST_MAIN_WITH_SETUP(lexus_head_unit_hub_hmi, HubTestSetup)

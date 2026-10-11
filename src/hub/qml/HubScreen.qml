@@ -2,7 +2,8 @@ import QtQuick
 
 // The status strip and the app grid: four columns, two rows per page, each tile a touch target
 // of at least 10 mm (D-024). The grid is disabled while an app covers the hub. In car mode
-// (DN-043) the address line sits under the grid and the shutdown countdown covers it.
+// (DN-043) the address line sits under the grid and the shutdown countdown covers it; while the
+// screen is recorded (REQ-026) the strip shows REC and the address line is hidden.
 Rectangle {
     id: screen
 
@@ -12,6 +13,8 @@ Rectangle {
     property var shutdown: null
     property var ignitionShutdown: null
     property var network: null
+    property var recording: null
+    readonly property bool recordingNow: recording !== null && recording.recording
     readonly property int columns: 4
     readonly property int rows: 2
 
@@ -27,6 +30,7 @@ Rectangle {
         connection: screen.connection
         power: screen.power
         shutdown: screen.shutdown
+        recording: screen.recording
     }
 
     GridView {
@@ -64,7 +68,7 @@ Rectangle {
     Text {
         id: addressText
         objectName: "addressText"
-        visible: screen.network !== null
+        visible: screen.network !== null && !screen.recordingNow
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

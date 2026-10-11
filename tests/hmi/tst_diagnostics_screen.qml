@@ -1,4 +1,4 @@
-// Verifies: REQ-021
+// Verifies: REQ-021, REQ-026
 
 import QtQuick
 import QtTest
@@ -65,7 +65,9 @@ TestCase {
                         "Lost communication with the engine control module"],
                        "DEMO-NOT-A-VIN")
         compare(findChild(screen, "summaryText").text, "3 stored trouble codes")
-        compare(findChild(screen, "identificationText").text, "Vehicle identification: DEMO-NOT-A-VIN")
+        // Only the last four characters are shown (REQ-026).
+        compare(findChild(screen, "identificationText").text,
+                "Vehicle identification: \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022-VIN")
         var list = findChild(screen, "codeList")
         compare(list.count, 3)
         list.forceLayout()

@@ -69,7 +69,14 @@ QString DiagnosticsViewModel::identificationText() const {
     if (!m_hasReport || !m_report.identificationRead) {
         return QStringLiteral("Not read");
     }
-    return QString::fromStdString(m_report.vehicleIdentification);
+    return maskedIdentification(QString::fromStdString(m_report.vehicleIdentification));
+}
+
+QString DiagnosticsViewModel::maskedIdentification(const QString& identification) {
+    const qsizetype hidden = identification.size() > shownIdentificationCharacters
+                                 ? identification.size() - shownIdentificationCharacters
+                                 : identification.size();
+    return QString(hidden, QChar(maskCharacter)) + identification.mid(hidden);
 }
 
 QString DiagnosticsViewModel::readTimeText() const {

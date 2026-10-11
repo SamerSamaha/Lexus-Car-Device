@@ -5,6 +5,8 @@
 #include "lexus_head_unit/service/link_detail.h"
 
 #include <QAbstractSocket>
+#include <QFile>
+#include <QFileInfo>
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QObject>
@@ -131,6 +133,41 @@ NetworkAddressModel::AddressProvider NetworkAddressModel::interfaceAddresses() {
         }
         return addresses;
     };
+}
+
+RecordingStatusModel::RecordingStatusModel(QString statusPath, QObject* parent)
+    : QObject(parent), m_statusPath(std::move(statusPath)) {
+    connect(&m_timer, &QTimer::timeout, this, &RecordingStatusModel::refresh);
+    refresh();
+}
+
+bool RecordingStatusModel::recording() const {
+    return m_recording;
+}
+
+QString RecordingStatusModel::fileName() const {
+    return m_fileName;
+}
+
+void RecordingStatusModel::startPolling(int intervalMilliseconds) {
+    m_timer.start(intervalMilliseconds);
+}
+
+void RecordingStatusModel::refresh() {
+    bool recording = false;
+    QString fileName;
+    if (!m_statusPath.isEmpty()) {
+        QFile status(m_statusPath);
+        if (status.open(QIODevice::ReadOnly)) {
+            recording = true;
+            fileName = QFileInfo(QString::fromUtf8(status.readAll()).trimmed()).fileName();
+        }
+    }
+    if (recording != m_recording || fileName != m_fileName) {
+        m_recording = recording;
+        m_fileName = fileName;
+        emit changed();
+    }
 }
 
 } // namespace lexus_head_unit

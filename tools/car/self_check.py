@@ -28,7 +28,8 @@ import car_config  # noqa: E402
 PASS, FAIL, SKIP = "PASS", "FAIL", "SKIP"
 EXECUTABLES = ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service")
 SCRIPTS = ("lexus-car-session", "lexus-mode", "lexus-pair-adapter", "lexus-export-sessions",
-           "lexus-bind-adapter", "lexus-hub-session", "lexus-car-selfcheck")
+           "lexus-bind-adapter", "lexus-hub-session", "lexus-car-selfcheck",
+           "lexus-screen-record")
 BUS_NAME = "io.github.samersamaha.LexusHeadUnit"
 OBJECT_PATH = "/io/github/samersamaha/LexusHeadUnit/VehicleData"
 INTERFACE = "io.github.samersamaha.LexusHeadUnit.VehicleData1"
@@ -256,6 +257,15 @@ def check_data(report: Report, paths: Paths, runner: Runner) -> None:
                f"no connection named '{name}' (docs/release/CAR_DAY_GUIDE.md, at home)")
 
 
+def check_recorder(report: Report, paths: Paths) -> None:
+    """wf-recorder present and the recording setting (LHU-049); recording itself needs the
+    Wayland session, so it is checked on the touchscreen, not here."""
+    found = shutil.which("wf-recorder")
+    report.add(PASS if found else FAIL, "screen recorder installed", found or "wf-recorder missing")
+    enabled = car_config.read(paths.car_config).get("recording.enabled", "off").strip() or "off"
+    report.add(PASS, "screen recording setting", enabled)
+
+
 def check_demo(report: Report, paths: Paths, runner: Runner,
                sleep: Callable[[float], None] = time.sleep) -> None:
     values = car_config.read(paths.car_config)
@@ -297,6 +307,7 @@ def main(argument_list: Optional[Sequence[str]] = None, runner: Runner = run_com
     check_session(report, paths)
     check_power_safety(report, paths, runner)
     check_data(report, paths, runner)
+    check_recorder(report, paths)
     if arguments.with_demo:
         check_demo(report, paths, runner)
     print(f"self-check: {report.count(PASS)} PASS, {report.count(FAIL)} FAIL, "

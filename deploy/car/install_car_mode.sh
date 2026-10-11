@@ -86,9 +86,10 @@ fi
 step "1. Packages (installed only if missing)"
 # Runtime for the three executables: Qt base, D-Bus, network, QML and Qt Quick with the two
 # QML modules the screens import. bluez provides bluetoothctl and rfcomm (the adapter link);
-# python3 runs the car-mode tools, the thermal logger and the emulator.
+# python3 runs the car-mode tools, the thermal logger and the emulator. wf-recorder records
+# the screen and the sound output for the demo videos (LHU-049).
 packages="libqt6core6t64 libqt6gui6 libqt6dbus6 libqt6network6 libqt6qml6 libqt6quick6
-          qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal"
+          qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder"
 if [ "$build" -eq 1 ]; then
     # Building here: compiler, CMake and Ninja, the Qt development files, GoogleTest for the
     # test targets the build includes, and dbus-daemon for the D-Bus tests.
@@ -146,7 +147,7 @@ fi
 step "3. Car-mode tools as commands"
 for pair in "car_session.py:lexus-car-session" "car_mode.py:lexus-mode" \
             "pair_adapter.py:lexus-pair-adapter" "export_sessions.py:lexus-export-sessions" \
-            "self_check.py:lexus-car-selfcheck"; do
+            "self_check.py:lexus-car-selfcheck" "screen_record.py:lexus-screen-record"; do
     run sudo ln -sfn "$repository/tools/car/${pair%%:*}" "/usr/local/bin/${pair##*:}"
 done
 run sudo ln -sfn "$repository/deploy/bind_obd_adapter.sh" /usr/local/bin/lexus-bind-adapter
@@ -160,7 +161,7 @@ else
     run install -D -m 600 "$repository/deploy/car/car.conf.example" "$config"
 fi
 run chmod 600 "$config"
-run mkdir -p "$HOME/lexus-data/sessions" "$HOME/lexus-data/export"
+run mkdir -p "$HOME/lexus-data/sessions" "$HOME/lexus-data/export" "$HOME/lexus-data/screen"
 if id -nG "$user_name" | tr ' ' '\n' | grep -qx dialout; then
     note "$user_name may open /dev/rfcomm0 (dialout)"
 else
@@ -193,9 +194,11 @@ fi
 run sudo systemctl enable lexus-obd-bind.service
 run sudo systemctl restart lexus-obd-bind.service
 
-step "6. User units: the vehicle-data service and the emulator"
+step "6. User units: the vehicle-data service, the emulator and the screen recorder"
 run install -D -m 644 "$repository/deploy/car/systemd/user/lexus-vehicle-data-service.service" \
     "$HOME/.config/systemd/user/lexus-vehicle-data-service.service"
+run install -D -m 644 "$repository/deploy/car/systemd/user/lexus-screen-recorder.service" \
+    "$HOME/.config/systemd/user/lexus-screen-recorder.service"
 run install -D -m 644 "$repository/deploy/car/systemd/user/lexus-elm327-emulator.service" \
     "$HOME/.config/systemd/user/lexus-elm327-emulator.service"
 run systemctl --user daemon-reload

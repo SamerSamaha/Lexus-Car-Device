@@ -4,7 +4,7 @@ import QtQuick.Window
 // The hub window: 1280 x 720 on the panel rotated to landscape (D-045). hubContext is the
 // HubViewModel set by the hub executable; connectionContext, powerContext and shutdownContext
 // feed the status strip (DN-025); ignitionShutdownContext and networkContext the countdown
-// banner and the address line (DN-043).
+// banner and the address line (DN-043); recordingContext the REC indicator (REQ-026).
 Window {
     id: window
     width: 1280
@@ -23,5 +23,6 @@ Window {
         ignitionShutdown: typeof ignitionShutdownContext !== "undefined" ? ignitionShutdownContext
                                                                          : null
         network: typeof networkContext !== "undefined" ? networkContext : null
+        recording: typeof recordingContext !== "undefined" ? recordingContext : null
     }
 }
