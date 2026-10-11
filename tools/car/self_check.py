@@ -51,6 +51,20 @@ def run_command(command: List[str], environment: Optional[dict] = None) -> Tuple
     return completed.returncode, completed.stdout + completed.stderr
 
 
+
+def root_file_present(path: Path, runner: Runner) -> Optional[bool]:
+    """Whether a file exists in a folder that only root may read (polkit rules are 750).
+
+    Asks sudo without a password prompt when the folder cannot be read; None when that is
+    not possible either."""
+    try:
+        return path.is_file()
+    except PermissionError:
+        # sudo -n exits 1 both when it needs a password and when test fails: ask it first.
+        if runner(["sudo", "-n", "true"])[0] != 0:
+            return None
+        return runner(["sudo", "-n", "test", "-f", str(path)])[0] == 0
+
 @dataclass
 class Paths:
     bin_directory: Path = Path("/usr/local/bin")
@@ -214,8 +228,11 @@ def check_power_safety(report: Report, paths: Paths, runner: Runner) -> None:
     report.add(PASS if "fsck.repair=yes" in cmdline.split() else FAIL,
                "file-system repair at boot", "fsck.repair=yes" if "fsck.repair=yes" in
                cmdline.split() else f"not in {paths.cmdline}")
-    report.add(PASS if paths.polkit_rule.is_file() else FAIL, "pairing may restart the binding",
-               str(paths.polkit_rule))
+    present = root_file_present(paths.polkit_rule, runner)
+    report.add(SKIP if present is None else PASS if present else FAIL,
+               "pairing may restart the binding",
+               f"{paths.polkit_rule} (folder readable only by root; run with sudo to check)"
+               if present is None else str(paths.polkit_rule))
     code, output = runner(["vcgencmd", "get_throttled"])
     if code == 127:
         report.add(SKIP, "power flags now", "vcgencmd not found")

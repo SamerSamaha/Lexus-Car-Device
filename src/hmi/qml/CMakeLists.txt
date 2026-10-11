@@ -21,7 +21,7 @@ function(lexus_head_unit_add_qml_module target)
     qt_add_qml_module(${target}
         URI LexusHeadUnit
         VERSION 1.0
-        RESOURCE_PREFIX /
+        RESOURCE_PREFIX /qt/qml
         NO_PLUGIN
         NO_CACHEGEN
         QML_FILES ${qml_files}

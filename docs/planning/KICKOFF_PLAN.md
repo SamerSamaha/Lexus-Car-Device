@@ -436,6 +436,7 @@ The unit runs in the car on its own: the Pi on the power bank, the adapter in th
 | LHU-043 | Hub in the car: shutdown after the ignition goes off, network address line, a way back to the hub from the vehicle-data app. **Done 2026-10-09** (DN-043); the shutdown in the car is step 3.14 | 3 | 0.75 light | 3.75 | 024 |
 | LHU-044 | Car mode install: boot to the hub, adapter binding from a local file, pairing script, a session folder per boot, demo modes, self-check. **Done 2026-10-09** (DN-044, light; the power-safety evaluation is in it); the install on the Pi is step 3.15 | 5 | 0.75 light | 5.75 | 025 |
 | LHU-045 | Car day guide and the README demo section. **Done 2026-10-09**: `docs/release/CAR_DAY_GUIDE.md`; every demo entry in the README is marked pending until the car day | 2 | exempt | 2 | — |
+| LHU-046 | Bug found by the first install on the Pi (2026-10-11): the hub and the vehicle-data app exited at start outside the build folder (QML modules under a resource prefix that is not an import path), and the self-check crashed on the root-only polkit folder. Fixed, with a test that runs both programs from an empty folder | 1 | exempt | 1 | — |
 | **Total** | | | | **17.25** | |
 
 ### Roadmap (not scheduled)
