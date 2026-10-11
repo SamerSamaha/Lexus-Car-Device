@@ -34,6 +34,11 @@ thermal_log = on
 # The NetworkManager connection of the phone hotspot (docs/release/CAR_DAY_GUIDE.md).
 hotspot_connection = hotspot
 
+[display]
+# Units on the screen (LHU-050): us (mph, miles, deg F, mpg) or metric (km/h, km, deg C,
+# L/100 km). Only the screen changes; the session logs and recordings stay metric.
+units = us
+
 [recording]
 # Screen recording (LHU-049): on or off. The hub's "Screen recording" tile switches it; it stays
 # as set across boots. One .mkv per session (each boot, or each time it is switched on).

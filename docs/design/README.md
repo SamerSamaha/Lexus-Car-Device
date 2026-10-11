@@ -77,3 +77,4 @@ In this order:
 | [DN-043](DN-043-hub-in-the-car.md) Hub in the car: shutdown after the ignition goes off, address line, way back (light) | LHU-043 | Implemented |
 | [DN-044](DN-044-car-mode-install.md) Car mode install: boot to the hub, adapter binding, pairing, sessions, demo modes (light) | LHU-044 | Implemented |
 | [DN-049](DN-049-screen-recording.md) Screen recording with sound, and masking of private data on screen (light) | LHU-049 | Implemented |
+| [DN-050](DN-050-display-units.md) US units on screen (light) | LHU-050 | Implemented |

@@ -1,5 +1,6 @@
 #include "lexus_head_unit/hmi/signal_tile_model.h"
 
+#include "lexus_head_unit/hmi/display_units.h"
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
 #include "lexus_head_unit/service/signal_sample.h"
@@ -7,6 +8,7 @@
 #include <QObject>
 #include <QString>
 
+#include <optional>
 #include <string_view>
 
 // Qt declares its macros and basic types in internal headers; the public ones are included.
@@ -15,8 +17,6 @@ namespace lexus_head_unit {
 
 namespace {
 
-constexpr int oneDecimalPlace = 1;
-
 QString textOf(std::string_view text) {
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
@@ -24,11 +24,15 @@ QString textOf(std::string_view text) {
 } // namespace
 
 SignalTileModel::SignalTileModel(SignalId signalId, QObject* parent)
+    : SignalTileModel(signalId, DisplayUnits::Metric, parent) {}
+
+SignalTileModel::SignalTileModel(SignalId signalId, DisplayUnits units, QObject* parent)
     : QObject(parent),
       m_signalId(signalId),
       m_unit(definitionOf(signalId).unit),
+      m_units(units),
       m_name(textOf(definitionOf(signalId).name)),
-      m_unitText(textOf(toString(m_unit))),
+      m_unitText(displayUnitText(m_unit, units)),
       m_valueText(QStringLiteral("--")) {}
 
 SignalId SignalTileModel::signalId() const {
@@ -71,17 +75,25 @@ void SignalTileModel::applySample(const SignalSample& sample) {
     if (m_status == SignalStatus::NeverReceived) {
         m_valueText = QStringLiteral("--");
     } else {
-        m_valueText = formatValue(sample.value, m_unit);
+        m_valueText = formatValue(sample.value, m_unit, m_units);
     }
     emit changed();
 }
 
 QString SignalTileModel::formatValue(double value, Unit unit) {
-    const bool oneDecimal = unit == Unit::Volts || unit == Unit::GramsPerSecond ||
-                            unit == Unit::LitresPer100Kilometres || unit == Unit::Kilometres ||
-                            unit == Unit::Minutes;
-    const int decimals = oneDecimal ? oneDecimalPlace : 0;
-    return QString::number(value, 'f', decimals);
+    return formatValue(value, unit, DisplayUnits::Metric);
+}
+
+QString SignalTileModel::formatValue(double value, Unit unit, DisplayUnits units) {
+    const std::optional<double> shown = displayValue(value, unit, units);
+    if (!shown.has_value()) {
+        return QStringLiteral("--");
+    }
+    if (units == DisplayUnits::UsCustomary && unit == Unit::LitresPer100Kilometres &&
+        *shown > maximumShownMilesPerGallon) {
+        return QStringLiteral(">") + QString::number(maximumShownMilesPerGallon, 'f', 0);
+    }
+    return QString::number(*shown, 'f', displayDecimals(unit));
 }
 
 } // namespace lexus_head_unit

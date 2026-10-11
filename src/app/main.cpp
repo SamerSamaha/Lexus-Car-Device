@@ -1,4 +1,5 @@
 #include "lexus_head_unit/hmi/diagnostics_view_model.h"
+#include "lexus_head_unit/hmi/display_units.h"
 #include "lexus_head_unit/hmi/latency_probe.h"
 #include "lexus_head_unit/hmi/vehicle_data_view_model.h"
 #include "lexus_head_unit/hmi/worker_bridge.h"
@@ -17,6 +18,7 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QDBusConnection>
+#include <QDir>
 #include <QGuiApplication>
 #include <QObject>
 #include <QQmlApplicationEngine>
@@ -204,6 +206,17 @@ int main(int argumentCount, char** argumentValues) {
         QStringLiteral("hub-button"),
         QStringLiteral("show a Hub button on Home that quits back to the hub (car mode, DN-043)"));
     parser.addOption(hubButtonOption);
+    const QCommandLineOption unitsOption(
+        QStringLiteral("units"),
+        QStringLiteral("us or metric on screen (REQ-027); default: display.units in the car file"),
+        QStringLiteral("units"));
+    const QCommandLineOption carConfigOption(
+        QStringLiteral("car-config"),
+        QStringLiteral("the car-mode file that may set display.units"),
+        QStringLiteral("path"),
+        QDir::homePath() + QStringLiteral("/.config/lexus-head-unit/car.conf"));
+    parser.addOption(unitsOption);
+    parser.addOption(carConfigOption);
     parser.process(application);
 
     KeyValueConfiguration configuration;
@@ -216,7 +229,23 @@ int main(int argumentCount, char** argumentValues) {
         configuration.setValue("record.file", parser.value(recordOption).toStdString());
     }
 
-    VehicleDataViewModel viewModel;
+    // DN-050: the units on screen; the samples, D-Bus and every recording stay metric.
+    // With a car file (car mode) the default is US units, at the desk metric.
+    KeyValueConfiguration carConfiguration;
+    const bool carMode = carConfiguration.loadFromFile(parser.value(carConfigOption).toStdString());
+    bool unitsValid = true;
+    const lexus_head_unit::DisplayUnits units = lexus_head_unit::chooseDisplayUnits(
+        parser.value(unitsOption),
+        QString::fromStdString(carConfiguration.stringValue("display.units", "")),
+        carMode ? lexus_head_unit::DisplayUnits::UsCustomary
+                : lexus_head_unit::DisplayUnits::Metric,
+        unitsValid);
+    if (!unitsValid) {
+        std::cerr << "lexus-head-unit: unknown units (us or metric); using the next setting\n";
+    }
+    std::cerr << "lexus-head-unit: units "
+              << (units == lexus_head_unit::DisplayUnits::UsCustomary ? "us" : "metric") << "\n";
+    VehicleDataViewModel viewModel(units);
     lexus_head_unit::DiagnosticsViewModel diagnostics;
     // The firmware flags for the diagnostics screen (DN-025, DN-030); unavailable off the Pi.
     lexus_head_unit::ProcessPowerStatusReader powerReader(QStringLiteral("vcgencmd"),

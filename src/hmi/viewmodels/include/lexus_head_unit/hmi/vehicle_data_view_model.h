@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lexus_head_unit/hmi/connection_status_model.h"
+#include "lexus_head_unit/hmi/display_units.h"
 #include "lexus_head_unit/hmi/signal_tile_model.h"
 #include "lexus_head_unit/hmi/value_types.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
@@ -22,9 +23,12 @@ class VehicleDataViewModel : public QObject {
     Q_PROPERTY(lexus_head_unit::SignalTileModel* vehicleSpeed READ vehicleSpeed CONSTANT)
     Q_PROPERTY(lexus_head_unit::SignalTileModel* engineRpm READ engineRpm CONSTANT)
     Q_PROPERTY(lexus_head_unit::ConnectionStatusModel* connection READ connection CONSTANT)
+    Q_PROPERTY(bool usUnits READ usUnits CONSTANT)
 
 public:
     explicit VehicleDataViewModel(QObject* parent = nullptr);
+    // Every tile in these display units (DN-050); the samples stay metric.
+    explicit VehicleDataViewModel(DisplayUnits units, QObject* parent = nullptr);
 
     // The eight grid signals of REQ-004.
     [[nodiscard]] QList<QObject*> tiles() const;
@@ -34,6 +38,8 @@ public:
     [[nodiscard]] SignalTileModel* vehicleSpeed() const;
     [[nodiscard]] SignalTileModel* engineRpm() const;
     [[nodiscard]] ConnectionStatusModel* connection() const;
+    [[nodiscard]] DisplayUnits displayUnits() const;
+    [[nodiscard]] bool usUnits() const;
 
 public slots:
     void onSample(lexus_head_unit::SignalSample sample);
@@ -43,6 +49,7 @@ public slots:
 private:
     std::array<SignalTileModel*, signalCount> m_tiles{};
     ConnectionStatusModel* m_connection;
+    DisplayUnits m_units;
 };
 
 } // namespace lexus_head_unit
