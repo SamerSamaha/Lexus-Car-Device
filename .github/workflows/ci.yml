@@ -168,7 +168,7 @@ jobs:
         run: |
           build="$HOME/build/lexus-car-device/release"
           out="$RUNNER_TEMP/lexus-head-unit-arm64"
-          for program in lexus-head-unit lexus-vehicle-data-service lexus-hub; do
+          for program in lexus-head-unit lexus-vehicle-data-service lexus-hub lexus-map; do
             path="$(find "$build" -type f -name "$program" -perm -u+x | head -n 1)"
             test -n "$path" || { echo "missing: $program"; exit 1; }
             cp "$path" "$out/"

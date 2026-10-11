@@ -92,3 +92,22 @@ gtest_discover_tests(lexus_head_unit_measurement_probe_tests
     DISCOVERY_TIMEOUT 30
     PROPERTIES LABELS hmi ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
 )
+
+# The map's view model (DN-054): distance, the privacy mask, whole positions only.
+add_executable(lexus_head_unit_map_view_model_tests
+    map_view_model_test.cpp
+)
+
+target_link_libraries(lexus_head_unit_map_view_model_tests
+    PRIVATE
+        lexus_head_unit_hmi_map
+        lexus_head_unit_build_settings
+        Qt6::Core
+        Qt6::Test
+        GTest::gtest_main
+)
+
+gtest_discover_tests(lexus_head_unit_map_view_model_tests
+    DISCOVERY_TIMEOUT 30
+    PROPERTIES LABELS hmi ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0"
+)

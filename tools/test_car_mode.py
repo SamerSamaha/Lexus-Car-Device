@@ -407,7 +407,7 @@ class InstallScriptTest(unittest.TestCase):
             artifact = Path(folder) / "artifact"
             artifact.mkdir()
             elf_header = bytes(18) + bytes([0xB7, 0x00])
-            for name in ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service"):
+            for name in ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service", "lexus-map"):
                 (artifact / name).write_bytes(elf_header)
             home = Path(folder) / "home"
             home.mkdir()
@@ -426,7 +426,7 @@ class InstallScriptTest(unittest.TestCase):
     def test_an_executable_for_another_cpu_is_refused(self):
         with tempfile.TemporaryDirectory() as folder:
             artifact = Path(folder)
-            for name in ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service"):
+            for name in ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service", "lexus-map"):
                 (artifact / name).write_bytes(bytes(18) + bytes([0x3E, 0x00]))
             result = subprocess.run(["bash", str(self.SCRIPT), "--dry-run", "--artifact",
                                      str(artifact)], capture_output=True, text=True, check=False,

@@ -62,3 +62,13 @@ command =
 # certificates are made by the install script in ~/.config/lexus-head-unit/phone-link/.
 enabled = on
 port = 8443
+
+[privacy]
+# The map (LHU-054) hides the position and the map near home while the screen is recorded, so a
+# demo video never shows where the car lives. Fill in on the Pi only; this file is never
+# committed. Decimal degrees, as a phone map shows them; the radius in metres.
+home_latitude =
+home_longitude =
+home_radius_m = 500
+# on: hidden near home even when not recording.
+mask_home_always = off

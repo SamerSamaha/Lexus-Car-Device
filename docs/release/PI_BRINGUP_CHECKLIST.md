@@ -33,6 +33,7 @@ Rules:
 | Screen recording with sound from the hub tile; VIN masked; address hidden while recording | LHU-049 | Recorder, unit, hub indicator and masking built and tested at the desk (LHU-049); step 3.16 not yet done |
 | Display fixes: pointer, cause text, titles, hub names, mass air flow tile | LHU-051 | Built and tested at the desk (LHU-051); step 3.17 not yet done |
 | Phone position from Safari on the iPhone | LHU-053 | Server, certificates, signals and the D-Bus path built and tested at the desk (LHU-053); step 3.18 not yet done |
+| Map app with the phone's position, hidden near home while recording | LHU-054 | Model, screen and program built and tested at the desk without the QtLocation module (LHU-054); step 3.19 not yet done |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no scripted run done; the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; mounting is not a requirement (OQ-14 closed 2026-10-11) |
 
@@ -69,6 +70,8 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A27 | Safari on iOS gives a page its position when the page's certificate chains to a private authority that the owner installed as a profile and fully trusted (Settings, General, About, Certificate Trust Settings) | LHU-053 | Step 3.18, items 2 and 3 | Not yet verified |
 | A28 | The iPhone hotspot gives its clients addresses in 172.20.10.0/28, so the server certificate names every one of them; the phone reaches the Pi on port 8443 | LHU-053 | Step 3.18, item 1 | Not yet verified |
 | A29 | Safari keeps reporting the position about once a second while the page is in front and the phone is unlocked (with a screen wake lock where offered), and stops in the background | LHU-053 | Step 3.18, items 4 and 5 | Not yet verified |
+| A30 | The Qt osm plugin from Debian 13 loads standard tiles from tile.openstreetmap.org with the custom host parameter, and a demo drive stays within the tile usage policy (a user agent naming the project, the attribution on screen, a cache); the cover appears within about 1 s of a recording starting | LHU-054 | Step 3.19, items 1, 2 and 4 | Not yet verified |
+| A31 | The QtLocation map draws smoothly enough on the Pi 5 under labwc beside the service and the recorder (no measured target) | LHU-054 | Step 3.19, item 3 | Not yet verified |
 | A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | **Verified 2026-10-11**: the adapter was plugged into the port and the car answered |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): one stored code read (P0420); the 17-character identification read |
 
@@ -333,6 +336,18 @@ Results: not yet done.
 6. If item 3 fails even with full trust: record the iOS version and the page's message, and try the same page in Chrome on the iPhone; the fallback is LHU-053's alternative (a position app streaming to the Pi), decided with the owner.
 
 Record in `docs/test/results/<date>_phone_position.md` without any coordinate.
+
+Results: not yet done.
+
+### 3.19 The map (LHU-054)
+
+1. After the install (it adds the QtLocation packages and `lexus-map`), with the Pi on the hotspot and the phone link sharing (step 3.18): tap Map on the hub. Tiles load, the dot sits where the car is, the strip reads "Phone position, N m" (A30).
+2. On the Pi only, set the home area in `~/.config/lexus-head-unit/car.conf` under `[privacy]` (decimal degrees from a phone map; never write them anywhere else). At home: switch recording on, open Map: the cover reads "Position hidden near home" and no tile shows. Switch recording off: the map comes back. Play the recording on the laptop and check that no frame shows the map near home.
+3. A passenger watches the map during a short drive: the dot follows the road; record anything that stutters (A31). Nobody touches the screen while the car moves.
+4. Lock the phone: within about 6 s the dot turns grey and the strip says the position is lost.
+5. Tap Hub: the hub is back.
+
+Record in `docs/test/results/<date>_map.md` without any coordinate or screenshot of the area around home.
 
 Results: not yet done.
 
