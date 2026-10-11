@@ -1,4 +1,4 @@
-// Verifies: REQ-024, REQ-020, REQ-026
+// Verifies: REQ-024, REQ-020, REQ-026, REQ-029
 
 #include "lexus_head_unit/hub/car_status_models.h"
 #include "lexus_head_unit/hub/ignition_off_shutdown_policy.h"
@@ -99,6 +99,18 @@ TEST(NetworkAddressModelTest, OneSeveralOrNoAddresses) {
     model.refresh();
     EXPECT_EQ(model.addressText(), QStringLiteral("No network"));
     EXPECT_EQ(spy.count(), 2);
+}
+
+TEST(NetworkAddressModelTest, WithAPhoneLinkPortThePagesAddressFollows) {
+    const NetworkAddressModel model(
+        QStringLiteral("lexus"),
+        []() {
+            return QStringList{QStringLiteral("172.20.10.2")};
+        },
+        nullptr,
+        8443);
+    EXPECT_EQ(model.addressText(),
+              QStringLiteral("SSH lexus@172.20.10.2   Phone https://172.20.10.2:8443"));
 }
 
 TEST(NetworkAddressModelTest, TheProductProviderNeverListsLoopback) {

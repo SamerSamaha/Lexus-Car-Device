@@ -116,6 +116,12 @@ QString SignalTileModel::tileTitle(SignalId signalId) {
         return QStringLiteral("4000 rpm and up");
     case SignalId::CoolantWarmUpTime:
         return QStringLiteral("Warm-up time");
+    case SignalId::Latitude:
+        return QStringLiteral("Latitude");
+    case SignalId::Longitude:
+        return QStringLiteral("Longitude");
+    case SignalId::PositionAccuracy:
+        return QStringLiteral("Accuracy");
     }
     return textOf(definitionOf(signalId).name);
 }

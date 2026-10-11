@@ -32,6 +32,7 @@ Rules:
 | Car day guide for the owner, README demo section | LHU-045 | Written (`docs/release/CAR_DAY_GUIDE.md`); the README lists every demo clip as pending until real media exists |
 | Screen recording with sound from the hub tile; VIN masked; address hidden while recording | LHU-049 | Recorder, unit, hub indicator and masking built and tested at the desk (LHU-049); step 3.16 not yet done |
 | Display fixes: pointer, cause text, titles, hub names, mass air flow tile | LHU-051 | Built and tested at the desk (LHU-051); step 3.17 not yet done |
+| Phone position from Safari on the iPhone | LHU-053 | Server, certificates, signals and the D-Bus path built and tested at the desk (LHU-053); step 3.18 not yet done |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no scripted run done; the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; mounting is not a requirement (OQ-14 closed 2026-10-11) |
 
@@ -65,6 +66,9 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A24 | `wf-recorder` 0.5.0 from Debian 13 accepts `--file`, `--codec libx264`, `--codec-param`, `--framerate`, `--overwrite`, `--output DSI-2` and `--audio=<device>` and records the rotated touchscreen output under labwc | LHU-049 | Step 3.16, item 2 | Not yet verified |
 | A25 | Under PipeWire on Raspberry Pi OS, the PulseAudio device name `@DEFAULT_MONITOR@` captures what the Pi plays on its default output | LHU-049 | Step 3.16, item 3 | Not yet verified |
 | A26 | A software H.264 encode at 1280 x 720 and 30 frames per second (`preset=ultrafast`) keeps up on the Pi 5 beside the hub, the app and the OBD polling, without lowering the OBD request rate by more than 20% | LHU-049 | Step 3.16, item 5 | Not yet measured |
+| A27 | Safari on iOS gives a page its position when the page's certificate chains to a private authority that the owner installed as a profile and fully trusted (Settings, General, About, Certificate Trust Settings) | LHU-053 | Step 3.18, items 2 and 3 | Not yet verified |
+| A28 | The iPhone hotspot gives its clients addresses in 172.20.10.0/28, so the server certificate names every one of them; the phone reaches the Pi on port 8443 | LHU-053 | Step 3.18, item 1 | Not yet verified |
+| A29 | Safari keeps reporting the position about once a second while the page is in front and the phone is unlocked (with a screen wake lock where offered), and stops in the background | LHU-053 | Step 3.18, items 4 and 5 | Not yet verified |
 | A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | **Verified 2026-10-11**: the adapter was plugged into the port and the car answered |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): one stored code read (P0420); the 17-character identification read |
 
@@ -316,6 +320,19 @@ Results: not yet done.
 6. The eighth grid tile is Air flow in g/s and changes with the engine speed.
 
 Record in `docs/test/results/<date>_screens_in_the_car.md`.
+
+Results: not yet done.
+
+### 3.18 The phone's position (LHU-053)
+
+1. After the install (it makes the certificates; the self-check shows "phone link certificates" PASS) and a reboot, with the Pi on the iPhone hotspot: the hub's address line reads `Phone https://172.20.10.x:8443`. Record the address (A28).
+2. On the iPhone, open that address in Safari. Expect a certificate warning; record its wording. Tap through (Show Details, visit this website), then tap "install the head unit's certificate", allow the profile, install it in Settings, General, VPN and Device Management, then turn on full trust in Settings, General, About, Certificate Trust Settings.
+3. Close and reopen the page: no warning. Tap Share position, allow location: the page counts reports sent. On the Pi: `busctl --user call io.github.samersamaha.LexusHeadUnit /io/github/samersamaha/LexusHeadUnit/VehicleData io.github.samersamaha.LexusHeadUnit.VehicleData1 GetSamples` lists signals 17, 18, 19 with status 1 (A27). Never paste the values anywhere: they are the owner's position.
+4. Watch for 2 minutes: the count rises by about one a second (A29).
+5. Lock the phone: within 6 s the signals go Stale (status 2); unlock and return to the page: Valid again.
+6. If item 3 fails even with full trust: record the iOS version and the page's message, and try the same page in Chrome on the iPhone; the fallback is LHU-053's alternative (a position app streaming to the Pi), decided with the owner.
+
+Record in `docs/test/results/<date>_phone_position.md` without any coordinate.
 
 Results: not yet done.
 

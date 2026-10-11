@@ -55,3 +55,10 @@ min_free_mb = 2048
 # A full recorder command line with {file} in place of the file name replaces the built-in
 # wf-recorder command when set (only if the Pi needs other options).
 command =
+
+[phone_link]
+# The phone's position for the map (LHU-053): the vehicle-data service serves a page at
+# https://<the Pi's address>:<port>/ that Safari opens on the iPhone. on or off. The
+# certificates are made by the install script in ~/.config/lexus-head-unit/phone-link/.
+enabled = on
+port = 8443

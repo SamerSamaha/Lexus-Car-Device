@@ -33,6 +33,9 @@ SERVICE_BINARY = "/usr/local/bin/lexus-vehicle-data-service"
 EMULATOR_LINK = "/tmp/lexus-obd-emulator"
 COUNTER_FILE = "next_session_number"
 RECORDING_FILE = "obd.rec"
+PHONE_LINK_FOLDER = Path.home() / ".config" / "lexus-head-unit" / "phone-link"
+PHONE_LINK_FILES = ("server.crt", "server.key", "ca.crt")
+DEFAULT_PHONE_LINK_PORT = 8443
 
 
 def next_session_number(sessions: Path) -> int:
@@ -79,7 +82,20 @@ def overrides_for(mode: str, values: Dict[str, str], sessions: Path,
     return ["[source]", "kind = replay", "[replay]", f"file = {recording}", f"timing = {timing}"]
 
 
-def prepare(values: Dict[str, str], repository: Path, service_binary: str) -> Dict[str, object]:
+def phone_link_lines(values: Dict[str, str], folder: Path = PHONE_LINK_FOLDER) -> List[str]:
+    """The [phone_link] lines for the service (LHU-053): on unless car.conf says
+    phone_link.enabled = off, and only when the install script has made the certificates."""
+    if values.get("phone_link.enabled", "on").strip().lower() in ("off", "no", "false", "0"):
+        return []
+    if not all((folder / name).is_file() for name in PHONE_LINK_FILES):
+        return []
+    port = values.get("phone_link.port", "").strip() or str(DEFAULT_PHONE_LINK_PORT)
+    return ["[phone_link]", f"port = {port}", f"certificate = {folder / 'server.crt'}",
+            f"key = {folder / 'server.key'}", f"ca_certificate = {folder / 'ca.crt'}"]
+
+
+def prepare(values: Dict[str, str], repository: Path, service_binary: str,
+            phone_link_folder: Path = PHONE_LINK_FOLDER) -> Dict[str, object]:
     mode = car_config.mode_of(values)
     sessions = car_config.data_directory(values) / "sessions"
     number = next_session_number(sessions)
@@ -91,6 +107,7 @@ def prepare(values: Dict[str, str], repository: Path, service_binary: str) -> Di
         notes.append(f"mode {mode}: no recording to replay; running the demo source instead")
         mode = "demo"
         overrides = ["[source]", "kind = fake"]
+    overrides = overrides + phone_link_lines(values, phone_link_folder)
     base = (repository / "deploy" / "head_unit.conf").read_text(encoding="utf-8")
     configuration = session / "head_unit.conf"
     configuration.write_text(

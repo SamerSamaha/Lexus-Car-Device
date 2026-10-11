@@ -1,3 +1,5 @@
+#include "lexus_head_unit/phone_link/phone_link_server.h"
+#include "lexus_head_unit/phone_link/phone_position.h"
 #include "lexus_head_unit/process_support/quit_on_signals.h"
 #include "lexus_head_unit/service/clock.h"
 #include "lexus_head_unit/service/connection_state_machine.h"
@@ -18,6 +20,7 @@
 #include <QDBusConnection>
 #include <QDBusError>
 #include <QString>
+#include <QTimer>
 
 #include <cstdint>
 #include <iostream>
@@ -41,6 +44,54 @@ using lexus_head_unit::WorkerLoop;
 constexpr int exitCodeNoBus = 1;
 constexpr int exitCodeNameTaken = 2;
 constexpr std::int64_t sessionLogIntervalMilliseconds = 10000;
+constexpr int phoneStalenessCheckMilliseconds = 500;
+
+// The phone link (DN-053): positions from the phone's browser, published like the vehicle
+// signals, on this thread only. Off unless phone_link.port is set (car mode, with the
+// certificates the install script makes).
+void startPhoneLink(const KeyValueConfiguration& configuration,
+                    lexus_head_unit::PhoneLinkServer& phoneLink,
+                    lexus_head_unit::PhonePositionTracker& phonePosition,
+                    QTimer& phoneStaleness,
+                    VehicleDataService& service,
+                    const SteadyClock& clock) {
+    const std::int64_t phoneLinkPort = configuration.integerValue("phone_link.port", 0);
+    if (phoneLinkPort <= 0) {
+        return;
+    }
+    lexus_head_unit::PhoneLinkServer::Settings settings;
+    settings.port = static_cast<quint16>(phoneLinkPort);
+    settings.certificatePath =
+        QString::fromStdString(configuration.stringValue("phone_link.certificate", ""));
+    settings.keyPath = QString::fromStdString(configuration.stringValue("phone_link.key", ""));
+    settings.caCertificatePath =
+        QString::fromStdString(configuration.stringValue("phone_link.ca_certificate", ""));
+    QString phoneLinkError;
+    if (phoneLink.start(settings, phoneLinkError)) {
+        std::cerr << "lexus-vehicle-data-service: phone link on port " << phoneLink.port() << "\n";
+    } else {
+        std::cerr << "lexus-vehicle-data-service: phone link off: " << phoneLinkError.toStdString()
+                  << "\n";
+        return;
+    }
+    QObject::connect(&phoneLink,
+                     &lexus_head_unit::PhoneLinkServer::positionReceived,
+                     &phoneLink,
+                     [&phonePosition, &service, &clock](lexus_head_unit::PhonePosition position) {
+                         for (const SignalSample& sample :
+                              phonePosition.onPosition(position, clock.nowMilliseconds())) {
+                             service.publishSample(sample);
+                         }
+                     });
+    QObject::connect(
+        &phoneStaleness, &QTimer::timeout, &phoneLink, [&phonePosition, &service, &clock]() {
+            for (const SignalSample& sample :
+                 phonePosition.checkStaleness(clock.nowMilliseconds())) {
+                service.publishSample(sample);
+            }
+        });
+    phoneStaleness.start(phoneStalenessCheckMilliseconds);
+}
 
 QDBusConnection connectToBus(const QString& kind, const QString& address) {
     if (!address.isEmpty()) {
@@ -178,6 +229,11 @@ int main(int argumentCount, char** argumentValues) {
                 clock.nowMilliseconds(), source.connectionState(), source.counters());
         }
     });
+    // The phone link (DN-053), declared here so it lives as long as the event loop.
+    lexus_head_unit::PhoneLinkServer phoneLink;
+    lexus_head_unit::PhonePositionTracker phonePosition;
+    QTimer phoneStaleness;
+    startPhoneLink(configuration, phoneLink, phonePosition, phoneStaleness, service, clock);
     if (!lexus_head_unit::installQuitOnSignals()) {
         std::cerr << "lexus-vehicle-data-service: could not install the signal handlers\n";
     }

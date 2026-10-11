@@ -79,3 +79,4 @@ In this order:
 | [DN-049](DN-049-screen-recording.md) Screen recording with sound, and masking of private data on screen (light) | LHU-049 | Implemented |
 | [DN-050](DN-050-display-units.md) US units on screen (light) | LHU-050 | Implemented |
 | [DN-051](DN-051-display-fixes.md) Display fixes from the first car day (light) | LHU-051 | Implemented |
+| [DN-053](DN-053-phone-position.md) The phone's position over the phone link | LHU-053 | Implemented |

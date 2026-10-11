@@ -1,4 +1,4 @@
-// Verifies: REQ-003, REQ-006
+// Verifies: REQ-003, REQ-006, REQ-029
 
 #include "lexus_head_unit/service/signal_definition.h"
 #include "lexus_head_unit/service/signal_id.h"
@@ -85,11 +85,17 @@ TEST(SignalDefinitionTest, TableHasOneRowPerSignalInEnumerationOrder) {
     }
 }
 
-TEST(SignalDefinitionTest, EveryDefaultTimeoutIsOneSecond) {
+TEST(SignalDefinitionTest, EveryDefaultTimeoutIsOneSecondAndThePhonesFive) {
+    // The phone reports about once a second over Wi-Fi, so its position is stale after 5 s
+    // (DN-053); every vehicle signal after 1 s.
     for (const auto& definition : defaultSignalDefinitions()) {
-        EXPECT_EQ(definition.stalenessTimeoutMilliseconds, defaultStalenessTimeoutMilliseconds);
+        EXPECT_EQ(definition.stalenessTimeoutMilliseconds,
+                  lexus_head_unit::isPhoneSignal(definition.id)
+                      ? lexus_head_unit::phoneStalenessTimeoutMilliseconds
+                      : defaultStalenessTimeoutMilliseconds);
     }
     EXPECT_EQ(defaultStalenessTimeoutMilliseconds, 1000);
+    EXPECT_EQ(lexus_head_unit::phoneStalenessTimeoutMilliseconds, 5000);
 }
 
 TEST(SignalDefinitionTest, DefinitionOfReturnsTheMatchingRowWithItsUnit) {

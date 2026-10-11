@@ -24,7 +24,8 @@ EXIT_CODE_NO_FINDING = 0
 EXIT_CODE_FINDING = 1
 EXIT_CODE_CHECK_COULD_NOT_RUN = 2
 
-GUARDED_EXACT_TARGETS = ("lexus_head_unit_service", "lexus_head_unit_service_dbus")
+GUARDED_EXACT_TARGETS = ("lexus_head_unit_service", "lexus_head_unit_service_dbus",
+                         "lexus_head_unit_phone_link")
 GUARDED_PREFIXES = ("lexus_head_unit_hmi", "lexus_head_unit_hub")
 CONCRETE_SOURCE_SUFFIX = "_source"
 

@@ -27,10 +27,15 @@ enum class SignalId {
     Time2500To3999Rpm,
     TimeFrom4000Rpm,
     CoolantWarmUpTime,
+    // The phone's position (DN-053, REQ-029), reported by the phone over the phone link and
+    // published like the vehicle signals. Appended, so the numbers above stay the same on D-Bus.
+    Latitude,
+    Longitude,
+    PositionAccuracy,
 };
 
-constexpr std::size_t signalCount = 17;
-static_assert(static_cast<std::size_t>(SignalId::CoolantWarmUpTime) + 1 == signalCount,
+constexpr std::size_t signalCount = 20;
+static_assert(static_cast<std::size_t>(SignalId::PositionAccuracy) + 1 == signalCount,
               "signalCount must follow the last SignalId");
 
 constexpr std::array<SignalId, signalCount> allSignalIds = {
@@ -51,6 +56,9 @@ constexpr std::array<SignalId, signalCount> allSignalIds = {
     SignalId::Time2500To3999Rpm,
     SignalId::TimeFrom4000Rpm,
     SignalId::CoolantWarmUpTime,
+    SignalId::Latitude,
+    SignalId::Longitude,
+    SignalId::PositionAccuracy,
 };
 
 // What a source can produce.
@@ -96,8 +104,16 @@ constexpr std::array<SignalId, derivedSignalCount> derivedSignalIds = {
     SignalId::TimeFrom4000Rpm,
 };
 
-static_assert(measuredSignalCount + derivedSignalCount == signalCount,
-              "every signal is either measured or derived");
+// Reported by the phone, not by a vehicle source (DN-053).
+constexpr std::size_t phoneSignalCount = 3;
+constexpr std::array<SignalId, phoneSignalCount> phoneSignalIds = {
+    SignalId::Latitude,
+    SignalId::Longitude,
+    SignalId::PositionAccuracy,
+};
+
+static_assert(measuredSignalCount + derivedSignalCount + phoneSignalCount == signalCount,
+              "every signal is measured, derived or from the phone");
 
 enum class Unit {
     KilometresPerHour,
@@ -109,10 +125,13 @@ enum class Unit {
     LitresPer100Kilometres,
     Kilometres,
     Minutes,
+    // Appended for the phone's position (DN-053).
+    Degrees,
+    Metres,
 };
 
-constexpr std::size_t unitCount = 9;
-static_assert(static_cast<std::size_t>(Unit::Minutes) + 1 == unitCount,
+constexpr std::size_t unitCount = 11;
+static_assert(static_cast<std::size_t>(Unit::Metres) + 1 == unitCount,
               "unitCount must follow the last Unit");
 
 enum class SignalStatus {
@@ -130,7 +149,12 @@ constexpr bool isKnownSignal(SignalId signalId) {
 }
 
 constexpr bool isDerivedSignal(SignalId signalId) {
-    return indexOf(signalId) > indexOf(SignalId::MassAirFlow) && isKnownSignal(signalId);
+    return indexOf(signalId) > indexOf(SignalId::MassAirFlow) &&
+           indexOf(signalId) <= indexOf(SignalId::CoolantWarmUpTime);
+}
+
+constexpr bool isPhoneSignal(SignalId signalId) {
+    return indexOf(signalId) >= indexOf(SignalId::Latitude) && isKnownSignal(signalId);
 }
 
 std::string_view toString(SignalId signalId);
