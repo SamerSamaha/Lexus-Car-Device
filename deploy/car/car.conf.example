@@ -72,3 +72,9 @@ home_longitude =
 home_radius_m = 500
 # on: hidden near home even when not recording.
 mask_home_always = off
+
+[audio]
+# The car stereo (LHU-056). Written by lexus-car-audio after pairing; never committed.
+address =
+# Part of the stereo's Bluetooth name as the car shows it (assumption A34).
+name_fragment = LEXUS

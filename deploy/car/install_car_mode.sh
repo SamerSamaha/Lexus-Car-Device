@@ -90,10 +90,12 @@ step "1. Packages (installed only if missing)"
 # the screen and the sound output for the demo videos (LHU-049). openssl makes the phone
 # link's certificates (LHU-053). The QtLocation and QtPositioning QML modules and the location
 # plugins (OpenStreetMap) are the map app (LHU-054). chromium runs the web apps (LHU-055).
+# libspa-0.2-bluetooth and pulseaudio-utils let PipeWire play to the car stereo over Bluetooth
+# and pactl choose it as the output (LHU-056).
 packages="libqt6core6t64 libqt6gui6 libqt6dbus6 libqt6network6 libqt6qml6 libqt6quick6
           qml6-module-qtquick qml6-module-qtquick-window bluez python3 lxterminal wf-recorder
           openssl qml6-module-qtlocation qml6-module-qtpositioning qt6-location-plugins
-          chromium"
+          chromium libspa-0.2-bluetooth pulseaudio-utils"
 if [ "$build" -eq 1 ]; then
     # Building here: compiler, CMake and Ninja, the Qt development files, GoogleTest for the
     # test targets the build includes, and dbus-daemon for the D-Bus tests.
@@ -152,7 +154,8 @@ fi
 step "3. Car-mode tools as commands"
 for pair in "car_session.py:lexus-car-session" "car_mode.py:lexus-mode" \
             "pair_adapter.py:lexus-pair-adapter" "export_sessions.py:lexus-export-sessions" \
-            "self_check.py:lexus-car-selfcheck" "screen_record.py:lexus-screen-record"; do
+            "self_check.py:lexus-car-selfcheck" "screen_record.py:lexus-screen-record" \
+            "car_audio.py:lexus-car-audio"; do
     run sudo ln -sfn "$repository/tools/car/${pair%%:*}" "/usr/local/bin/${pair##*:}"
 done
 run sudo ln -sfn "$repository/deploy/bind_obd_adapter.sh" /usr/local/bin/lexus-bind-adapter

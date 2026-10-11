@@ -35,6 +35,7 @@ Rules:
 | Phone position from Safari on the iPhone | LHU-053 | Server, certificates, signals and the D-Bus path built and tested at the desk (LHU-053); step 3.18 not yet done |
 | Map app with the phone's position, hidden near home while recording | LHU-054 | Model, screen and program built and tested at the desk without the QtLocation module (LHU-054); step 3.19 not yet done |
 | Web apps in the car with the Hub button; Spotify web player or not | LHU-055 | Wrapper, extension, registry and the hub's Close control built and tested at the desk (LHU-055); step 3.20 not yet done |
+| Car stereo over Bluetooth from the hub tile | LHU-056 | Tool and tile built and tested at the desk against a fake Bluetooth tool (LHU-056); step 3.21 not yet done; the car radio is broken at the moment (owner, 2026-10-11) |
 | US units on the touchscreen | LHU-050 | Built and tested at the desk (LHU-050); step 3.17 not yet done |
 | On-car procedure and drives | LHU-034 | Procedure written: parked run P1 to P8, drive run D1 to D4, a results template (`docs/test/MANUAL_ON_CAR_PROCEDURE.md`, LHU-034); no scripted run done; the first car day is recorded in `docs/test/results/2026-10-11_first_car_day.md`; mounting is not a requirement (OQ-14 closed 2026-10-11) |
 
@@ -75,6 +76,7 @@ Each row is an assumption made at the desk. The design note of the ticket names 
 | A31 | The QtLocation map draws smoothly enough on the Pi 5 under labwc beside the service and the recorder (no measured target) | LHU-054 | Step 3.19, item 3 | Not yet verified |
 | A32 | Chromium from Raspberry Pi OS (Trixie) loads an unpacked extension from `--load-extension` (with `--disable-features=DisableLoadExtensionCommandLineSwitch`), and closing its one window with its own profile ends the process the hub started | LHU-055 | Step 3.20, items 2 and 3 | Not yet verified |
 | A33 | The extension's Hub button stays visible over YouTube, including a video in full screen, and a tap on it is not taken by the page | LHU-055 | Step 3.20, item 3 | Not yet verified |
+| A34 | The 2013 GS350's stereo shows a Bluetooth name containing "LEXUS", accepts the Pi as an audio source (A2DP) with a passkey confirmation, and plays it when Bluetooth audio is selected on the car (the owner says it accepts Bluetooth audio, OQ-30) | LHU-056 | Step 3.21, items 1 to 3 | Not yet verified |
 | A23 | The diagnostic port of the 2013 GS350 is under the dashboard on the driver's side, below and left of the steering column, as on other Lexus models | LHU-045 | `docs/release/CAR_DAY_GUIDE.md` B1, step 2 (look) | **Verified 2026-10-11**: the adapter was plugged into the port and the car answered |
 | A15 | The GS350 answers `03` in the CAN format (a count byte, multi-frame when there are more than two codes) and `0902` with a 17-character identification, as the emulator does; replies from more than one ECU are joined | DN-030 | Step 3.10 | **Verified 2026-10-11** (`docs/test/results/2026-10-11_first_car_day.md`): one stored code read (P0420); the 17-character identification read |
 
@@ -365,6 +367,17 @@ Results: not yet done.
 Record in `docs/test/results/<date>_web_apps_in_the_car.md`.
 
 Results: not yet done.
+
+### 3.21 The car stereo (LHU-056)
+
+1. Parked, ignition on, the car's Bluetooth in pairing mode (Setup, Bluetooth, add a device). Tap Car audio on the hub: the terminal reports the stereo found (masked address), asks to confirm on the car; confirm on the car. Record the name the car showed and the passkey step (A34). If the name does not contain LEXUS, set `[audio] name_fragment` in car.conf and repeat.
+2. Select Bluetooth audio as the car's source. Play a YouTube video: the sound comes from the car speakers.
+3. Reboot the Pi, tap Car audio again: it connects without a scan.
+4. REQ-019 (OQ-28): run the audio section of `docs/test/MANUAL_ON_CAR_PROCEDURE.md` with the OBD link live: 30 minutes, the session summary's transitions and request rates with and without audio.
+
+Record in `docs/test/results/<date>_car_stereo.md` (no address).
+
+Results: not yet done; the car radio is broken at the moment.
 
 ### 3.3 Clean-build measurement on the Pi (LHU-018)
 

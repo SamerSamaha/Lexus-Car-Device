@@ -29,7 +29,7 @@ PASS, FAIL, SKIP = "PASS", "FAIL", "SKIP"
 EXECUTABLES = ("lexus-hub", "lexus-head-unit", "lexus-vehicle-data-service", "lexus-map")
 SCRIPTS = ("lexus-car-session", "lexus-mode", "lexus-pair-adapter", "lexus-export-sessions",
            "lexus-bind-adapter", "lexus-hub-session", "lexus-car-selfcheck",
-           "lexus-screen-record", "lexus-browser")
+           "lexus-screen-record", "lexus-browser", "lexus-car-audio")
 BUS_NAME = "io.github.samersamaha.LexusHeadUnit"
 OBJECT_PATH = "/io/github/samersamaha/LexusHeadUnit/VehicleData"
 INTERFACE = "io.github.samersamaha.LexusHeadUnit.VehicleData1"

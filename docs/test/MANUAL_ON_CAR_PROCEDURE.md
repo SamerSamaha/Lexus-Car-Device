@@ -71,7 +71,7 @@ Parked, engine running or ignition on (the stereo must be on), the adapter in th
 
 1. Find out whether the stereo accepts Bluetooth audio from a phone-like device (OQ-30): in the car's own menus, look for Bluetooth audio or "add device". Record the menu path. If it does not, record that and stop: REQ-019 cannot be met without a purchase, and D-044 rules purchases out.
 2. Pair the Pi with the stereo from the Pi's desktop Bluetooth menu (the stereo in pairing mode). No address is written down anywhere in this repository.
-3. Connect, then run `deploy/set_audio_output_to_car.sh`. Expected: "default output is now the Bluetooth device".
+3. Connect, then run `deploy/set_audio_output_to_car.sh`. Expected: "default output is now the Bluetooth device". In car mode the hub's Car audio tile (`lexus-car-audio`, LHU-056) does the pairing, the connection and this step in one.
 4. Restart the service with a session log: in `~/.config/systemd/user/lexus-vehicle-data-service.service` add `--session-log %h/local_recordings/<date>_audio_session.csv` to `ExecStart`, then `systemctl --user daemon-reload && systemctl --user restart lexus-vehicle-data-service`.
 
 ### The 30-minute session
