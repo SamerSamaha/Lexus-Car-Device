@@ -1,0 +1,46 @@
+#!/bin/sh
+# The browser of car mode (LHU-055, DN-055): one Chromium window, full screen, with the Hub
+# button extension, for the web apps of deploy/car/hub_car.conf.
+#
+#   lexus-browser <url>              starts it (the hub runs this as the app's command)
+#   lexus-browser --print <url>      prints the command and starts nothing (tests)
+#
+# exec: the browser becomes the process the hub started, so the hub tracks it and sees it exit
+# when the Hub button closes the window. The profile is kept in ~/.cache/lexus-car-browser, so a
+# login (YouTube, Spotify) survives a reboot; it is the only Chromium using that profile, so the
+# browser never hands the page to another instance and exits (assumption A10).
+#   --ozone-platform=wayland        a native Wayland client under labwc (D-045)
+#   --load-extension                the Hub button (deploy/car/browser_return, installed into
+#                                   /usr/local/share/lexus-head-unit/browser-return)
+#   --disable-features=DisableLoadExtensionCommandLineSwitch
+#                                   keeps --load-extension working where a Chromium build
+#                                   turns it off by default (assumption A32)
+#   --start-fullscreen --app=<url>  one window with no tabs or address bar, over the hub
+#   --autoplay-policy=no-user-gesture-required
+#                                   a video or song started from the hub plays without a tap
+#   --no-first-run --noerrdialogs --password-store=basic
+#                                   no dialog a touch screen cannot answer
+set -eu
+print=0
+if [ "${1:-}" = "--print" ]; then
+    print=1
+    shift
+fi
+url="${1:?usage: lexus-browser [--print] <url>}"
+extension="${LEXUS_BROWSER_EXTENSION:-/usr/local/share/lexus-head-unit/browser-return}"
+profile="${LEXUS_BROWSER_PROFILE:-$HOME/.cache/lexus-car-browser}"
+browser="${LEXUS_BROWSER:-chromium}"
+set -- "$browser" --ozone-platform=wayland \
+    --user-data-dir="$profile" \
+    --load-extension="$extension" \
+    --disable-features=DisableLoadExtensionCommandLineSwitch \
+    --start-fullscreen \
+    --autoplay-policy=no-user-gesture-required \
+    --no-first-run --noerrdialogs --password-store=basic \
+    --app="$url"
+if [ "$print" -eq 1 ]; then
+    printf '%s\n' "$@"
+    exit 0
+fi
+mkdir -p "$profile"
+exec "$@"

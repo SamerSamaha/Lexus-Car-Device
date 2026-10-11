@@ -454,6 +454,7 @@ After the first car day, for the portfolio demo video: the unit is recorded in t
 | LHU-052 | Documentation of the first car day: results file, assumptions verified, mounting no longer a requirement (OQ-14 closed). **Done 2026-10-11** | 0.5 | exempt | 0.5 | — |
 | LHU-053 | The phone's position: an HTTPS page served by the vehicle-data service, the position published as three signals over D-Bus, a private certificate authority for the iPhone, the address on the hub. **Done 2026-10-11** (DN-053, full); the iPhone part is step 3.18 | 5 | 1.75 full | 6.75 | 029 |
 | LHU-054 | The map app: the phone's position on OpenStreetMap (QtLocation from Debian), live or stale, a Hub control, the position and the map hidden near home while recording. **Done 2026-10-11** (DN-054, light); the map on the Pi is step 3.19 | 3 | 0.75 light | 3.75 | 030 |
+| LHU-055 | Web apps in the car: YouTube and Spotify full screen in Chromium with a Hub button on every page (an extension that closes the window), a Close control on the hub strip; Spotify Connect described as the fallback. **Done 2026-10-11** (DN-055, light); the browser on the Pi is step 3.20 | 2 | 0.75 light | 2.75 | 031 |
 
 ### Roadmap (not scheduled)
 
